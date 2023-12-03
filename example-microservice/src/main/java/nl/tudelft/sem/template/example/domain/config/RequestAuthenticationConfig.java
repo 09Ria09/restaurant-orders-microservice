@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.example.config;
+package nl.tudelft.sem.template.example.domain.config;
 
 import nl.tudelft.sem.template.example.authentication.JwtAuthenticationEntryPoint;
 import nl.tudelft.sem.template.example.authentication.JwtRequestFilter;
