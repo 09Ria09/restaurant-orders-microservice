@@ -6,6 +6,7 @@ buildscript {
 	}
 	dependencies {
 		classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.5.2'
+		classpath "org.openapitools:openapi-generator-gradle-plugin:6.6.0"
 	}
 }
 
@@ -24,6 +25,9 @@ plugins {
 
 	// PITest
 	id 'info.solidsoft.pitest' version '1.5.2'
+
+	// OpenAPI
+	id 'org.openapi.generator' version '4.0.1'
 }
 
 group = 'nl.tudelft.cse.sem.template'
@@ -59,6 +63,8 @@ dependencies {
 	testImplementation('org.junit.jupiter:junit-jupiter:5.8.2')
 	testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.12.4'
 	testImplementation('org.assertj:assertj-core:3.23.1')
+
+	implementation 'org.openapitools:jackson-databind-nullable:0.1.0'
 }
 
 test {
@@ -119,3 +125,19 @@ pitest {
 	outputFormats = ['XML', 'HTML']
 	timestampedReports = false
 }
+
+apply plugin: 'org.openapi.generator'
+openApiGenerate {
+	generatorName.set("spring")
+	inputSpec.set("$rootDir/example-microservice/src/main/resources/openapi.yaml")
+	outputDir.set("$buildDir/generated")
+	apiPackage.set("nl.tudelft.sem.template.api")
+	modelPackage.set("nl.tudelft.sem.template.model")
+	configOptions.set([
+			dateLibrary: "java15",
+			// Exclude controller generation
+			interfaceOnly: 'true'
+	])
+}
+
+compileJava.dependsOn tasks.named("openApiGenerate")
