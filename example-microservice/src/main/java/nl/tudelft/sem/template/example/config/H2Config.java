@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.example.domain.config;
+package nl.tudelft.sem.template.example.config;
 
 import javax.sql.DataSource;
 import lombok.Getter;
