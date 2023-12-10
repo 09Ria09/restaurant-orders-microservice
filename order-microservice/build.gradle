@@ -6,7 +6,7 @@ buildscript {
 	}
 	dependencies {
 		classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.5.2'
-		classpath "org.openapitools:openapi-generator-gradle-plugin:6.6.0"
+		classpath "org.openapitools:openapi-generator-gradle-plugin:7.0.1"
 	}
 }
 
@@ -26,7 +26,7 @@ plugins {
 	// PITest
 	id 'info.solidsoft.pitest' version '1.5.2'
 
-	id 'org.openapi.generator' version '4.0.1'
+	id 'org.openapi.generator' version '7.0.1'
 }
 
 group = 'nl.tudelft.sem.orders'
@@ -53,6 +53,15 @@ dependencies {
 	implementation 'io.springfox:springfox-swagger2:2.8.0'
 	implementation 'io.springfox:springfox-swagger-ui:2.8.0'
 	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
+
+	// deps for the openapi generation
+
+	implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+	implementation 'com.google.code.gson:gson:2.10.1'
+	implementation 'com.google.code.findbugs:jsr305:3.0.2'
+	implementation 'jakarta.ws.rs:jakarta.ws.rs-api:3.1.0'
+	implementation 'io.gsonfire:gson-fire:1.9.0'
+	implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
 
 
 	// Local test database (in-memory)
@@ -104,7 +113,7 @@ jacocoTestCoverageVerification() {
 }
 
 apply plugin: 'org.openapi.generator'
-openApiGenerate {
+task ourGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
 	generatorName.set("spring")
 	inputSpec.set("$rootDir/order-microservice/src/main/resources/openapi.yaml")
 	outputDir.set("$buildDir/generated")
@@ -118,19 +127,55 @@ openApiGenerate {
 	skipOperationExample.set(true)
 }
 
-compileJava.dependsOn tasks.named("openApiGenerate")
+task userGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+	generatorName.set("java")
+	inputSpec.set("$rootDir/order-microservice/src/main/resources/user.yaml")
+	outputDir.set("$buildDir/generated")
+	apiPackage.set("nl.tudelft.sem.users.api")
+	modelPackage.set("nl.tudelft.sem.users.model")
+	configOptions.set([
+			dateLibrary: "java15",
+			// Exclude controller generation
+			interfaceOnly: 'true'
+	])
+	skipOperationExample.set(true)
+}
+
+task deliveryGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+	generatorName.set("java")
+	inputSpec.set("$rootDir/order-microservice/src/main/resources/delivery.yaml")
+	outputDir.set("$buildDir/generated")
+	apiPackage.set("nl.tudelft.sem.delivery.api")
+	modelPackage.set("nl.tudelft.sem.delivery.model")
+	configOptions.set([
+			dateLibrary: "java15",
+			// Exclude controller generation
+			interfaceOnly: 'true'
+	])
+	skipOperationExample.set(true)
+}
+
+compileJava.dependsOn tasks.named("ourGenerate")
+compileJava.dependsOn tasks.named("userGenerate")
+compileJava.dependsOn tasks.named("deliveryGenerate")
 
 checkstyle {
 	toolVersion "8.37"
-	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+	configFile = file("${rootDir}/config/checkstyle.xml")
 	ignoreFailures = false
 	maxErrors = 0
 	maxWarnings = 0
+
 }
+
+checkstyleMain.source = "src/main/java"
+checkstyleTest.source = "src/test/java"
+pmdMain.source = "src/main/java"
+pmdTest.source = "src/test/java"
 
 pmd {
 	incrementalAnalysis = true
-	sourceSets = [sourceSets.main]
+	sourceSets = [project.sourceSets.main]
 }
 
 apply plugin: 'info.solidsoft.pitest'
