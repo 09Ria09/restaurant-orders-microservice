@@ -64,6 +64,6 @@ test-order-microservice:
   stage: test
   script:
     - gradle order-microservice:test order-microservice:jacocoTestReport
-    - cat example-microservice/build/reports/jacoco/test/html/index.html | grep -Po "Total.*?([0-9]{1,3})%"
+    - cat order-microservice/build/reports/jacoco/test/html/index.html | grep -Po "Total.*?([0-9]{1,3})%"
   coverage: /([0-9]{1,3})%/
 

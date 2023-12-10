@@ -1,25 +1,41 @@
-package nl.tudelft.sem.template.example.controllers;
+package nl.tudelft.sem.orders.controllers;
 
+import nl.tudelft.sem.orders.api.OrderApi;
+import nl.tudelft.sem.orders.model.OrderOrderIDPayPostRequest;
+import nl.tudelft.sem.orders.ring0.OrderFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-public class OrderController {
+@RequestMapping("/vendor/")
+public class OrderController implements OrderApi {
+    private transient OrderFacade ordersFacade;
 
     /**
-     * Creates a new Order Controller.
+     * Creates a new OrderController instance.
+     *
+     * @param ordersFacade The class providing orders logic.
      */
     @Autowired
-    public OrderController() {
+    OrderController(OrderFacade ordersFacade) {
+        this.ordersFacade = ordersFacade;
     }
 
-    @GetMapping("/hi/")
-    public ResponseEntity<String> helloWorld() {
-        return ResponseEntity.ok("Hello more");
-
+    @Override
+    public ResponseEntity<Void> orderOrderIDPayPost(
+            Long userId,
+            Long orderId,
+            OrderOrderIDPayPostRequest orderOrderIDPayPostRequest
+    ) {
+        try {
+            ordersFacade.payForOrder(userId, orderId,
+                    orderOrderIDPayPostRequest.getPaymentConfirmation());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
-
 }
