@@ -1,3 +1,5 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 buildscript {
 	repositories {
 		mavenCentral()
@@ -112,42 +114,42 @@ jacocoTestCoverageVerification() {
 }
 
 apply plugin: 'org.openapi.generator'
-task ourGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+tasks.register('ourGenerate', GenerateTask) {
 	generatorName.set("spring")
 	inputSpec.set("$rootDir/order-microservice/src/main/resources/openapi.yaml")
 	outputDir.set("$buildDir/generated")
 	apiPackage.set("nl.tudelft.sem.orders.api")
 	modelPackage.set("nl.tudelft.sem.orders.model")
 	configOptions.set([
-			dateLibrary: "java15",
+			dateLibrary  : "java15",
 			// Exclude controller generation
 			interfaceOnly: 'true'
 	])
 	skipOperationExample.set(true)
 }
 
-task userGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+tasks.register('userGenerate', GenerateTask) {
 	generatorName.set("java")
 	inputSpec.set("$rootDir/order-microservice/src/main/resources/user.yaml")
 	outputDir.set("$buildDir/generated")
 	apiPackage.set("nl.tudelft.sem.users.api")
 	modelPackage.set("nl.tudelft.sem.users.model")
 	configOptions.set([
-			dateLibrary: "java15",
+			dateLibrary  : "java15",
 			// Exclude controller generation
 			interfaceOnly: 'true'
 	])
 	skipOperationExample.set(true)
 }
 
-task deliveryGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+tasks.register('deliveryGenerate', GenerateTask) {
 	generatorName.set("java")
 	inputSpec.set("$rootDir/order-microservice/src/main/resources/delivery.yaml")
 	outputDir.set("$buildDir/generated")
 	apiPackage.set("nl.tudelft.sem.delivery.api")
 	modelPackage.set("nl.tudelft.sem.delivery.model")
 	configOptions.set([
-			dateLibrary: "java15",
+			dateLibrary  : "java15",
 			// Exclude controller generation
 			interfaceOnly: 'true'
 	])
