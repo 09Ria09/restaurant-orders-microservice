@@ -10,8 +10,8 @@ import org.springframework.web.client.RestTemplate;
 
 public class UserMicroserviceAdapter implements UserMicroservice {
 
-    private final RestTemplate restTemplate;
-    private final String apiUrl = "http://localhost:8081";
+    private final transient RestTemplate restTemplate;
+    private final static String apiUrl = "http://localhost:8081";
 
     public UserMicroserviceAdapter() {
         restTemplate = new RestTemplate();

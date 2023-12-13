@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class OrderFacade implements OrderLogic {
     private final transient OrderDatabase orderDatabase;
     private final transient DishDatabase dishDatabase;
-    private final UserMicroservice userMicroservice;
+    private final transient UserMicroservice userMicroservice;
 
     /**
      * Constructor.
@@ -77,31 +77,32 @@ public class OrderFacade implements OrderLogic {
         }
 
         // Convert the list of IDs and amounts to a list of Dishes and amounts.
-        OrderDishesInner[] convertedDishes;
         try {
-            convertedDishes = (OrderDishesInner[]) dishes.stream().map(
+            OrderDishesInner[] convertedDishes = (OrderDishesInner[])
+                dishes.stream().map(
                     (dish) -> new OrderDishesInner(
                         dishDatabase.getById(dish.getId()), dish.getQuantity()))
                 .toArray();
+
+            // Check if the dishes belong to the vendor and calculate the price.
+            float totalPrice = 0.0f;
+            for (OrderDishesInner dish : convertedDishes) {
+                if (!Objects.equals(dish.getDish().getVendorID(),
+                    order.getVendorID())) {
+                    throw new IllegalStateException();
+                }
+                totalPrice += dish.getDish().getPrice() * dish.getAmount();
+            }
+
+            // Update the dishes.
+            order.setDishes(List.of(convertedDishes));
+
+            // Return the price.
+            return totalPrice;
+
         } catch (EntityNotFoundException e) {
             // Dish list is invalid.
             throw new IllegalStateException();
         }
-
-        // Check if the dishes belong to the vendor and calculate the price.
-        float totalPrice = 0.0f;
-        for (OrderDishesInner dish : convertedDishes) {
-            if (!Objects.equals(dish.getDish().getVendorID(),
-                order.getVendorID())) {
-                throw new IllegalStateException();
-            }
-            totalPrice += dish.getDish().getPrice() * dish.getAmount();
-        }
-
-        // Update the dishes.
-        order.setDishes(List.of(convertedDishes));
-
-        // Return the price.
-        return totalPrice;
     }
 }
