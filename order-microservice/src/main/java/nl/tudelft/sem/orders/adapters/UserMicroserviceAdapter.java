@@ -18,20 +18,23 @@ public class UserMicroserviceAdapter implements UserMicroservice {
     }
 
     /**
-     * Gets the home address of the customer
+     * Gets the home address of the customer.
      *
      * @param customerId the id of the customer
      */
     public Location getCustomerAddress(long customerId) {
-        Customer user = restTemplate.getForObject(apiUrl + "/users/" + customerId, Customer.class);
+        Customer user =
+            restTemplate.getForObject(apiUrl + "/users/" + customerId,
+                Customer.class);
         Location location = new Location();
         if (user != null) {
             nl.tudelft.sem.users.model.Location address = user.getAddress();
             if (address != null) {
                 location.setCountry(address.getCountry());
                 location.setCity(address.getCity());
-                location.setAddress(address.getStreet() + ' ' + address.getStreetNumber());
-//        location.setPostalCode(address.getPostalCode());
+                location.setAddress(
+                    address.getStreet() + ' ' + address.getStreetNumber());
+                // location.setPostalCode(address.getPostalCode());
                 location.setAdditionalRemarks(address.getAdditionalRemarks());
             }
         }
@@ -40,19 +43,21 @@ public class UserMicroserviceAdapter implements UserMicroservice {
 
 
     /**
-     * Gets the address of the vendor
+     * Gets the address of the vendor.
      *
      * @param vendorId the id of the vendor
      */
     public Location getVendorAddress(long vendorId) {
-        Vendor user = restTemplate.getForObject(apiUrl + "/users/" + vendorId, Vendor.class);
+        Vendor user = restTemplate.getForObject(apiUrl + "/users/" + vendorId,
+            Vendor.class);
         Location location = new Location();
         if (user != null) {
             nl.tudelft.sem.users.model.Location address = user.getLocation();
             location.setCountry(address.getCountry());
             location.setCity(address.getCity());
-            location.setAddress(address.getStreet() + ' ' + address.getStreetNumber());
-//        location.setPostalCode(address.getPostalCode());
+            location.setAddress(
+                address.getStreet() + ' ' + address.getStreetNumber());
+            // location.setPostalCode(address.getPostalCode());
             location.setAdditionalRemarks(address.getAdditionalRemarks());
         }
         return location;
@@ -60,15 +65,18 @@ public class UserMicroserviceAdapter implements UserMicroservice {
 
 
     /**
-     * Gets the home address of the customer
+     * Gets the home address of the customer.
      *
      * @param customerId the id of the customer
      */
     public boolean isCustomer(long customerId) throws RestClientException {
-        UsersGetUserTypeIdGet200Response userType = restTemplate.getForObject(apiUrl + "/users/getUserType/" + customerId, UsersGetUserTypeIdGet200Response.class);
-        if(userType == null || userType.getUserType() == null){
+        UsersGetUserTypeIdGet200Response userType = restTemplate.getForObject(
+            apiUrl + "/users/getUserType/" + customerId,
+            UsersGetUserTypeIdGet200Response.class);
+        if (userType == null || userType.getUserType() == null) {
             throw new IllegalStateException();
         }
-        return userType.getUserType().equals(UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER);
+        return userType.getUserType()
+            .equals(UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER);
     }
 }

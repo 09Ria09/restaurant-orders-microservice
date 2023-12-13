@@ -1,9 +1,13 @@
 package nl.tudelft.sem.orders.controllers;
 
+import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.adapters.LocationMicroserviceAdapter;
 import nl.tudelft.sem.orders.adapters.UserMicroserviceAdapter;
 import nl.tudelft.sem.orders.api.OrderApi;
-import nl.tudelft.sem.orders.model.*;
+import nl.tudelft.sem.orders.model.Order;
+import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
+import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
+import nl.tudelft.sem.orders.model.OrderOrderIDPayPostRequest;
 import nl.tudelft.sem.orders.ring0.OrderFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,15 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 
-import javax.persistence.EntityNotFoundException;
-
 
 @RestController
 @RequestMapping("/vendor/")
 public class OrderController implements OrderApi {
-    private transient OrderFacade ordersFacade;
     private final UserMicroserviceAdapter userMicroservice;
     private final LocationMicroserviceAdapter locationMicroservice;
+    private final transient OrderFacade ordersFacade;
 
     /**
      * Creates a new OrderController instance.
@@ -28,7 +30,8 @@ public class OrderController implements OrderApi {
      * @param ordersFacade The class providing orders logic.
      */
     @Autowired
-    OrderController(OrderFacade ordersFacade, UserMicroserviceAdapter userMicroservice,
+    OrderController(OrderFacade ordersFacade,
+                    UserMicroserviceAdapter userMicroservice,
                     LocationMicroserviceAdapter locationMicroservice) {
         this.ordersFacade = ordersFacade;
         this.userMicroservice = userMicroservice;
@@ -36,14 +39,12 @@ public class OrderController implements OrderApi {
     }
 
     @Override
-    public ResponseEntity<Void> orderOrderIDPayPost(
-            Long userId,
-            Long orderId,
-            OrderOrderIDPayPostRequest orderOrderIDPayPostRequest
-    ) {
+    public ResponseEntity<Void> orderOrderIDPayPost(Long userId, Long orderId,
+                                                    OrderOrderIDPayPostRequest
+                                                        request) {
         try {
             ordersFacade.payForOrder(userId, orderId,
-                    orderOrderIDPayPostRequest.getPaymentConfirmation());
+                request.getPaymentConfirmation());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -52,13 +53,17 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> orderPost(Long userID, Long vendorID) {
-        if(userID==null || vendorID==null ||
-            locationMicroservice.isCloseBy(userMicroservice.getCustomerAddress(userID),
-                userMicroservice.getVendorAddress(vendorID)))
+        if (userID == null
+            || vendorID == null
+            || locationMicroservice.isCloseBy(
+                userMicroservice.getCustomerAddress(userID),
+                userMicroservice.getVendorAddress(vendorID))) {
             return ResponseEntity.badRequest().build();
+        }
         try {
             if (userMicroservice.isCustomer(userID)) {
-                return ResponseEntity.ok(ordersFacade.createOrder(userID, vendorID));
+                return ResponseEntity.ok(
+                    ordersFacade.createOrder(userID, vendorID));
             } else {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
@@ -68,14 +73,17 @@ public class OrderController implements OrderApi {
     }
 
     @Override
-    public ResponseEntity<OrderOrderIDDishesPut200Response> orderOrderIDDishesPut(Long userID,
-                                                                                  Long orderID,
-                                                                                  OrderOrderIDDishesPutRequest orderOrderIDDishesPutRequest) {
+    public ResponseEntity<OrderOrderIDDishesPut200Response>
+        orderOrderIDDishesPut(
+        Long userID, Long orderID,
+        OrderOrderIDDishesPutRequest orderOrderIDDishesPutRequest) {
         if (userMicroservice.isCustomer(userID)) {
             try {
-                Float newTotalPrice = ordersFacade.updateDishes(orderID, userID, orderOrderIDDishesPutRequest.getDishes());
+                Float newTotalPrice = ordersFacade.updateDishes(orderID, userID,
+                    orderOrderIDDishesPutRequest.getDishes());
 
-                OrderOrderIDDishesPut200Response response = new OrderOrderIDDishesPut200Response();
+                OrderOrderIDDishesPut200Response response =
+                    new OrderOrderIDDishesPut200Response();
                 response.setPrice(newTotalPrice);
 
                 return new ResponseEntity<>(response, HttpStatus.OK);
