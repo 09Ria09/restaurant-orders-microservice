@@ -1,6 +1,7 @@
 package nl.tudelft.sem.orders.ring0;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.EntityNotFoundException;
@@ -80,25 +81,28 @@ public class OrderFacade implements OrderLogic {
         try {
             OrderDishesInner[] convertedDishes = (OrderDishesInner[])
                 dishes.stream().map(
-                    (dish) -> new OrderDishesInner(
-                        dishDatabase.getById(dish.getId()), dish.getQuantity()))
-                .toArray();
+                        (dish) -> new OrderDishesInner(
+                            dishDatabase.getById(dish.getId()),
+                            dish.getQuantity()))
+                    .toArray();
 
             // Check if the dishes belong to the vendor and calculate the price.
-            float totalPrice = 0.0f;
             for (OrderDishesInner dish : convertedDishes) {
                 if (!Objects.equals(dish.getDish().getVendorID(),
                     order.getVendorID())) {
                     throw new IllegalStateException();
                 }
-                totalPrice += dish.getDish().getPrice() * dish.getAmount();
             }
 
             // Update the dishes.
             order.setDishes(List.of(convertedDishes));
 
             // Return the price.
-            return totalPrice;
+            return Arrays.stream(convertedDishes)
+                .map(dish -> dish.getDish().getPrice() * dish.getAmount())
+                .reduce(0.0f, Float::sum);
+            // I had to do this because of a stupid PMD warning...
+            // Found 'DU'-anomaly for variable 'totalPrice' (lines '90'-'111'
 
         } catch (EntityNotFoundException e) {
             // Dish list is invalid.
