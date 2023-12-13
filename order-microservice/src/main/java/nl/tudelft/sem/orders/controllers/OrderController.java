@@ -3,11 +3,7 @@ package nl.tudelft.sem.orders.controllers;
 import nl.tudelft.sem.orders.adapters.LocationMicroserviceAdapter;
 import nl.tudelft.sem.orders.adapters.UserMicroserviceAdapter;
 import nl.tudelft.sem.orders.api.OrderApi;
-import nl.tudelft.sem.orders.model.Order;
-import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
-import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
-import nl.tudelft.sem.orders.model.OrderOrderIDPayPostRequest;
-import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.orders.model.*;
 import nl.tudelft.sem.orders.ring0.OrderFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
+
+import javax.persistence.EntityNotFoundException;
 
 
 @RestController
@@ -55,7 +53,8 @@ public class OrderController implements OrderApi {
     @Override
     public ResponseEntity<Order> orderPost(Long userID, Long vendorID) {
         if(userID==null || vendorID==null ||
-            locationMicroservice.isCloseBy(userMicroservice.getHomeAddress(userID), userMicroservice.getLocation(vendorID)))
+            locationMicroservice.isCloseBy(userMicroservice.getCustomerAddress(userID),
+                userMicroservice.getVendorAddress(vendorID)))
             return ResponseEntity.badRequest().build();
         try {
             if (userMicroservice.isCustomer(userID)) {
@@ -72,6 +71,21 @@ public class OrderController implements OrderApi {
     public ResponseEntity<OrderOrderIDDishesPut200Response> orderOrderIDDishesPut(Long userID,
                                                                                   Long orderID,
                                                                                   OrderOrderIDDishesPutRequest orderOrderIDDishesPutRequest) {
-        return OrderApi.super.orderOrderIDDishesPut(userID, orderID, orderOrderIDDishesPutRequest);
+        if (userMicroservice.isCustomer(userID)) {
+            try {
+                Float newTotalPrice = ordersFacade.updateDishes(orderID, userID, orderOrderIDDishesPutRequest.getDishes());
+
+                OrderOrderIDDishesPut200Response response = new OrderOrderIDDishesPut200Response();
+                response.setPrice(newTotalPrice);
+
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } catch (IllegalStateException e) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            } catch (EntityNotFoundException e) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
 }
