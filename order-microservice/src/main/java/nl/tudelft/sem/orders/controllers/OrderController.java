@@ -18,7 +18,7 @@ import org.springframework.web.client.RestClientException;
 
 
 @RestController
-@RequestMapping("/vendor/")
+@RequestMapping("/order/")
 public class OrderController implements OrderApi {
     private final transient UserMicroserviceAdapter userMicroservice;
     private final transient LocationMicroserviceAdapter locationMicroservice;
