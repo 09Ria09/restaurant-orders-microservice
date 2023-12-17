@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestTemplate;
 
-public class UserMicroserviceAdapterTest {
+public class TestUserMicroserviceAdapter {
 
     private static final String API_URL = "http://localhost:8081";
     private UserMicroserviceAdapter userMicroserviceAdapter;
@@ -77,9 +77,7 @@ public class UserMicroserviceAdapterTest {
         when(restTemplate.getForObject(API_URL + "/users/getUserType/" + customerId,
             UsersGetUserTypeIdGet200Response.class)).thenReturn(null);
 
-        assertThrows(IllegalStateException.class, () -> {
-            userMicroserviceAdapter.isCustomer(customerId);
-        });
+        assertThrows(IllegalStateException.class, () -> userMicroserviceAdapter.isCustomer(customerId));
     }
 
     private nl.tudelft.sem.users.model.Location createMockLocation() {

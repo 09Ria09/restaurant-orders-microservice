@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-class OrderControllerTest {
+class TestOrderController {
 
     private UserMicroserviceAdapter userMicroservice;
     private LocationMicroserviceAdapter locationMicroservice;

@@ -23,7 +23,7 @@ import nl.tudelft.sem.orders.ring0.OrderFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class OrderFacadeTest {
+public class TestOrderFacade {
 
     OrderDatabase orderDatabase;
     DishDatabase dishDatabase;
