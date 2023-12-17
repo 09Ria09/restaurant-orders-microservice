@@ -41,9 +41,9 @@ public class OrderFacadeTest {
 
     @Test
     void createOrder() {
-        long customerId = 1L;
-        long vendorId = 2L;
-        Location location = new Location();
+        final long customerId = 1L;
+        final long vendorId = 2L;
+        final Location location = new Location();
 
         when(userMicroservice.getCustomerAddress(customerId)).thenReturn(new Location());
 
@@ -59,13 +59,13 @@ public class OrderFacadeTest {
 
     @Test
     void updateDishesValidData() {
-        long orderId = 2311L;
-        long dishId = 413L;
-        long customerId = 143L;
-        long vendorId = 2123L;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long customerId = 143L;
+        final long vendorId = 2123L;
 
-        Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
-        Order order = new Order(orderId, customerId, vendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        final Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
+        final Order order = new Order(orderId, customerId, vendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
 
         OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);
@@ -89,8 +89,8 @@ public class OrderFacadeTest {
 
     @Test
     void updateDishesMissingOrder() {
-        long orderId = 2311L;
-        long customerId = 143L;
+        final long orderId = 2311L;
+        final long customerId = 143L;
 
         List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
 
@@ -101,9 +101,9 @@ public class OrderFacadeTest {
 
     @Test
     void updateDishesMissingDish() {
-        long orderId = 2311L;
-        long dishId = 413L;
-        long customerId = 143L;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long customerId = 143L;
 
         OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);
@@ -122,12 +122,12 @@ public class OrderFacadeTest {
 
     @Test
     void updateDishesDifferentVendor() {
-        long orderId = 2311L;
-        long dishId = 413L;
-        long customerId = 143L;
-        long vendorId = 2123L;
-        long anotherVendorId = 3L;
-        Order order = new Order(orderId, customerId, vendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long customerId = 143L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, customerId, vendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
 
         OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);

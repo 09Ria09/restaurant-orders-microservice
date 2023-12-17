@@ -95,7 +95,7 @@ class OrderControllerTest {
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
 
-        OrderOrderIDDishesPut200Response expectedResponse =new OrderOrderIDDishesPut200Response();
+        OrderOrderIDDishesPut200Response expectedResponse = new OrderOrderIDDishesPut200Response();
         expectedResponse.setPrice(10f);
 
         assertEquals(ResponseEntity.ok(expectedResponse), responseEntity);
