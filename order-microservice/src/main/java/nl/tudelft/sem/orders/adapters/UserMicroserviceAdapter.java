@@ -11,10 +11,10 @@ import org.springframework.web.client.RestTemplate;
 public class UserMicroserviceAdapter implements UserMicroservice {
 
     private final transient RestTemplate restTemplate;
-    private static final String apiUrl = "http://localhost:8081";
+    private static final String API_URL = "http://localhost:8081";
 
-    public UserMicroserviceAdapter() {
-        restTemplate = new RestTemplate();
+    public UserMicroserviceAdapter(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     /**
@@ -24,7 +24,7 @@ public class UserMicroserviceAdapter implements UserMicroservice {
      */
     public Location getCustomerAddress(long customerId) {
         Customer user =
-            restTemplate.getForObject(apiUrl + "/users/" + customerId,
+            restTemplate.getForObject(API_URL + "/users/" + customerId,
                 Customer.class);
         Location location = new Location();
         if (user != null) {
@@ -48,7 +48,7 @@ public class UserMicroserviceAdapter implements UserMicroservice {
      * @param vendorId the id of the vendor
      */
     public Location getVendorAddress(long vendorId) {
-        Vendor user = restTemplate.getForObject(apiUrl + "/users/" + vendorId,
+        Vendor user = restTemplate.getForObject(API_URL + "/users/" + vendorId,
             Vendor.class);
         Location location = new Location();
         if (user != null) {
@@ -71,7 +71,7 @@ public class UserMicroserviceAdapter implements UserMicroservice {
      */
     public boolean isCustomer(long customerId) throws RestClientException {
         UsersGetUserTypeIdGet200Response userType = restTemplate.getForObject(
-            apiUrl + "/users/getUserType/" + customerId,
+            API_URL + "/users/getUserType/" + customerId,
             UsersGetUserTypeIdGet200Response.class);
         if (userType == null || userType.getUserType() == null) {
             throw new IllegalStateException();

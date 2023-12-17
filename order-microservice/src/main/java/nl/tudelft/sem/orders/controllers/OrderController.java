@@ -30,7 +30,7 @@ public class OrderController implements OrderApi {
      * @param ordersFacade The class providing orders logic.
      */
     @Autowired
-    OrderController(OrderFacade ordersFacade,
+    public OrderController(OrderFacade ordersFacade,
                     UserMicroserviceAdapter userMicroservice,
                     LocationMicroserviceAdapter locationMicroservice) {
         this.ordersFacade = ordersFacade;
@@ -55,7 +55,7 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> orderPost(Long userID, Long vendorID) {
         if (userID == null
             || vendorID == null
-            || locationMicroservice.isCloseBy(
+            || !locationMicroservice.isCloseBy(
                 userMicroservice.getCustomerAddress(userID),
                 userMicroservice.getVendorAddress(vendorID))) {
             return ResponseEntity.badRequest().build();
