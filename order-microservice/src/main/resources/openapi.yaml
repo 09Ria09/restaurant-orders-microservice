@@ -497,6 +497,7 @@ components:
   schemas:
     Location:
       type: object
+      x-class-extra-annotation: "@javax.persistence.Embeddable"
       description: A location with an address
       properties:
         country:
@@ -520,6 +521,7 @@ components:
       example: 2115
     Order:
       type: object
+      x-class-extra-annotation: "@javax.persistence.Entity\n@javax.persistence.Table(name = \"order_table\")"
       required:
         - orderID
         - customerID
@@ -529,7 +531,10 @@ components:
         - status
       properties:
         orderID:
-          $ref: '#/components/schemas/IdType'
+          type: integer
+          x-field-extra-annotation: "@javax.persistence.Id"
+          format: int64
+          example: 2115
         customerID:
           $ref: '#/components/schemas/IdType'
         vendorID:
@@ -538,6 +543,7 @@ components:
           $ref: '#/components/schemas/IdType'
         dishes:
           type: array
+          x-field-extra-annotation: "@javax.persistence.ManyToMany(targetEntity=Dish.class, fetch=javax.persistence.FetchType.EAGER)"
           description: List of dishes in the order with their amounts (all from the same restaurant).
           items:
             type: object
@@ -578,6 +584,7 @@ components:
           example: 5
     Dish:
       type: object
+      x-class-extra-annotation: "@javax.persistence.Entity"
       required:
         - dishID
         - vendorID
@@ -587,7 +594,10 @@ components:
         - price
       properties:
         dishID:
-          $ref: '#/components/schemas/IdType'
+          type: integer
+          x-field-extra-annotation: "@javax.persistence.Id"
+          format: int64
+          example: 2115
         vendorID:
           $ref: '#/components/schemas/IdType'
         name:
@@ -600,6 +610,7 @@ components:
           example: Classic Cesar Salad
         ingredients:
           type: array
+          x-field-extra-annotation: "@javax.persistence.ElementCollection(targetClass=String.class)"
           items:
             type: string
             description: List of ingredients for the dish.
@@ -615,6 +626,7 @@ components:
           description: The URL of the picture of the dish. This field is optional.
         allergens:
           type: array
+          x-field-extra-annotation: "@javax.persistence.ElementCollection(targetClass=String.class)"
           items:
             type: string
             description: Information about allergens for the dish ingredients. This field is optional.

@@ -18,8 +18,16 @@ public class OrderFacade implements OrderLogic {
     private transient PaymentService paymentService;
 
 
+    /**
+     * Creates a new order facade.
+     *
+     * @param orderDatabase The database output port.
+     * @param userMicroservice The output port for the user microservice.
+     * @param paymentService The output port for the payment service.
+     */
     @Autowired
-    public OrderFacade(OrderDatabase orderDatabase, UserMicroservice userMicroservice,
+    public OrderFacade(OrderDatabase orderDatabase,
+                       UserMicroservice userMicroservice,
                        PaymentService paymentService) {
         this.orderDatabase = orderDatabase;
         this.userMicroservice = userMicroservice;
@@ -27,30 +35,30 @@ public class OrderFacade implements OrderLogic {
     }
 
     @Override
-    public void payForOrder(long userId, long orderId, String paymentConfirmation)
-            throws MalformedException, ForbiddenException {
+    public void payForOrder(long userId, long orderId,
+                            String paymentConfirmation)
+        throws MalformedException, ForbiddenException {
         Order order = orderDatabase.getById(orderId);
 
-        if(order == null || order.getStatus() != Order.StatusEnum.UNPAID) {
+        if (order == null || order.getStatus() != Order.StatusEnum.UNPAID) {
             throw new MalformedException();
         }
 
-        UsersGetUserTypeIdGet200Response.UserTypeEnum uType = null;
+        UsersGetUserTypeIdGet200Response.UserTypeEnum userType;
 
         try {
-            uType = userMicroservice.getUserType(userId);
-        } catch (Exception _e) {
+            userType = userMicroservice.getUserType(userId);
+        } catch (Exception e) {
             throw new MalformedException();
         }
 
-        if(uType == null) {
-            // This theoretically should never be allowed to happen
-            // but just for safety we will perform this check.
-            throw new MalformedException();
-        }
+        // userType should never be null now
+        // therefore there is no need to check for that.
 
-        if(order.getCourierID() != userId || !paymentService.verifyPaymentConfirmation(paymentConfirmation))
+        if (order.getCustomerID() != userId
+            || !paymentService.verifyPaymentConfirmation(paymentConfirmation)) {
             throw new ForbiddenException();
+        }
 
         order.setStatus(Order.StatusEnum.PENDING);
 

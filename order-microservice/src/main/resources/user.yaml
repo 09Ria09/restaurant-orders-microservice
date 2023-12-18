@@ -545,6 +545,7 @@ paths:
         '400':
           description: Bad request / data provided had was wrong
 
+    # I talked to the people of group c and they confirmed that they forgot to add a return body.
     get:
       tags:
         - Vendor
@@ -552,6 +553,12 @@ paths:
       responses:
         '200':
           description: A JSON array with the data of the vendors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vendor"
 
   /vendors/{id}:
     put:
