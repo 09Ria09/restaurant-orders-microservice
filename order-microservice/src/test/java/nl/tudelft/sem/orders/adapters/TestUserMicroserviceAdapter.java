@@ -1,4 +1,4 @@
-package nl.tudelft.sem.orders;
+package nl.tudelft.sem.orders.adapters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
