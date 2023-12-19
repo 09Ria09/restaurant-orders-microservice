@@ -1,14 +1,11 @@
 package nl.tudelft.sem.orders.domain.config;
 
 import nl.tudelft.sem.delivery.api.AdminApi;
-import nl.tudelft.sem.orders.adapters.DeliveryRemoteAdapter;
 import nl.tudelft.sem.orders.adapters.OrderDatabaseAdapter;
-import nl.tudelft.sem.orders.adapters.UserRemoteAdapter;
 import nl.tudelft.sem.orders.adapters.mocks.MockDeliveryMicroservice;
 import nl.tudelft.sem.orders.adapters.mocks.MockLocationAdapter;
 import nl.tudelft.sem.orders.adapters.mocks.MockPaymentAdapter;
 import nl.tudelft.sem.orders.adapters.mocks.MockUserMicroservice;
-import nl.tudelft.sem.orders.ports.input.OrderLogic;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
