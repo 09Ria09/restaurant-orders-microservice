@@ -9,6 +9,7 @@ import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
 import nl.tudelft.sem.orders.model.OrderOrderIDPayPostRequest;
 import nl.tudelft.sem.orders.ring0.OrderFacade;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class OrderController implements OrderApi {
     /**
      * Creates a new OrderController instance.
      *
-     * @param ordersFacade The class providing orders logic.
+     * @param orderLogic The class providing orders logic.
      */
     @Autowired
     public OrderController(OrderFacade ordersFacade,
@@ -39,15 +40,19 @@ public class OrderController implements OrderApi {
     }
 
     @Override
-    public ResponseEntity<Void> orderOrderIDPayPost(Long userId, Long orderId,
-                                                    OrderOrderIDPayPostRequest
-                                                        request) {
+    public ResponseEntity<Void> orderOrderIDPayPost(
+        Long userId,
+        Long orderId,
+        @NotNull OrderOrderIDPayPostRequest orderOrderIDPayPostRequest
+    ) {
         try {
-            ordersFacade.payForOrder(userId, orderId,
-                request.getPaymentConfirmation());
+            orderLogic.payForOrder(userId, orderId,
+                orderOrderIDPayPostRequest.getPaymentConfirmation());
             return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (MalformedException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 

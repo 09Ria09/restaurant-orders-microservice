@@ -117,8 +117,15 @@ jacocoTestCoverageVerification() {
 jacocoTestReport {
 	afterEvaluate {
 		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: ['nl/tudelft/sem/delivery**', 'nl/tudelft/sem/users**', 'nl/tudelft/sem/orders/api**', 'nl/tudelft/sem/orders/model**'
-										, 'nl/tudelft/sem/orders/adapters/mocks/**'])
+			fileTree(dir: it, exclude: ['nl/tudelft/sem/delivery**',
+                                        'nl/tudelft/sem/users**',
+                                        'nl/tudelft/sem/orders/api**',
+                                        'nl/tudelft/sem/orders/model**',
+                                        // It is currently impossible to test these
+                                        // since they depend on a remote http server
+                                        // or are just mocks which will change a lot during development
+                                        // thus we will leave testing them for the very end.
+                                        'nl/tudelft/sem/orders/adapters**'])
 		}))
 	}
 }
@@ -131,7 +138,7 @@ tasks.register('ourGenerate', GenerateTask) {
 	apiPackage.set("nl.tudelft.sem.orders.api")
 	modelPackage.set("nl.tudelft.sem.orders.model")
 	configOptions.set([
-			dateLibrary  : "java15",
+			dateLibrary: "java15",
 			// Exclude controller generation
 			interfaceOnly: 'true'
 	])
@@ -145,7 +152,7 @@ tasks.register('userGenerate', GenerateTask) {
 	apiPackage.set("nl.tudelft.sem.users.api")
 	modelPackage.set("nl.tudelft.sem.users.model")
 	configOptions.set([
-			dateLibrary  : "java15",
+			dateLibrary: "java15",
 			// Exclude controller generation
 			interfaceOnly: 'true'
 	])
@@ -159,7 +166,7 @@ tasks.register('deliveryGenerate', GenerateTask) {
 	apiPackage.set("nl.tudelft.sem.delivery.api")
 	modelPackage.set("nl.tudelft.sem.delivery.model")
 	configOptions.set([
-			dateLibrary  : "java15",
+			dateLibrary: "java15",
 			// Exclude controller generation
 			interfaceOnly: 'true'
 	])
@@ -187,6 +194,9 @@ pmdTest.source = "src/test/java"
 pmd {
 	incrementalAnalysis = true
 	sourceSets = [project.sourceSets.main]
+	ruleSets = []
+
+	ruleSetConfig = resources.text.fromFile("${rootDir}/config/pmd.xml")
 }
 
 apply plugin: 'info.solidsoft.pitest'
