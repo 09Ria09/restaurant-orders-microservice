@@ -10,7 +10,6 @@ import nl.tudelft.sem.users.model.Customer;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import nl.tudelft.sem.users.model.UsersIdGet200Response;
 import nl.tudelft.sem.users.model.Vendor;
-import org.springframework.web.client.RestClientException;
 
 public class UserRemoteAdapter implements UserMicroservice {
     private final transient UserApi users;
@@ -45,11 +44,8 @@ public class UserRemoteAdapter implements UserMicroservice {
     @Override
     public Location getCustomerAddress(long customerId) throws ApiException {
         Customer user = getUserById(customerId).getCustomer();
-        if (user != null) {
-            nl.tudelft.sem.users.model.Location address = user.getAddress();
-            return locationConverter(address);
-        }
-        throw new ApiException();
+        nl.tudelft.sem.users.model.Location address = user.getAddress();
+        return locationConverter(address);
     }
 
     /**
@@ -60,11 +56,8 @@ public class UserRemoteAdapter implements UserMicroservice {
     @Override
     public Location getVendorAddress(long vendorId) throws ApiException {
         Vendor user = getUserById(vendorId).getVendor();
-        if (user != null) {
-            nl.tudelft.sem.users.model.Location address = user.getLocation();
-            return locationConverter(address);
-        }
-        throw new ApiException();
+        nl.tudelft.sem.users.model.Location address = user.getLocation();
+        return locationConverter(address);
     }
 
     private Location locationConverter(nl.tudelft.sem.users.model.Location address) {

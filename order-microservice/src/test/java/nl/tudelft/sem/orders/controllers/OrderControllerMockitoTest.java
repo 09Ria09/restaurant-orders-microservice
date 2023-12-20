@@ -87,6 +87,20 @@ class OrderControllerMockitoTest {
     }
 
     @Test
+    void orderPostApiExceptionBadRequest() throws ApiException {
+        long userID = 1L;
+        long vendorID = 2L;
+        when(locationService.isCloseBy(any(), any())).thenReturn(false);
+        when(userMicroservice.isCustomer(userID)).thenThrow(new ApiException());
+        when(orderLogic.createOrder(userID, vendorID)).thenReturn(new Order());
+
+        ResponseEntity<Order> responseEntity = orderController.orderPost(userID, vendorID);
+
+        assertEquals(ResponseEntity.status(HttpStatus.BAD_REQUEST).build(), responseEntity);
+        verifyNoInteractions(orderLogic);
+    }
+
+    @Test
     void orderOrderIDDishesPutOk() throws ApiException {
         long userID = 1L;
         long orderID = 2L;
@@ -135,6 +149,22 @@ class OrderControllerMockitoTest {
         assertEquals(ResponseEntity.status(HttpStatus.BAD_REQUEST).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
         verify(orderLogic).updateDishes(orderID, userID, request.getDishes());
+    }
+
+    @Test
+    void orderOrderIDDishesPutApiExceptionBadRequest() throws ApiException {
+        long userID = 1L;
+        long orderID = 2L;
+        OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
+        when(userMicroservice.isCustomer(userID)).thenThrow(new ApiException());
+        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenThrow(new IllegalStateException());
+
+        ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
+            orderController.orderOrderIDDishesPut(userID, orderID, request);
+
+        assertEquals(ResponseEntity.status(HttpStatus.FORBIDDEN).build(), responseEntity);
+        verify(userMicroservice).isCustomer(userID);
+        verifyNoInteractions(orderLogic);
     }
 
     @Test
