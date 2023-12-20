@@ -25,34 +25,19 @@ public class MockUserMicroservice implements UserMicroservice {
         return new ArrayList<>(Arrays.asList(vendors));
     }
 
-    /**
-     * @param customerId
-     * @return
-     * @throws ApiException
-     */
     @Override
     public nl.tudelft.sem.orders.model.Location getCustomerAddress(long customerId) throws ApiException {
-        return null;
+        return new nl.tudelft.sem.orders.model.Location();
     }
 
-    /**
-     * @param vendorId
-     * @return
-     * @throws ApiException
-     */
     @Override
     public nl.tudelft.sem.orders.model.Location getVendorAddress(long vendorId) throws ApiException {
-        return null;
+        return new nl.tudelft.sem.orders.model.Location();
     }
 
-    /**
-     * @param userId
-     * @return
-     * @throws ApiException
-     */
     @Override
     public boolean isCustomer(long userId) throws ApiException {
-        return false;
+        return true;
     }
 
     private Customer[] users = {

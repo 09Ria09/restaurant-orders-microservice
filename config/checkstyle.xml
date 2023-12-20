@@ -33,7 +33,7 @@
 
     <module name="LineLength">
         <property name="fileExtensions" value="java"/>
-        <property name="max" value="90"/> <!-- Make sure that lines will fit on a VT220 terminal screen -->
+        <property name="max" value="120"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     </module>
 

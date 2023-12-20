@@ -29,6 +29,11 @@ public class MockOrderDatabase implements OrderDatabase {
         saveRequests.add(toSave);
     }
 
+    @Override
+    public Long getLastId() {
+        return 4L;
+    }
+
     /**
      * Clean the state of this mock object.
      */

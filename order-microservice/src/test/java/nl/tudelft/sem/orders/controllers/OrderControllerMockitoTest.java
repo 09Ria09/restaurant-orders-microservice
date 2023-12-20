@@ -87,7 +87,7 @@ class OrderControllerMockitoTest {
     }
 
     @Test
-    void orderOrderIDDishesPutOk() {
+    void orderOrderIDDishesPutOk() throws ApiException {
         long userID = 1L;
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
@@ -106,7 +106,7 @@ class OrderControllerMockitoTest {
     }
 
     @Test
-    void orderOrderIDDishesPutForbidden() {
+    void orderOrderIDDishesPutForbidden() throws ApiException {
         long userID = 1L;
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
@@ -122,7 +122,7 @@ class OrderControllerMockitoTest {
     }
 
     @Test
-    void orderOrderIDDishesPutBadRequest() {
+    void orderOrderIDDishesPutBadRequest() throws ApiException {
         long userID = 1L;
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
@@ -138,7 +138,7 @@ class OrderControllerMockitoTest {
     }
 
     @Test
-    void orderOrderIDDishesPutNotFound() {
+    void orderOrderIDDishesPutNotFound() throws ApiException {
         long userID = 1L;
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();

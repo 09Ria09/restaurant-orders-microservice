@@ -16,11 +16,6 @@ public class MockUserMicroservice implements UserMicroservice {
         return new ArrayList<>();
     }
 
-    /**
-     * @param customerId
-     * @return
-     * @throws ApiException
-     */
     @Override
     public Location getCustomerAddress(long customerId) throws ApiException {
         Location location = new Location();
@@ -32,11 +27,6 @@ public class MockUserMicroservice implements UserMicroservice {
         return location;
     }
 
-    /**
-     * @param vendorId
-     * @return
-     * @throws ApiException
-     */
     @Override
     public Location getVendorAddress(long vendorId) throws ApiException {
         Location location = new Location();
@@ -47,11 +37,6 @@ public class MockUserMicroservice implements UserMicroservice {
         return location;
     }
 
-    /**
-     * @param userId
-     * @return
-     * @throws ApiException
-     */
     @Override
     public boolean isCustomer(long userId) throws ApiException {
         return true;

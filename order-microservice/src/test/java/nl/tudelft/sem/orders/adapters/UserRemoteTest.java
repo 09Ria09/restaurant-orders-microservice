@@ -29,6 +29,9 @@ public class UserRemoteTest {
     @InjectMocks
     private UserRemoteAdapter userRemoteAdapter;
 
+    /**
+     * Sets up the mocks.
+     */
     @BeforeEach
     public void setUp() {
         UserApi mockUserApi = mock(UserApi.class);
@@ -87,7 +90,8 @@ public class UserRemoteTest {
     public void testIsCustomer() throws ApiException {
         long customerId = 324L;
 
-        doReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER).when(userRemoteAdapter).getUserType(customerId);
+        doReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER)
+            .when(userRemoteAdapter).getUserType(customerId);
 
         boolean result = userRemoteAdapter.isCustomer(customerId);
 
