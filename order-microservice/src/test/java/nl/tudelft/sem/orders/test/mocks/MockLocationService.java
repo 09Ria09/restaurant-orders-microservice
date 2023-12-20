@@ -13,4 +13,14 @@ public class MockLocationService implements LocationService {
 
         return new GeoLocation(1, 2);
     }
+
+    /**
+     * @param a
+     * @param b
+     * @return
+     */
+    @Override
+    public boolean isCloseBy(Location a, Location b) {
+        return false;
+    }
 }

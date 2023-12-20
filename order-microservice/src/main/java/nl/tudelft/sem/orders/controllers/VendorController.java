@@ -5,18 +5,18 @@ import java.util.List;
 import nl.tudelft.sem.orders.api.VendorApi;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.result.MalformedException;
-import nl.tudelft.sem.orders.ring0.VendorFacadeInterface;
+import nl.tudelft.sem.orders.ring0.VendorLogic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class VendorController implements VendorApi {
-    private final transient VendorFacadeInterface vendorFacade;
+    private final transient VendorLogic vendorLogic;
 
     @Autowired
-    VendorController(VendorFacadeInterface vendorFacade) {
-        this.vendorFacade = vendorFacade;
+    VendorController(VendorLogic vendorLogic) {
+        this.vendorLogic = vendorLogic;
     }
 
     @Override
@@ -25,7 +25,7 @@ public class VendorController implements VendorApi {
                                                        Location location) {
         try {
             return ResponseEntity.ok(
-                vendorFacade.vendorsInRadius(userID, search, location));
+                vendorLogic.vendorsInRadius(userID, search, location));
         } catch (MalformedException e) {
             return ResponseEntity.badRequest().build();
         }

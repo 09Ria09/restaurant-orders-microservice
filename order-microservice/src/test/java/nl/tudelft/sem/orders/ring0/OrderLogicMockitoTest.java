@@ -24,7 +24,7 @@ import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestOrderLogic {
+public class OrderLogicMockitoTest {
 
     OrderDatabase orderDatabase;
     DishDatabase dishDatabase;

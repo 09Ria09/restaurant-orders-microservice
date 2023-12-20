@@ -121,11 +121,7 @@ jacocoTestReport {
                                         'nl/tudelft/sem/users**',
                                         'nl/tudelft/sem/orders/api**',
                                         'nl/tudelft/sem/orders/model**',
-                                        // It is currently impossible to test these
-                                        // since they depend on a remote http server
-                                        // or are just mocks which will change a lot during development
-                                        // thus we will leave testing them for the very end.
-                                        'nl/tudelft/sem/orders/adapters**'])
+                                        'nl/tudelft/sem/orders/adapters/mocks**'])
 		}))
 	}
 }

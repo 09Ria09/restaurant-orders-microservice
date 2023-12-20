@@ -13,7 +13,6 @@ import nl.tudelft.sem.users.model.Vendor;
 import org.springframework.web.client.RestClientException;
 
 public class UserRemoteAdapter implements UserMicroservice {
-    private static final String API_URL = "http://localhost:8081";
     private final transient UserApi users;
     private final transient VendorApi vendors;
 
@@ -84,9 +83,9 @@ public class UserRemoteAdapter implements UserMicroservice {
      * @param customerId the id of the customer
      */
     @Override
-    public boolean isCustomer(long customerId) throws RestClientException, ApiException {
+    public boolean isCustomer(long customerId) throws ApiException {
         UsersGetUserTypeIdGet200Response.UserTypeEnum userType = getUserType(customerId);
 
-        return userType.equals(UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER);
+        return UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER.equals(userType);
     }
 }

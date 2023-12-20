@@ -6,4 +6,6 @@ public interface OrderDatabase {
     Order getById(long orderId);
 
     void save(Order toSave);
+
+    Long getLastId();
 }

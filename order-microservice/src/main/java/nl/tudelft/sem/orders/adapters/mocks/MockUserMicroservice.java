@@ -54,8 +54,7 @@ public class MockUserMicroservice implements UserMicroservice {
      */
     @Override
     public boolean isCustomer(long userId) throws ApiException {
-        Random random = new Random();
-        return random.nextBoolean();
+        return true;
     }
 
     @Override

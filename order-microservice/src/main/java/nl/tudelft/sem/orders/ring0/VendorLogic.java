@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VendorFacadeInterface implements VendorLogicInterface {
+public class VendorLogic implements VendorLogicInterface {
     private transient OrderDatabase orderDatabase;
     private transient UserMicroservice userMicroservice;
     private transient DeliveryMicroservice deliveryMicroservice;
@@ -24,7 +24,7 @@ public class VendorFacadeInterface implements VendorLogicInterface {
 
 
     /**
-     * Creates a new order facade.
+     * Creates a new vendor logic.
      *
      * @param orderDatabase The database output port.
      * @param userMicroservice The output port for the user microservice.
@@ -32,7 +32,7 @@ public class VendorFacadeInterface implements VendorLogicInterface {
      * @param locationService The output port for the location service.
      */
     @Autowired
-    public VendorFacadeInterface(OrderDatabase orderDatabase,
+    public VendorLogic(OrderDatabase orderDatabase,
                                  UserMicroservice userMicroservice,
                                  DeliveryMicroservice deliveryMicroservice,
                                  LocationService locationService) {

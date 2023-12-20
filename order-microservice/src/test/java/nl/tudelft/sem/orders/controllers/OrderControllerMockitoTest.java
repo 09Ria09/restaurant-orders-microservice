@@ -9,11 +9,12 @@ import static org.mockito.Mockito.when;
 
 import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.adapters.mocks.MockLocationAdapter;
-import nl.tudelft.sem.orders.adapters.remote.UserMicroserviceAdapter;
+import nl.tudelft.sem.orders.adapters.remote.UserRemoteAdapter;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
 import nl.tudelft.sem.orders.ports.output.LocationService;
+import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.ring0.OrderLogic;
 import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,16 +22,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-class TestOrderController {
+class OrderControllerMockitoTest {
 
-    private UserMicroserviceAdapter userMicroservice;
+    private UserMicroservice userMicroservice;
     private LocationService locationService;
     private OrderLogic orderLogic;
     private OrderController orderController;
 
     @BeforeEach
     public void setUp() {
-        userMicroservice = mock(UserMicroserviceAdapter.class);
+        userMicroservice = mock(UserMicroservice.class);
         locationService = mock(MockLocationAdapter.class);
         orderLogic = mock(OrderLogic.class);
         orderController = new OrderController(orderLogic, userMicroservice, locationService);

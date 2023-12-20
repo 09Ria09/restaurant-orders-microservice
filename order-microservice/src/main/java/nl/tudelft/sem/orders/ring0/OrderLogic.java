@@ -81,7 +81,7 @@ public class OrderLogic implements OrderLogicInterface {
      */
     @Override
     public Order createOrder(long customerId, long vendorId) throws ApiException {
-        Order order = new Order(0L, customerId, vendorId, new ArrayList<>(), userMicroservice.getCustomerAddress(customerId),
+        Order order = new Order(orderDatabase.getLastId()+1, customerId, vendorId, new ArrayList<>(), userMicroservice.getCustomerAddress(customerId),
             Order.StatusEnum.UNPAID);
         orderDatabase.save(order);
         return order;
@@ -113,7 +113,8 @@ public class OrderLogic implements OrderLogicInterface {
             // Check if the dishes belong to the vendor and calculate the total price.
             float totalPrice = 0;
             for (OrderDishesInner dish : convertedDishes) {
-                if (!Objects.equals(dish.getDish().getVendorID(), order.getVendorID())) {
+                if (dish.getDish() == null || dish.getAmount() == null ||
+                    !Objects.equals(dish.getDish().getVendorID(), order.getVendorID())) {
                     throw new IllegalStateException();
                 }
                 totalPrice += dish.getDish().getPrice() * dish.getAmount();

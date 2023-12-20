@@ -7,6 +7,8 @@ import nl.tudelft.sem.orders.adapters.mocks.MockDeliveryMicroservice;
 import nl.tudelft.sem.orders.adapters.mocks.MockLocationAdapter;
 import nl.tudelft.sem.orders.adapters.mocks.MockPaymentAdapter;
 import nl.tudelft.sem.orders.adapters.mocks.MockUserMicroservice;
+import nl.tudelft.sem.orders.domain.DishRepository;
+import nl.tudelft.sem.orders.domain.OrderRepository;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
@@ -15,10 +17,12 @@ import nl.tudelft.sem.orders.ports.output.PaymentService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.users.api.UserApi;
 import nl.tudelft.sem.users.api.VendorApi;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @Configuration
 public class MicroConfig {
@@ -51,7 +55,7 @@ public class MicroConfig {
     }
 
     @Bean
-    public DishDatabase dishDatabaseDatabase() {
+    public DishDatabase dishDatabase() {
         return new DishDatabaseAdapter();
     }
 

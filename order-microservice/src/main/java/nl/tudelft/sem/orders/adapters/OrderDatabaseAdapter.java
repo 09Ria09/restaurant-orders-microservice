@@ -18,4 +18,12 @@ public class OrderDatabaseAdapter implements OrderDatabase {
     public void save(Order toSave) {
         orderRepository.saveAndFlush(toSave);
     }
+
+    public Long getLastId(){
+        try {
+            return orderRepository.findTopByOrderByOrderIDDesc().getOrderID();
+        } catch (NullPointerException e) {
+            return 0L;
+        }
+    }
 }
