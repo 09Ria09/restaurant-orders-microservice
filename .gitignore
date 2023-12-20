@@ -2,7 +2,7 @@
 .gradle
 build/
 gradle-app.setting
-!gradle/wrapper/gradle-wrapper.jar
+#!gradle/wrapper/gradle-wrapper.jar
 **/build/
 .gradletasknamecache
 
@@ -28,6 +28,7 @@ gradle-app.setting
 
 ### IntelliJ IDEA ###
 .idea
+.project
 
 ### VS Code ###
 .vscode/
