@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import nl.tudelft.sem.orders.adapters.UserMicroserviceAdapter;
+import nl.tudelft.sem.orders.adapters.remote.UserMicroserviceAdapter;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.users.model.Customer;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;

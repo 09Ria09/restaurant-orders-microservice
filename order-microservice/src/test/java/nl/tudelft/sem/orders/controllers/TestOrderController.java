@@ -8,13 +8,14 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import javax.persistence.EntityNotFoundException;
-import nl.tudelft.sem.orders.adapters.LocationMicroserviceAdapter;
-import nl.tudelft.sem.orders.adapters.UserMicroserviceAdapter;
-import nl.tudelft.sem.orders.controllers.OrderController;
+import nl.tudelft.sem.orders.adapters.mocks.MockLocationAdapter;
+import nl.tudelft.sem.orders.adapters.remote.UserMicroserviceAdapter;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
-import nl.tudelft.sem.orders.ring0.OrderFacade;
+import nl.tudelft.sem.orders.ports.output.LocationService;
+import nl.tudelft.sem.orders.ring0.OrderLogic;
+import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -23,26 +24,26 @@ import org.springframework.http.ResponseEntity;
 class TestOrderController {
 
     private UserMicroserviceAdapter userMicroservice;
-    private LocationMicroserviceAdapter locationMicroservice;
-    private OrderFacade ordersFacade;
+    private LocationService locationService;
+    private OrderLogic orderLogic;
     private OrderController orderController;
 
     @BeforeEach
     public void setUp() {
         userMicroservice = mock(UserMicroserviceAdapter.class);
-        locationMicroservice = mock(LocationMicroserviceAdapter.class);
-        ordersFacade = mock(OrderFacade.class);
-        orderController = new OrderController(ordersFacade, userMicroservice, locationMicroservice);
+        locationService = mock(MockLocationAdapter.class);
+        orderLogic = mock(OrderLogic.class);
+        orderController = new OrderController(orderLogic, userMicroservice, locationService);
     }
 
     @Test
-    void orderPostOk() {
+    void orderPostOk() throws ApiException {
         long userID = 1L;
         long vendorID = 2L;
 
-        when(locationMicroservice.isCloseBy(any(), any())).thenReturn(true);
+        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(ordersFacade.createOrder(userID, vendorID)).thenReturn(new Order());
+        when(orderLogic.createOrder(userID, vendorID)).thenReturn(new Order());
 
         ResponseEntity<Order> responseEntity = orderController.orderPost(userID, vendorID);
 
@@ -50,38 +51,38 @@ class TestOrderController {
         verify(userMicroservice).getCustomerAddress(userID);
         verify(userMicroservice).getVendorAddress(vendorID);
         verify(userMicroservice).isCustomer(userID);
-        verify(ordersFacade).createOrder(userID, vendorID);
+        verify(orderLogic).createOrder(userID, vendorID);
     }
 
     @Test
-    void orderPostForbidden() {
+    void orderPostForbidden() throws ApiException {
         long userID = 1L;
         long vendorID = 2L;
 
-        when(locationMicroservice.isCloseBy(any(), any())).thenReturn(true);
+        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(userMicroservice.isCustomer(userID)).thenReturn(false);
-        when(ordersFacade.createOrder(userID, vendorID)).thenReturn(new Order());
+        when(orderLogic.createOrder(userID, vendorID)).thenReturn(new Order());
 
         ResponseEntity<Order> responseEntity = orderController.orderPost(userID, vendorID);
 
         assertEquals(ResponseEntity.status(HttpStatus.FORBIDDEN).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verifyNoInteractions(ordersFacade);
+        verifyNoInteractions(orderLogic);
     }
 
     @Test
-    void orderPostBadRequest() {
+    void orderPostBadRequest() throws ApiException {
         long userID = 1L;
         long vendorID = 2L;
-        when(locationMicroservice.isCloseBy(any(), any())).thenReturn(false);
+        when(locationService.isCloseBy(any(), any())).thenReturn(false);
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(ordersFacade.createOrder(userID, vendorID)).thenReturn(new Order());
+        when(orderLogic.createOrder(userID, vendorID)).thenReturn(new Order());
 
         ResponseEntity<Order> responseEntity = orderController.orderPost(userID, vendorID);
 
         assertEquals(ResponseEntity.status(HttpStatus.BAD_REQUEST).build(), responseEntity);
-        verify(locationMicroservice).isCloseBy(any(), any());
-        verifyNoInteractions(ordersFacade);
+        verify(locationService).isCloseBy(any(), any());
+        verifyNoInteractions(orderLogic);
     }
 
     @Test
@@ -90,7 +91,7 @@ class TestOrderController {
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(ordersFacade.updateDishes(orderID, userID, request.getDishes())).thenReturn(10.0F);
+        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenReturn(10.0F);
 
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
@@ -100,7 +101,7 @@ class TestOrderController {
 
         assertEquals(ResponseEntity.ok(expectedResponse), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verify(ordersFacade).updateDishes(orderID, userID, request.getDishes());
+        verify(orderLogic).updateDishes(orderID, userID, request.getDishes());
     }
 
     @Test
@@ -109,14 +110,14 @@ class TestOrderController {
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
         when(userMicroservice.isCustomer(userID)).thenReturn(false);
-        when(ordersFacade.updateDishes(orderID, userID, request.getDishes())).thenReturn(10.0F);
+        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenReturn(10.0F);
 
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
 
         assertEquals(ResponseEntity.status(HttpStatus.FORBIDDEN).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verifyNoInteractions(ordersFacade);
+        verifyNoInteractions(orderLogic);
     }
 
     @Test
@@ -125,14 +126,14 @@ class TestOrderController {
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(ordersFacade.updateDishes(orderID, userID, request.getDishes())).thenThrow(new IllegalStateException());
+        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenThrow(new IllegalStateException());
 
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
 
         assertEquals(ResponseEntity.status(HttpStatus.BAD_REQUEST).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verify(ordersFacade).updateDishes(orderID, userID, request.getDishes());
+        verify(orderLogic).updateDishes(orderID, userID, request.getDishes());
     }
 
     @Test
@@ -141,13 +142,13 @@ class TestOrderController {
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(ordersFacade.updateDishes(orderID, userID, request.getDishes())).thenThrow(new EntityNotFoundException());
+        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenThrow(new EntityNotFoundException());
 
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
 
         assertEquals(ResponseEntity.status(HttpStatus.NOT_FOUND).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verify(ordersFacade).updateDishes(orderID, userID, request.getDishes());
+        verify(orderLogic).updateDishes(orderID, userID, request.getDishes());
     }
 }

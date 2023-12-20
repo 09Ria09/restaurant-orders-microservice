@@ -1,9 +1,12 @@
-package nl.tudelft.sem.orders.adapters;
+package nl.tudelft.sem.orders.adapters.remote;
 
+import java.util.List;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.Customer;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
+import nl.tudelft.sem.users.model.UsersIdGet200Response;
 import nl.tudelft.sem.users.model.Vendor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +18,35 @@ public class UserMicroserviceAdapter implements UserMicroservice {
 
     public UserMicroserviceAdapter(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
+    }
+
+    /**
+     * @param userId
+     * @return
+     * @throws ApiException
+     */
+    @Override
+    public UsersGetUserTypeIdGet200Response.UserTypeEnum getUserType(long userId) throws ApiException {
+        return null;
+    }
+
+    /**
+     * @param userId
+     * @return
+     * @throws ApiException
+     */
+    @Override
+    public UsersIdGet200Response getUserById(long userId) throws ApiException {
+        return null;
+    }
+
+    /**
+     * @return
+     * @throws ApiException
+     */
+    @Override
+    public List<Vendor> getAllVendors() throws ApiException {
+        return null;
     }
 
     /**

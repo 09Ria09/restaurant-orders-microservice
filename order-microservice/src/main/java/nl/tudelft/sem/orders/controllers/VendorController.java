@@ -5,19 +5,17 @@ import java.util.List;
 import nl.tudelft.sem.orders.api.VendorApi;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.result.MalformedException;
-import nl.tudelft.sem.orders.ring0.VendorFacade;
+import nl.tudelft.sem.orders.ring0.VendorFacadeInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class VendorController implements VendorApi {
-    private transient VendorFacade vendorFacade;
+    private final transient VendorFacadeInterface vendorFacade;
 
     @Autowired
-    VendorController(VendorFacade vendorFacade) {
+    VendorController(VendorFacadeInterface vendorFacade) {
         this.vendorFacade = vendorFacade;
     }
 

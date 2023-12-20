@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Import;
 @Import(TestConfig.class)
 class VendorFacadeTest {
     @Autowired
-    private VendorFacade vendorFacade;
+    private VendorFacadeInterface vendorFacade;
 
     @Autowired
     private MockDeliveryMicroservice deliveryMicroservice;

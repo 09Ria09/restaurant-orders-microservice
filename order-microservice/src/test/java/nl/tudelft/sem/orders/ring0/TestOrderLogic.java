@@ -19,16 +19,17 @@ import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
-import nl.tudelft.sem.orders.ring0.OrderFacade;
+import nl.tudelft.sem.orders.test.mocks.MockPaymentService;
+import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestOrderFacade {
+public class TestOrderLogic {
 
     OrderDatabase orderDatabase;
     DishDatabase dishDatabase;
     private UserMicroservice userMicroservice;
-    private OrderFacade orderFacade;
+    private OrderLogic orderFacade;
 
     @BeforeEach
     void setUp() {
@@ -36,11 +37,11 @@ public class TestOrderFacade {
         dishDatabase = mock(DishDatabase.class);
         userMicroservice = mock(UserMicroservice.class);
 
-        orderFacade = new OrderFacade(orderDatabase, dishDatabase, userMicroservice);
+        orderFacade = new OrderLogic(orderDatabase, dishDatabase, userMicroservice, new MockPaymentService());
     }
 
     @Test
-    void createOrder() {
+    void createOrder() throws ApiException {
         final long customerId = 1L;
         final long vendorId = 2L;
         final Location location = new Location();

@@ -1,29 +1,31 @@
 package nl.tudelft.sem.orders.controllers;
 
 import javax.persistence.EntityNotFoundException;
-import nl.tudelft.sem.orders.adapters.LocationMicroserviceAdapter;
-import nl.tudelft.sem.orders.adapters.UserMicroserviceAdapter;
 import nl.tudelft.sem.orders.api.OrderApi;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
 import nl.tudelft.sem.orders.model.OrderOrderIDPayPostRequest;
-import nl.tudelft.sem.orders.ring0.OrderFacade;
+import nl.tudelft.sem.orders.ports.output.LocationService;
+import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.orders.result.ForbiddenException;
+import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.ring0.OrderLogic;
+import nl.tudelft.sem.users.ApiException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClientException;
 
 
 @RestController
 @RequestMapping("/order/")
 public class OrderController implements OrderApi {
-    private final transient UserMicroserviceAdapter userMicroservice;
-    private final transient LocationMicroserviceAdapter locationMicroservice;
-    private final transient OrderFacade ordersFacade;
+    private final transient UserMicroservice userMicroservice;
+    private final transient LocationService locationService;
+    private final transient OrderLogic orderLogic;
 
     /**
      * Creates a new OrderController instance.
@@ -31,12 +33,12 @@ public class OrderController implements OrderApi {
      * @param orderLogic The class providing orders logic.
      */
     @Autowired
-    public OrderController(OrderFacade ordersFacade,
-                    UserMicroserviceAdapter userMicroservice,
-                    LocationMicroserviceAdapter locationMicroservice) {
-        this.ordersFacade = ordersFacade;
+    public OrderController(OrderLogic orderLogic,
+                           UserMicroservice userMicroservice,
+                           LocationService locationService) {
+        this.orderLogic = orderLogic;
         this.userMicroservice = userMicroservice;
-        this.locationMicroservice = locationMicroservice;
+        this.locationService = locationService;
     }
 
     @Override
@@ -58,21 +60,18 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> orderPost(Long userID, Long vendorID) {
-        if (userID == null
-            || vendorID == null
-            || !locationMicroservice.isCloseBy(
-                userMicroservice.getCustomerAddress(userID),
-                userMicroservice.getVendorAddress(vendorID))) {
-            return ResponseEntity.badRequest().build();
-        }
         try {
-            if (userMicroservice.isCustomer(userID)) {
-                return ResponseEntity.ok(
-                    ordersFacade.createOrder(userID, vendorID));
-            } else {
+            if (!userMicroservice.isCustomer(userID)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-        } catch (RestClientException | IllegalStateException e) {
+            if (!locationService.isCloseBy(
+                userMicroservice.getCustomerAddress(userID),
+                userMicroservice.getVendorAddress(vendorID))) {
+                return ResponseEntity.badRequest().build();
+            }
+            return ResponseEntity.ok(
+                orderLogic.createOrder(userID, vendorID));
+        } catch (ApiException e) {
             return ResponseEntity.badRequest().build();
         }
     }
@@ -82,22 +81,26 @@ public class OrderController implements OrderApi {
         orderOrderIDDishesPut(
         Long userID, Long orderID,
         OrderOrderIDDishesPutRequest orderOrderIDDishesPutRequest) {
-        if (userMicroservice.isCustomer(userID)) {
-            try {
-                Float newTotalPrice = ordersFacade.updateDishes(orderID, userID,
-                    orderOrderIDDishesPutRequest.getDishes());
+        try {
+            if (userMicroservice.isCustomer(userID)) {
+                try {
+                    Float newTotalPrice = orderLogic.updateDishes(orderID, userID,
+                        orderOrderIDDishesPutRequest.getDishes());
 
-                OrderOrderIDDishesPut200Response response =
-                    new OrderOrderIDDishesPut200Response();
-                response.setPrice(newTotalPrice);
+                    OrderOrderIDDishesPut200Response response =
+                        new OrderOrderIDDishesPut200Response();
+                    response.setPrice(newTotalPrice);
 
-                return new ResponseEntity<>(response, HttpStatus.OK);
-            } catch (IllegalStateException e) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            } catch (EntityNotFoundException e) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                } catch (IllegalStateException e) {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                } catch (EntityNotFoundException e) {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
-        } else {
+        } catch (ApiException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
