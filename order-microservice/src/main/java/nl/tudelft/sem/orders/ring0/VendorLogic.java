@@ -132,10 +132,10 @@ public class VendorLogic implements VendorLogicInterface {
     }
 
     /**
-     * Adds the given dish to the database with a new ID, discarding the old one.
+     * Adds the given dish to the database with a new ID.
      *
      * @param dish the dish to be added
-     * @return description of what the method returns
+     * @return the added dish
      */
     public List<Dish> addDish(Dish dish) {
         long id = dishDatabase.getLastId() + 1;
