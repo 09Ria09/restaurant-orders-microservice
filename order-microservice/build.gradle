@@ -1,3 +1,5 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 buildscript {
 	repositories {
 		mavenCentral()
@@ -119,17 +121,13 @@ jacocoTestReport {
                                         'nl/tudelft/sem/users**',
                                         'nl/tudelft/sem/orders/api**',
                                         'nl/tudelft/sem/orders/model**',
-                                        // It is currently impossible to test these
-                                        // since they depend on a remote http server
-                                        // or are just mocks which will change a lot during development
-                                        // thus we will leave testing them for the very end.
-                                        'nl/tudelft/sem/orders/adapters**'])
+                                        'nl/tudelft/sem/orders/adapters/mocks**'])
 		}))
 	}
 }
 
 apply plugin: 'org.openapi.generator'
-task ourGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+tasks.register('ourGenerate', GenerateTask) {
 	generatorName.set("spring")
 	inputSpec.set("$rootDir/order-microservice/src/main/resources/openapi.yaml")
 	outputDir.set("$buildDir/generated")
@@ -143,7 +141,7 @@ task ourGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTa
 	skipOperationExample.set(true)
 }
 
-task userGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+tasks.register('userGenerate', GenerateTask) {
 	generatorName.set("java")
 	inputSpec.set("$rootDir/order-microservice/src/main/resources/user.yaml")
 	outputDir.set("$buildDir/generated")
@@ -157,7 +155,7 @@ task userGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateT
 	skipOperationExample.set(true)
 }
 
-task deliveryGenerate(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+tasks.register('deliveryGenerate', GenerateTask) {
 	generatorName.set("java")
 	inputSpec.set("$rootDir/order-microservice/src/main/resources/delivery.yaml")
 	outputDir.set("$buildDir/generated")

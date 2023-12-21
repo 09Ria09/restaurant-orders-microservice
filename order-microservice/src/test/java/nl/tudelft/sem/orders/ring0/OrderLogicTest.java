@@ -19,12 +19,12 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootTest
 @Import(TestConfig.class)
-class OrderFacadeTest {
+class OrderLogicTest {
     @Autowired
     private MockOrderDatabase orderDatabase;
 
     @Autowired
-    private OrderFacade orderFacade;
+    private OrderLogic orderFacade;
 
     @BeforeEach
     void clean() {

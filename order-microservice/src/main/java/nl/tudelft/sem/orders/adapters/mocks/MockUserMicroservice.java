@@ -2,6 +2,8 @@ package nl.tudelft.sem.orders.adapters.mocks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
@@ -12,6 +14,32 @@ public class MockUserMicroservice implements UserMicroservice {
     @Override
     public List<Vendor> getAllVendors() throws ApiException {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Location getCustomerAddress(long customerId) throws ApiException {
+        Location location = new Location();
+        location.setCountry("the Netherlands");
+        location.setCity("Delft");
+        location.setAddress("Mekelweg 5");
+        location.setPostalCode("2628DV");
+        location.setAdditionalRemarks("Inside the building.");
+        return location;
+    }
+
+    @Override
+    public Location getVendorAddress(long vendorId) throws ApiException {
+        Location location = new Location();
+        location.setCountry("the Netherlands");
+        location.setCity("Delft");
+        location.setAddress("Mekelweg 7");
+        location.setPostalCode("2628DV");
+        return location;
+    }
+
+    @Override
+    public boolean isCustomer(long userId) throws ApiException {
+        return true;
     }
 
     @Override

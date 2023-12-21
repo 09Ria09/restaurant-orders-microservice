@@ -17,9 +17,9 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootTest
 @Import(TestConfig.class)
-class VendorFacadeTest {
+class VendorLogicTest {
     @Autowired
-    private VendorFacade vendorFacade;
+    private VendorLogic vendorLogic;
 
     @Autowired
     private MockDeliveryMicroservice deliveryMicroservice;
@@ -28,14 +28,14 @@ class VendorFacadeTest {
     void vendorsInRadiusFailRadius() {
         deliveryMicroservice.setFailRadius(true);
         assertThrows(MalformedException.class, () ->
-            vendorFacade.vendorsInRadius(1L, "none", null));
+            vendorLogic.vendorsInRadius(1L, "none", null));
         deliveryMicroservice.setFailRadius(false);
     }
 
     @Test
     void vendorsInRadius() {
         List<Long> retried = assertDoesNotThrow(() ->
-            vendorFacade.vendorsInRadius(1L, "none", null));
+            vendorLogic.vendorsInRadius(1L, "none", null));
 
         assertEquals(retried, new ArrayList<>());
     }
@@ -43,7 +43,7 @@ class VendorFacadeTest {
     @Test
     void vendorsInRadiusWithLocation() {
         List<Long> retried = assertDoesNotThrow(() ->
-            vendorFacade.vendorsInRadius(1L, "none", new Location().city("a")));
+            vendorLogic.vendorsInRadius(1L, "none", new Location().city("a")));
 
         assertEquals(100L, retried.get(0));
         assertEquals(1, retried.size());
@@ -52,7 +52,7 @@ class VendorFacadeTest {
     @Test
     void vendorsInRadiusWrongCustomer() {
         assertThrows(MalformedException.class, () ->
-            vendorFacade.vendorsInRadius(4L, "none", null));
+            vendorLogic.vendorsInRadius(4L, "none", null));
     }
 
 

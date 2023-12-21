@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import nl.tudelft.sem.orders.domain.GeoLocation;
 import nl.tudelft.sem.orders.model.Location;
-import nl.tudelft.sem.orders.ports.input.VendorLogic;
+import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VendorFacade implements VendorLogic {
+public class VendorLogic implements VendorLogicInterface {
     private transient OrderDatabase orderDatabase;
     private transient UserMicroservice userMicroservice;
     private transient DeliveryMicroservice deliveryMicroservice;
@@ -24,7 +24,7 @@ public class VendorFacade implements VendorLogic {
 
 
     /**
-     * Creates a new order facade.
+     * Creates a new vendor logic.
      *
      * @param orderDatabase The database output port.
      * @param userMicroservice The output port for the user microservice.
@@ -32,10 +32,10 @@ public class VendorFacade implements VendorLogic {
      * @param locationService The output port for the location service.
      */
     @Autowired
-    public VendorFacade(OrderDatabase orderDatabase,
-                        UserMicroservice userMicroservice,
-                        DeliveryMicroservice deliveryMicroservice,
-                        LocationService locationService) {
+    public VendorLogic(OrderDatabase orderDatabase,
+                                 UserMicroservice userMicroservice,
+                                 DeliveryMicroservice deliveryMicroservice,
+                                 LocationService locationService) {
         this.orderDatabase = orderDatabase;
         this.userMicroservice = userMicroservice;
         this.deliveryMicroservice = deliveryMicroservice;
