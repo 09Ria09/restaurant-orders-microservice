@@ -20,7 +20,7 @@ public class VendorController implements VendorApi {
     private final transient UserMicroservice userMicroservice;
 
     @Autowired
-    VendorController(VendorLogic vendorLogic,UserMicroservice userMicroservice) {
+    VendorController(VendorLogic vendorLogic, UserMicroservice userMicroservice) {
         this.vendorLogic = vendorLogic;
         this.userMicroservice = userMicroservice;
     }
@@ -40,10 +40,12 @@ public class VendorController implements VendorApi {
     @Override
     public ResponseEntity<List<Dish>> vendorDishPost(Dish dish) {
         try {
-            if (dish.getVendorID() == null || dish.getDishID() == null)
+            if (dish.getVendorID() == null || dish.getDishID() == null) {
                 return ResponseEntity.badRequest().build();
-            if (!userMicroservice.isVendor(dish.getVendorID()))
+            }
+            if (!userMicroservice.isVendor(dish.getVendorID())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
             return ResponseEntity.ok(
                     vendorLogic.addDish(dish));
         } catch (ApiException e) {
@@ -54,11 +56,13 @@ public class VendorController implements VendorApi {
     @Override
     public ResponseEntity<Void> vendorDishPut(Dish dish) {
         try {
-            if (dish.getVendorID() == null || dish.getDishID() == null)
+            if (dish.getVendorID() == null || dish.getDishID() == null) {
                 return ResponseEntity.badRequest().build();
+            }
             //if it can't find the dish to be edited
-            if(!vendorLogic.dishExists(dish.getDishID()))
+            if (!vendorLogic.dishExists(dish.getDishID())) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
             vendorLogic.modifyDish(dish);
             return ResponseEntity.ok().build();
         } catch (ApiException e) {

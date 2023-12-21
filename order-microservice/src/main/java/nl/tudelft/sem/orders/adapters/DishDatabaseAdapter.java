@@ -21,8 +21,10 @@ public class DishDatabaseAdapter implements DishDatabase {
 
     @Override
     public Long getLastId() {
-        Dish dish = dishRepository.findTopByDishByDishIDDesc();
-        if(dish==null) return 0L;
+        Dish dish = dishRepository.findTopByOrderByDishIDDesc();
+        if (dish == null) {
+            return 0L;
+        }
         return dish.getDishID();
     }
 

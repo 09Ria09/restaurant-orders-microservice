@@ -7,7 +7,11 @@ import nl.tudelft.sem.orders.domain.GeoLocation;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
-import nl.tudelft.sem.orders.ports.output.*;
+import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
+import nl.tudelft.sem.orders.ports.output.DishDatabase;
+import nl.tudelft.sem.orders.ports.output.LocationService;
+import nl.tudelft.sem.orders.ports.output.OrderDatabase;
+import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
@@ -127,20 +131,31 @@ public class VendorLogic implements VendorLogicInterface {
         }
     }
 
+    /**
+     * Adds the given dish to the database with a new ID, discarding the old one.
+     *
+     * @param dish the dish to be added
+     * @return description of what the method returns
+     */
     public List<Dish> addDish(Dish dish) {
         long id = dishDatabase.getLastId() + 1;
-        Dish d = new Dish(id,dish.getVendorID(),
-                dish.getName(),dish.getDescription(),
-                dish.getIngredients(),dish.getPrice());
+        Dish d = new Dish(id, dish.getVendorID(),
+                dish.getName(), dish.getDescription(),
+                dish.getIngredients(), dish.getPrice());
         dishDatabase.save(d);
         List<Dish> res = new ArrayList<>();
         res.add(d);
         return res;
     }
 
+    /**
+     * Checks if there is a Dish with the given ID in the database.
+     *
+     * @param dishID the ID to check
+     * @return true if there is a dish with the given ID
+     */
     public boolean dishExists(Long dishID) {
-        if(dishDatabase.getById(dishID)==null) return false;
-        return true;
+        return dishDatabase.getById(dishID) != null;
     }
 
     public void modifyDish(Dish dish) throws ApiException {

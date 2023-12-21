@@ -8,5 +8,5 @@ import org.springframework.stereotype.Component;
 public interface DishRepository extends JpaRepository<Dish, Long> {
     Dish findByDishID(Long dishId);
 
-    Dish findTopByDishByDishIDDesc();
+    Dish findTopByOrderByDishIDDesc();
 }
