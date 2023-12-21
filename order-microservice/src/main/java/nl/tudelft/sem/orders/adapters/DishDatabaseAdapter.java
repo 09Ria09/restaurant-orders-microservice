@@ -18,4 +18,12 @@ public class DishDatabaseAdapter implements DishDatabase {
     public void save(Dish toSave) {
         dishRepository.saveAndFlush(toSave);
     }
+
+    @Override
+    public Long getLastId() {
+        Dish dish = dishRepository.findTopByDishByDishIDDesc();
+        if(dish==null) return 0L;
+        return dish.getDishID();
+    }
+
 }

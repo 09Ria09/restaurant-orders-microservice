@@ -43,6 +43,11 @@ public class MockUserMicroservice implements UserMicroservice {
     }
 
     @Override
+    public boolean isVendor(long userId) throws ApiException {
+        return true;
+    }
+
+    @Override
     public UsersGetUserTypeIdGet200Response.UserTypeEnum getUserType(
         long userId) throws ApiException {
         switch ((int) userId) {

@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import nl.tudelft.sem.orders.domain.GeoLocation;
+import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
-import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
-import nl.tudelft.sem.orders.ports.output.LocationService;
-import nl.tudelft.sem.orders.ports.output.OrderDatabase;
-import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.orders.ports.output.*;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,6 +20,8 @@ public class VendorLogic implements VendorLogicInterface {
     private transient UserMicroservice userMicroservice;
     private transient DeliveryMicroservice deliveryMicroservice;
     private transient LocationService locationService;
+
+    private final transient DishDatabase dishDatabase;
 
 
     /**
@@ -35,11 +36,13 @@ public class VendorLogic implements VendorLogicInterface {
     public VendorLogic(OrderDatabase orderDatabase,
                                  UserMicroservice userMicroservice,
                                  DeliveryMicroservice deliveryMicroservice,
-                                 LocationService locationService) {
+                                 LocationService locationService,
+                                 DishDatabase dishDatabase) {
         this.orderDatabase = orderDatabase;
         this.userMicroservice = userMicroservice;
         this.deliveryMicroservice = deliveryMicroservice;
         this.locationService = locationService;
+        this.dishDatabase = dishDatabase;
     }
 
     private Location mapLocations(
@@ -122,5 +125,25 @@ public class VendorLogic implements VendorLogicInterface {
         } catch (Exception e) {
             throw new MalformedException();
         }
+    }
+
+    public List<Dish> addDish(Dish dish) {
+        long id = dishDatabase.getLastId() + 1;
+        Dish d = new Dish(id,dish.getVendorID(),
+                dish.getName(),dish.getDescription(),
+                dish.getIngredients(),dish.getPrice());
+        dishDatabase.save(d);
+        List<Dish> res = new ArrayList<>();
+        res.add(d);
+        return res;
+    }
+
+    public boolean dishExists(Long dishID) {
+        if(dishDatabase.getById(dishID)==null) return false;
+        return true;
+    }
+
+    public void modifyDish(Dish dish) throws ApiException {
+        dishDatabase.save(dish);
     }
 }
