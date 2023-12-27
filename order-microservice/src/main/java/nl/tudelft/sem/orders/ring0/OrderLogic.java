@@ -130,4 +130,22 @@ public class OrderLogic implements OrderLogicInterface {
             throw new IllegalStateException(e);
         }
     }
+
+    @Override
+    public List<Order> getOrders(Long userID, UsersGetUserTypeIdGet200Response.UserTypeEnum userType) {
+        List<Order> foundOrders;
+        switch (userType) {
+            case ADMIN -> foundOrders = orderDatabase.findAllOrders();
+            case VENDOR -> foundOrders = orderDatabase.findByVendorID(userID);
+            case COURIER -> foundOrders = orderDatabase.findByCourierID(userID);
+            case CUSTOMER -> foundOrders = orderDatabase.findByCustomerID(userID);
+            default -> {
+                throw new IllegalStateException("An account without a correct usertype has appeared");
+            }
+        }
+        if (foundOrders == null) {
+            throw new IllegalStateException("The database query went wrong");
+        }
+        return foundOrders;
+    }
 }

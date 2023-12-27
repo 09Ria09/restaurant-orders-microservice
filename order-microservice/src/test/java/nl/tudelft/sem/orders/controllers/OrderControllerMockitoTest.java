@@ -17,10 +17,14 @@ import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.ring0.OrderLogic;
 import nl.tudelft.sem.users.ApiException;
+import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 class OrderControllerMockitoTest {
 
@@ -181,5 +185,60 @@ class OrderControllerMockitoTest {
         assertEquals(ResponseEntity.status(HttpStatus.NOT_FOUND).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
         verify(orderLogic).updateDishes(orderID, userID, request.getDishes());
+    }
+
+    @Test
+    void orderGetNullID(){
+        Long userID = null;
+        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
+        assertEquals(ResponseEntity.badRequest().build(), actual);
+    }
+
+    @Test
+    void orderGetAdmin() throws ApiException {
+        Long userID = 1L;
+        when(userMicroservice.getUserType(1L)).thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.ADMIN);
+        when(orderLogic.getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.ADMIN))
+                .thenReturn(new ArrayList<Order>());
+
+        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
+
+        verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.ADMIN);
+    }
+
+    @Test
+    void orderGetVendor() throws ApiException {
+        Long userID = 1L;
+        when(userMicroservice.getUserType(1L)).thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.VENDOR);
+        when(orderLogic.getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.VENDOR))
+                .thenReturn(new ArrayList<Order>());
+
+        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
+
+        verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.VENDOR);
+    }
+
+    @Test
+    void orderGetCustomer() throws ApiException {
+        Long userID = 1L;
+        when(userMicroservice.getUserType(1L)).thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER);
+        when(orderLogic.getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER))
+                .thenReturn(new ArrayList<Order>());
+
+        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
+
+        verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER);
+    }
+
+    @Test
+    void orderGetCourier() throws ApiException {
+        Long userID = 1L;
+        when(userMicroservice.getUserType(1L)).thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.COURIER);
+        when(orderLogic.getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.COURIER))
+                .thenReturn(new ArrayList<Order>());
+
+        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
+
+        verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.COURIER);
     }
 }

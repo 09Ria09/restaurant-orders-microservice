@@ -21,8 +21,10 @@ import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.test.mocks.MockPaymentService;
 import nl.tudelft.sem.users.ApiException;
+import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response.UserTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 
 public class OrderLogicMockitoTest {
 
@@ -143,5 +145,23 @@ public class OrderLogicMockitoTest {
         when(orderDatabase.getById(orderId)).thenReturn(order);
 
         assertThrows(IllegalStateException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+    }
+
+    void getOrdersAdmin(){
+        Long userID = 1L;
+        UserTypeEnum userType = UserTypeEnum.ADMIN;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+
+        ArrayList<Order> allOrders = new ArrayList<>();
+        allOrders.add(order);
+        allOrders.add(order2);
+        when(orderDatabase.findAllOrders()).thenReturn(allOrders);
+
+        assertEquals(orderFacade.getOrders(userID, userType), allOrders);
     }
 }

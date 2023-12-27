@@ -1,6 +1,8 @@
 package nl.tudelft.sem.orders.test.mocks;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
@@ -32,6 +34,26 @@ public class MockOrderDatabase implements OrderDatabase {
     @Override
     public Long getLastId() {
         return 4L;
+    }
+
+    @Override
+    public List<Order> findByVendorID(long vendorID) {
+        return null;
+    }
+
+    @Override
+    public List<Order> findByCustomerID(long customerID) {
+        return null;
+    }
+
+    @Override
+    public List<Order> findByCourierID(long courierID) {
+        return null;
+    }
+
+    @Override
+    public List<Order> findAllOrders() {
+        return null;
     }
 
     /**
