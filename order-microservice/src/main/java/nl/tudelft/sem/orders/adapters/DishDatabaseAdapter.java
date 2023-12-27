@@ -18,4 +18,10 @@ public class DishDatabaseAdapter implements DishDatabase {
     public void save(Dish toSave) {
         dishRepository.saveAndFlush(toSave);
     }
+
+    @Override
+    public void delete(Dish dish) {
+        dishRepository.delete(dish);
+    }
+
 }

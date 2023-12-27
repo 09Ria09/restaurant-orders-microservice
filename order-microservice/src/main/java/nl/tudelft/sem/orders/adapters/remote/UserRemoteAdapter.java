@@ -81,4 +81,19 @@ public class UserRemoteAdapter implements UserMicroservice {
 
         return UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER.equals(userType);
     }
+
+    /**
+     * Checks if the user is a vendor.
+     *
+     * @param vendorId the id of the vendor
+     * @return true if the user is a vendor, false otherwise
+     * @throws ApiException if the user does not exist
+     */
+    @Override
+    public boolean isVendor(long vendorId) throws ApiException {
+        UsersGetUserTypeIdGet200Response.UserTypeEnum userType = getUserType(vendorId);
+
+        return UsersGetUserTypeIdGet200Response.UserTypeEnum.VENDOR.equals(userType);
+    }
+
 }
