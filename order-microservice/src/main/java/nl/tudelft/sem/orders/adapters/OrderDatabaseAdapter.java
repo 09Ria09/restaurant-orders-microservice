@@ -5,6 +5,8 @@ import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 public class OrderDatabaseAdapter implements OrderDatabase {
     @Autowired
     private transient OrderRepository orderRepository;
@@ -26,5 +28,25 @@ public class OrderDatabaseAdapter implements OrderDatabase {
             return 0L;
         }
         return order.getOrderID();
+    }
+
+    @Override
+    public List<Order> findByVendorID(long vendorID) {
+        return orderRepository.findByVendorID(vendorID);
+    }
+
+    @Override
+    public List<Order> findByCustomerID(long customerID) {
+        return orderRepository.findByCustomerID(customerID);
+    }
+
+    @Override
+    public List<Order> findByCourierID(long courierID) {
+        return orderRepository.findByCourierID(courierID);
+    }
+
+    @Override
+    public List<Order> findAllOrders() {
+        return orderRepository.findAll();
     }
 }
