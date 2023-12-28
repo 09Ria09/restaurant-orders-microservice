@@ -77,7 +77,7 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<OrderOrderIDDishesPut200Response>
-    orderOrderIDDishesPut(
+        orderOrderIDDishesPut(
         Long userID, Long orderID,
         OrderOrderIDDishesPutRequest orderOrderIDDishesPutRequest) {
         try {
@@ -114,5 +114,4 @@ public class OrderController implements OrderApi {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
-
 }
