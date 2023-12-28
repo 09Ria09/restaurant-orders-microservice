@@ -59,8 +59,15 @@ public class OrderLogicMockitoTest {
         final long customerId = 1L;
         final long vendorId = 2L;
         final Location location = new Location();
+        Order orderNoId = new Order(null, customerId, vendorId, new ArrayList<>(), location, Order.StatusEnum.UNPAID);
 
         when(userMicroservice.getCustomerAddress(customerId)).thenReturn(new Location());
+        when(orderDatabase.save(orderNoId)).thenReturn(new Order(1L,
+            customerId,
+            vendorId,
+            new ArrayList<>(),
+            location,
+            Order.StatusEnum.UNPAID));
 
         Order result = orderFacade.createOrder(customerId, vendorId);
 
@@ -69,7 +76,7 @@ public class OrderLogicMockitoTest {
         assertEquals(vendorId, result.getVendorID());
         assertEquals(Order.StatusEnum.UNPAID, result.getStatus());
         assertEquals(location, result.getLocation());
-        verify(orderDatabase, times(1)).save(result);
+        verify(orderDatabase, times(1)).save(orderNoId);
     }
 
     @Test
@@ -179,6 +186,12 @@ public class OrderLogicMockitoTest {
         when(userMicroservice.isVendor(2L)).thenReturn(true);
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(dish);
+        when(orderDatabase.save(any(Order.class))).thenReturn(new Order(2L,
+            1L,
+            2L,
+            new ArrayList<>(List.of(dishInner)),
+            null,
+            Order.StatusEnum.UNPAID));
 
         Order newOrder = orderFacade.reorder(1L, 1L);
         assertEquals(order.getCustomerID(), newOrder.getCustomerID());

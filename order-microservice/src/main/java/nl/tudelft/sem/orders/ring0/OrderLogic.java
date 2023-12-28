@@ -90,10 +90,14 @@ public class OrderLogic implements OrderLogicInterface {
      */
     @Override
     public Order createOrder(long customerId, long vendorId) throws ApiException {
-        Order order = new Order(orderDatabase.getLastId() + 1, customerId, vendorId, new ArrayList<>(),
-            userMicroservice.getCustomerAddress(customerId), Order.StatusEnum.UNPAID);
-        orderDatabase.save(order);
-        return order;
+        Order order = new Order();
+        order.setCustomerID(customerId);
+        order.setVendorID(vendorId);
+        order.setDishes(new ArrayList<>());
+        order.setLocation(userMicroservice.getCustomerAddress(customerId));
+        order.setStatus(Order.StatusEnum.UNPAID);
+
+        return orderDatabase.save(order);
     }
 
     /**
@@ -188,16 +192,13 @@ public class OrderLogic implements OrderLogicInterface {
             }
         }
 
-        Order newOrder = new Order(
-            orderDatabase.getLastId() + 1,
-            userID,
-            order.getVendorID(),
-            order.getDishes(),
-            userAddress,
-            Order.StatusEnum.UNPAID
-        );
+        Order newOrder = new Order();
+        newOrder.setCustomerID(userID);
+        newOrder.setVendorID(vendorID);
+        newOrder.setDishes(order.getDishes());
+        newOrder.setLocation(userAddress);
+        newOrder.setStatus(Order.StatusEnum.UNPAID);
 
-        orderDatabase.save(newOrder);
-        return newOrder;
+        return orderDatabase.save(newOrder);
     }
 }
