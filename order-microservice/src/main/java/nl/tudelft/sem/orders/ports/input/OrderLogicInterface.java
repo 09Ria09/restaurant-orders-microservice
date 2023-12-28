@@ -6,6 +6,7 @@ import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.users.ApiException;
 
 public interface OrderLogicInterface {
@@ -17,4 +18,6 @@ public interface OrderLogicInterface {
     Float updateDishes(long orderId, long customerId,
                        @Valid List<@Valid
                            OrderOrderIDDishesPutRequestDishesInner> dishes) throws MalformedException;
+
+    Order reorder(Long userID, Long orderID) throws MalformedException, NotFoundException;
 }
