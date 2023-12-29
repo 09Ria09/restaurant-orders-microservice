@@ -114,8 +114,8 @@ public class OrderController implements OrderApi {
         UsersGetUserTypeIdGet200Response.UserTypeEnum userType;
         try {
             userType = userMicroservice.getUserType(userID);
-        } catch (Exception e) {
-            throw new RuntimeException("Getting the usertype went wrong");
+        } catch (ApiException e) {
+            return ResponseEntity.badRequest().build();
         }
         List<Order> retrievedOrders = orderLogic.getOrders(userID, userType);
 

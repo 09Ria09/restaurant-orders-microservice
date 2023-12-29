@@ -1,12 +1,15 @@
 package nl.tudelft.sem.orders.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.adapters.mocks.MockLocationAdapter;
 import nl.tudelft.sem.orders.adapters.remote.UserRemoteAdapter;
@@ -23,8 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
-import java.util.List;
 
 class OrderControllerMockitoTest {
 
@@ -188,7 +189,7 @@ class OrderControllerMockitoTest {
     }
 
     @Test
-    void orderGetNullID(){
+    void orderGetNullID() throws ApiException {
         Long userID = null;
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
         assertEquals(ResponseEntity.badRequest().build(), actual);
@@ -241,4 +242,15 @@ class OrderControllerMockitoTest {
 
         verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.COURIER);
     }
+
+    @Test
+    void orderGetException() throws ApiException {
+        Long userID = 1L;
+        when(userMicroservice.getUserType(userID)).thenThrow(new ApiException("blah"));
+
+        ResponseEntity<List<Order>> expected = ResponseEntity.badRequest().build();
+        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
+        assertEquals(expected, actual);
+    }
+
 }

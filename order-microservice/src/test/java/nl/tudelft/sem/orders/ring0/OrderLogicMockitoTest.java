@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
@@ -147,15 +148,18 @@ public class OrderLogicMockitoTest {
         assertThrows(IllegalStateException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
     }
 
-    void getOrdersAdmin(){
+    @Test
+    void getOrdersAdmin() {
         Long userID = 1L;
-        UserTypeEnum userType = UserTypeEnum.ADMIN;
+        final UserTypeEnum userType = UserTypeEnum.ADMIN;
         final long orderId = 2311L;
         final long dishId = 413L;
         final long vendorId = 2123L;
         final long anotherVendorId = 3L;
-        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
-        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        final Order order = new Order(orderId, userID, vendorId,
+                new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId,
+                new ArrayList<>(), null, Order.StatusEnum.UNPAID);
 
         ArrayList<Order> allOrders = new ArrayList<>();
         allOrders.add(order);
@@ -163,5 +167,69 @@ public class OrderLogicMockitoTest {
         when(orderDatabase.findAllOrders()).thenReturn(allOrders);
 
         assertEquals(orderFacade.getOrders(userID, userType), allOrders);
+        verify(orderDatabase, times(1)).findAllOrders();
+    }
+
+    @Test
+    void getOrdersVendor() {
+        Long userID = 1L;
+        final UserTypeEnum userType = UserTypeEnum.VENDOR;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+
+        ArrayList<Order> expected = new ArrayList<>();
+        expected.add(order);
+        when(orderDatabase.findByVendorID(vendorId)).thenReturn(expected);
+
+        assertEquals(orderFacade.getOrders(vendorId, userType), expected);
+        verify(orderDatabase, times(1)).findByVendorID(vendorId);
+    }
+
+    @Test
+    void getOrdersCourier() {
+        Long userID = 1L;
+        final UserTypeEnum userType = UserTypeEnum.COURIER;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+
+        ArrayList<Order> expected = new ArrayList<>();
+        expected.add(order);
+        when(orderDatabase.findByCourierID(userID)).thenReturn(expected);
+
+        assertEquals(orderFacade.getOrders(userID, userType), expected);
+        verify(orderDatabase, times(1)).findByCourierID(userID);
+    }
+
+    @Test
+    void getOrdersCustomer() {
+        Long userID = 1L;
+        final UserTypeEnum userType = UserTypeEnum.CUSTOMER;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+
+        ArrayList<Order> expected = new ArrayList<>();
+        expected.add(order);
+        when(orderDatabase.findByCustomerID(userID)).thenReturn(expected);
+
+        assertEquals(orderFacade.getOrders(userID, userType), expected);
+        verify(orderDatabase, times(1)).findByCustomerID(userID);
     }
 }

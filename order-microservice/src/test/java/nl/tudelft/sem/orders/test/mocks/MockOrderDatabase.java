@@ -2,7 +2,6 @@ package nl.tudelft.sem.orders.test.mocks;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
