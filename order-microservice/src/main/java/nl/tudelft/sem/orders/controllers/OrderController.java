@@ -108,6 +108,10 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<List<Order>> orderGet(Long userID) {
+        // The null check is here instead of in the orderLogic class as
+        // I do not want to propagate this problem to another microservice,
+        // but communication should be in the controller and not logic,
+        // therefore I put this null check here
         if (userID == null) {
             return ResponseEntity.badRequest().build();
         }
