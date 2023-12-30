@@ -62,13 +62,13 @@ public class MockOrderDatabase implements OrderDatabase {
     public void clean() {
         saveRequests.clear();
         this.mocks = new Order[] {
-            new Order(1L, 4L, 0L, new ArrayList<>(),
+            new Order(1L, 4L, 0L, new ArrayList<>(), 1f,
                 new Location().city("a").country("PL").postalCode("123ZT"),
                 Order.StatusEnum.UNPAID).courierID(3L),
-            new Order(2L, 4L, 3L, new ArrayList<>(),
+            new Order(2L, 4L, 3L, new ArrayList<>(), 1f,
                 new Location().city("Kraków").country("PL").postalCode("123ZT"),
                 Order.StatusEnum.PENDING).courierID(3L),
-            new Order(3L, 4L, 3L, new ArrayList<>(),
+            new Order(3L, 4L, 3L, new ArrayList<>(), 1f,
                 new Location().city("Kraków").country("PL").postalCode("123ZT"),
                 Order.StatusEnum.UNPAID).courierID(3L)
         };
