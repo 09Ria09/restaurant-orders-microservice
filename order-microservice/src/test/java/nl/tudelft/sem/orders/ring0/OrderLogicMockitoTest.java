@@ -256,4 +256,33 @@ public class OrderLogicMockitoTest {
 
         assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
     }
+
+    @Test
+    public void testReorderNotFoundExceptionDishNotOwned() throws Exception {
+        Dish dish = new Dish(1L,
+            2L,
+            "name",
+            "description",
+            new ArrayList<>(),
+            1.0f);
+        OrderDishesInner dishInner = new OrderDishesInner(dish, 1);
+        Order order = new Order(1L,
+            1L,
+            2L,
+            new ArrayList<>(List.of(dishInner)),
+            null,
+            Order.StatusEnum.ACCEPTED);
+
+        when(orderDatabase.getById(1L)).thenReturn(order);
+        when(userMicroservice.isVendor(2L)).thenReturn(true);
+        when(locationService.isCloseBy(any(), any())).thenReturn(true);
+        when(dishDatabase.getById(1L)).thenReturn(new Dish(1L,
+            3L,
+            "name",
+            "description",
+            new ArrayList<>(),
+            1.0f));
+
+        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+    }
 }

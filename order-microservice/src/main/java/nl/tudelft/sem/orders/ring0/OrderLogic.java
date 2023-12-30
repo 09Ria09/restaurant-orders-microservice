@@ -185,9 +185,10 @@ public class OrderLogic implements OrderLogicInterface {
 
         // Check if all dishes still exist
         for (OrderDishesInner orderDish : order.getDishes()) {
-            Dish dish = orderDish.getDish();
+            Long dishID = orderDish.getDish().getDishID();
+            Dish dish = dishDatabase.getById(dishID);
 
-            if (dishDatabase.getById(dish.getDishID()) == null || dish.getVendorID() != vendorID) {
+            if (dish == null || dish.getVendorID() != vendorID) {
                 throw new NotFoundException();
             }
         }
