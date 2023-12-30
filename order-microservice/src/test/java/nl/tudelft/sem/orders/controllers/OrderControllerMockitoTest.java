@@ -201,55 +201,28 @@ class OrderControllerMockitoTest {
     @Test
     void orderGetAdmin() throws ApiException {
         Long userID = 1L;
-        when(userMicroservice.getUserType(1L)).thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.ADMIN);
-        when(orderLogic.getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.ADMIN))
+        when(orderLogic.getOrders(1L))
                 .thenReturn(new ArrayList<Order>());
 
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
 
-        verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.ADMIN);
+        verify(orderLogic).getOrders(1L);
     }
 
     @Test
-    void orderGetVendor() throws ApiException {
+    void orderGetIse() throws ApiException {
         Long userID = 1L;
-        when(userMicroservice.getUserType(1L)).thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.VENDOR);
-        when(orderLogic.getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.VENDOR))
-                .thenReturn(new ArrayList<Order>());
+        when(orderLogic.getOrders(1L))
+            .thenThrow(new IllegalStateException());
 
-        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
-
-        verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.VENDOR);
-    }
-
-    @Test
-    void orderGetCustomer() throws ApiException {
-        Long userID = 1L;
-        when(userMicroservice.getUserType(1L)).thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER);
-        when(orderLogic.getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER))
-                .thenReturn(new ArrayList<Order>());
-
-        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
-
-        verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER);
-    }
-
-    @Test
-    void orderGetCourier() throws ApiException {
-        Long userID = 1L;
-        when(userMicroservice.getUserType(1L)).thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.COURIER);
-        when(orderLogic.getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.COURIER))
-                .thenReturn(new ArrayList<Order>());
-
-        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
-
-        verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.COURIER);
+        assertEquals(HttpStatus.BAD_REQUEST, orderController.orderGet(userID).getStatusCode());
     }
 
     @Test
     void orderGetException() throws ApiException {
         Long userID = 1L;
-        when(userMicroservice.getUserType(userID)).thenThrow(new ApiException("blah"));
+
+        when(orderLogic.getOrders(1L)).thenThrow(new ApiException());
 
         ResponseEntity<List<Order>> expected = ResponseEntity.badRequest().build();
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);

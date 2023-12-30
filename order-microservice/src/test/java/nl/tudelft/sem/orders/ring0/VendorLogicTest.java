@@ -58,28 +58,50 @@ class VendorLogicTest {
         List<Long> retried = assertDoesNotThrow(() ->
             vendorLogic.vendorsInRadius(1L, "none", new Location().city("a")));
 
-        assertEquals(100L, retried.get(0));
+        assertEquals(0L, retried.get(0));
         assertEquals(1, retried.size());
     }
 
     @Test
     void vendorsInRadiusWrongCustomer() {
         assertThrows(MalformedException.class, () ->
-            vendorLogic.vendorsInRadius(4L, "none", null));
+            vendorLogic.vendorsInRadius(100L, "none", null));
+    }
+
+    @Test
+    void vendorsInRadiusNotACustomer() {
+        assertThrows(MalformedException.class, () ->
+            vendorLogic.vendorsInRadius(0L, "none", null));
     }
 
     @Test
     void testDeleteDishByIdNoDish() {
         long userId = 1L;
-        long dishId = 3L;
+        long dishId = 100L;
 
         // Test MalformedException when dish does not exist
         assertThrows(MalformedException.class, () -> vendorLogic.deleteDishById(userId, dishId));
     }
 
     @Test
-    void testDeleteDishByIdNotVendor() {
+    void testDeleteDishMalformed() {
         long userId = 100L;
+        long dishId = 1L;
+
+        assertThrows(MalformedException.class, () -> vendorLogic.deleteDishById(userId, dishId));
+    }
+
+    @Test
+    void testDeleteDeleteNotMatched() {
+        long userId = 3L;
+        long dishId = 1L;
+
+        assertThrows(ForbiddenException.class, () -> vendorLogic.deleteDishById(userId, dishId));
+    }
+
+    @Test
+    void testDeleteDishByIdNotVendor() {
+        long userId = 1L;
         long dishId = 2L;
 
         // Test ForbiddenException when user is not a vendor
@@ -97,7 +119,7 @@ class VendorLogicTest {
 
     @Test
     void testDeleteDishById() {
-        long userId = 1L;
+        long userId = 0L;
         long dishId = 1L;
 
         // Test that the dish is deleted when the user is a vendor and the owner of the dish

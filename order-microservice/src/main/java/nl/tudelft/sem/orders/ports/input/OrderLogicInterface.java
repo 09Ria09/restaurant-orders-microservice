@@ -20,7 +20,7 @@ public interface OrderLogicInterface {
                        @Valid List<@Valid
                            OrderOrderIDDishesPutRequestDishesInner> dishes) throws MalformedException;
 
-    List<Order> getOrders(Long userID, UsersGetUserTypeIdGet200Response.UserTypeEnum userType);
+    List<Order> getOrders(Long userID) throws ApiException;
 
     Order reorder(Long userID, Long orderID) throws MalformedException, NotFoundException;
 }
