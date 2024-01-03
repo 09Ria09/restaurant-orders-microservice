@@ -124,7 +124,7 @@ public class OrderController implements OrderApi {
         List<Order> retrievedOrders;
         try {
             retrievedOrders  = orderLogic.getOrders(userID, userType);
-        } catch(IllegalStateException ise) {
+        } catch (IllegalStateException ise) {
             return ResponseEntity.badRequest().build();
         }
 
