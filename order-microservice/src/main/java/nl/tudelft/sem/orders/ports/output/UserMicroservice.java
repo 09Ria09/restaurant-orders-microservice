@@ -21,4 +21,6 @@ public interface UserMicroservice {
     Location getVendorAddress(long vendorId) throws ApiException;
 
     boolean isCustomer(long userId) throws ApiException;
+
+    boolean isVendor(long userId) throws ApiException;
 }

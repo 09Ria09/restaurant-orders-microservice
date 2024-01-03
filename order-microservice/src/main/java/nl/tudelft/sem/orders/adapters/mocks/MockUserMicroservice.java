@@ -2,7 +2,6 @@ package nl.tudelft.sem.orders.adapters.mocks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.users.ApiException;
@@ -39,6 +38,11 @@ public class MockUserMicroservice implements UserMicroservice {
 
     @Override
     public boolean isCustomer(long userId) throws ApiException {
+        return true;
+    }
+
+    @Override
+    public boolean isVendor(long userId) throws ApiException {
         return true;
     }
 

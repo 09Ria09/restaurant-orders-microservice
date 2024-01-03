@@ -40,6 +40,15 @@ public class MockUserMicroservice implements UserMicroservice {
         return true;
     }
 
+    @Override
+    public boolean isVendor(long userId) throws ApiException {
+        if (userId == 100L) {
+            return false;
+        }
+
+        return true;
+    }
+
     private Customer[] users = {
         new Customer().id(1L).email("stary@stary.pl").name("Stary")
             .surname("Kowalski")

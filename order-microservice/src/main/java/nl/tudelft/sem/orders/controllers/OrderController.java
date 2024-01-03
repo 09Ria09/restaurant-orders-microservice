@@ -11,6 +11,7 @@ import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.OrderLogic;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
@@ -129,5 +130,16 @@ public class OrderController implements OrderApi {
         }
 
         return ResponseEntity.ok(retrievedOrders);
+    }
+    
+    @Override
+    public ResponseEntity<Order> orderOrderIDReorderPost(Long userID, Long orderID) {
+        try {
+            return ResponseEntity.ok(orderLogic.reorder(userID, orderID));
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (MalformedException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 }

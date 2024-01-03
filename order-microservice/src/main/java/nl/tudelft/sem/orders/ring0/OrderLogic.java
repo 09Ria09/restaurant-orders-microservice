@@ -5,16 +5,20 @@ import java.util.List;
 import java.util.Objects;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import nl.tudelft.sem.orders.model.Dish;
+import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
 import nl.tudelft.sem.orders.ports.input.OrderLogicInterface;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
+import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.PaymentService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +30,7 @@ public class OrderLogic implements OrderLogicInterface {
     private final transient DishDatabase dishDatabase;
     private final transient UserMicroservice userMicroservice;
     private final transient PaymentService paymentService;
+    private final transient LocationService locationService;
 
     /**
      * Creates a new order facade.
@@ -36,12 +41,16 @@ public class OrderLogic implements OrderLogicInterface {
      * @param paymentService   The output port for the payment service.
      */
     @Autowired
-    public OrderLogic(OrderDatabase orderDatabase, DishDatabase dishDatabase, UserMicroservice userMicroservice,
-                      PaymentService paymentService) {
+    public OrderLogic(OrderDatabase orderDatabase,
+                      DishDatabase dishDatabase,
+                      UserMicroservice userMicroservice,
+                      PaymentService paymentService,
+                      LocationService locationService) {
         this.orderDatabase = orderDatabase;
         this.dishDatabase = dishDatabase;
         this.userMicroservice = userMicroservice;
         this.paymentService = paymentService;
+        this.locationService = locationService;
     }
 
     @Override
@@ -81,10 +90,14 @@ public class OrderLogic implements OrderLogicInterface {
      */
     @Override
     public Order createOrder(long customerId, long vendorId) throws ApiException {
-        Order order = new Order(orderDatabase.getLastId() + 1, customerId, vendorId, new ArrayList<>(),
-            userMicroservice.getCustomerAddress(customerId), Order.StatusEnum.UNPAID);
-        orderDatabase.save(order);
-        return order;
+        Order order = new Order();
+        order.setCustomerID(customerId);
+        order.setVendorID(vendorId);
+        order.setDishes(new ArrayList<>());
+        order.setLocation(userMicroservice.getCustomerAddress(customerId));
+        order.setStatus(Order.StatusEnum.UNPAID);
+
+        return orderDatabase.save(order);
     }
 
     /**
@@ -149,5 +162,64 @@ public class OrderLogic implements OrderLogicInterface {
             throw new IllegalStateException("The database query went wrong");
         }
         return foundOrders;
+    }
+
+    /**
+     * Reorders an existing order. The method first checks if the order exists,
+     * and if the user is the owner of the order.
+     * Then it checks if the vendor still exists and is close by. It also checks if all dishes still exist.
+     * If all checks pass, a new order is created with the same details as the old order,
+     * and the status is set to UNPAID.
+     *
+     * @param userID  the ID of the user who wants to reorder
+     * @param orderID the ID of the order to be reordered
+     * @return the newly created order
+     * @throws MalformedException if the order does not exist or the user is not the owner of the order
+     * @throws NotFoundException  if the vendor does not exist, is not close by, or if any of the dishes do not exist
+     */
+    @Override
+    public Order reorder(Long userID, Long orderID) throws MalformedException, NotFoundException {
+        Order order = orderDatabase.getById(orderID);
+
+        if (order == null || !Objects.equals(order.getCustomerID(), userID)) {
+            throw new MalformedException();
+        }
+
+        long vendorID = order.getVendorID();
+
+        // Check if the vendor still exists and is close by
+        Location userAddress;
+
+        try {
+            userAddress = userMicroservice.getCustomerAddress(userID);
+
+            if (!userMicroservice.isVendor(vendorID) || !locationService.isCloseBy(
+                userAddress,
+                userMicroservice.getVendorAddress(vendorID))
+            ) {
+                throw new NotFoundException();
+            }
+        } catch (Exception e) {
+            throw new NotFoundException();
+        }
+
+        // Check if all dishes still exist
+        for (OrderDishesInner orderDish : order.getDishes()) {
+            Long dishID = orderDish.getDish().getDishID();
+            Dish dish = dishDatabase.getById(dishID);
+
+            if (dish == null || dish.getVendorID() != vendorID) {
+                throw new NotFoundException();
+            }
+        }
+
+        Order newOrder = new Order();
+        newOrder.setCustomerID(userID);
+        newOrder.setVendorID(vendorID);
+        newOrder.setDishes(order.getDishes());
+        newOrder.setLocation(userAddress);
+        newOrder.setStatus(Order.StatusEnum.UNPAID);
+
+        return orderDatabase.save(newOrder);
     }
 }

@@ -18,17 +18,8 @@ public class OrderDatabaseAdapter implements OrderDatabase {
     }
 
     @Override
-    public void save(Order toSave) {
-        orderRepository.saveAndFlush(toSave);
-    }
-
-    @Override
-    public Long getLastId() {
-        Order order = orderRepository.findTopByOrderByOrderIDDesc();
-        if (order == null) {
-            return 0L;
-        }
-        return order.getOrderID();
+    public Order save(Order toSave) {
+        return orderRepository.saveAndFlush(toSave);
     }
 
     @Override

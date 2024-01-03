@@ -5,7 +5,6 @@ import java.util.List;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
-import org.aspectj.weaver.ast.Or;
 
 public class MockOrderDatabase implements OrderDatabase {
     private Order[] mocks;
@@ -26,13 +25,10 @@ public class MockOrderDatabase implements OrderDatabase {
     private ArrayList<Order> saveRequests = new ArrayList<>();
 
     @Override
-    public void save(Order toSave) {
+    public Order save(Order toSave) {
+        toSave.setOrderID((long) saveRequests.size() + 1);
         saveRequests.add(toSave);
-    }
-
-    @Override
-    public Long getLastId() {
-        return 4L;
+        return toSave;
     }
 
     @Override

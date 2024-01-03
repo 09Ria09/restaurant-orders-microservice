@@ -19,4 +19,6 @@ public interface OrderDatabase {
     List<Order> findByCourierID(long courierID);
 
     List<Order> findAllOrders();
+    
+    Order save(Order toSave);
 }
