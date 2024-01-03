@@ -38,7 +38,6 @@ public class OrderLogicMockitoTest {
     DishDatabase dishDatabase;
     private UserMicroservice userMicroservice;
     private OrderLogic orderLogic;
-    private OrderLogic orderFacade;
     private LocationService locationService;
 
     @BeforeEach
@@ -47,9 +46,7 @@ public class OrderLogicMockitoTest {
         dishDatabase = mock(DishDatabase.class);
         userMicroservice = mock(UserMicroservice.class);
         locationService = mock(LocationService.class);
-
-        orderLogic = new OrderLogic(orderDatabase, dishDatabase, userMicroservice, new MockPaymentService());
-        orderFacade = new OrderLogic(
+        orderLogic = new OrderLogic(
             orderDatabase,
             dishDatabase,
             userMicroservice,
@@ -314,7 +311,7 @@ public class OrderLogicMockitoTest {
             null,
             Order.StatusEnum.UNPAID));
 
-        Order newOrder = orderFacade.reorder(1L, 1L);
+        Order newOrder = orderLogic.reorder(1L, 1L);
         assertEquals(order.getCustomerID(), newOrder.getCustomerID());
         assertEquals(order.getVendorID(), newOrder.getVendorID());
         assertEquals(Order.StatusEnum.UNPAID, newOrder.getStatus());
@@ -324,7 +321,7 @@ public class OrderLogicMockitoTest {
     public void testReorderMalformedExceptionOrderNotExisting() {
         when(orderDatabase.getById(anyLong())).thenReturn(null);
 
-        assertThrows(MalformedException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(MalformedException.class, () -> orderLogic.reorder(1L, 1L));
     }
 
     @Test
@@ -332,7 +329,7 @@ public class OrderLogicMockitoTest {
         Order order = new Order(1L, 1L, 1L, null, null, Order.StatusEnum.ACCEPTED);
         when(orderDatabase.getById(1L)).thenReturn(order);
 
-        assertThrows(MalformedException.class, () -> orderFacade.reorder(2L, 1L));
+        assertThrows(MalformedException.class, () -> orderLogic.reorder(2L, 1L));
     }
 
     @Test
@@ -341,7 +338,7 @@ public class OrderLogicMockitoTest {
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(1L)).thenReturn(false);
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
     }
 
     @Test
@@ -351,7 +348,7 @@ public class OrderLogicMockitoTest {
         when(userMicroservice.isVendor(1L)).thenReturn(true);
         when(locationService.isCloseBy(any(), any())).thenReturn(false);
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
     }
 
     @Test
@@ -375,7 +372,7 @@ public class OrderLogicMockitoTest {
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(null);
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
     }
 
     @Test
@@ -404,6 +401,6 @@ public class OrderLogicMockitoTest {
             new ArrayList<>(),
             1.0f));
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
     }
 }

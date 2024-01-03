@@ -8,10 +8,6 @@ import nl.tudelft.sem.orders.model.Order;
 public interface OrderDatabase {
     Order getById(long orderId);
 
-    void save(Order toSave);
-
-    Long getLastId();
-
     List<Order> findByVendorID(long vendorID);
 
     List<Order> findByCustomerID(long customerID);
