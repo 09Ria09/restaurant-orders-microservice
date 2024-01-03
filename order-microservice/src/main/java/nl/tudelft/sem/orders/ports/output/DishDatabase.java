@@ -6,4 +6,6 @@ public interface DishDatabase {
     Dish getById(long dishId);
 
     void save(Dish toSave);
+
+    void delete(Dish dish);
 }

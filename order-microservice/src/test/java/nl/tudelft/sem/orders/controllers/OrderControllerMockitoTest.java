@@ -2,19 +2,23 @@ package nl.tudelft.sem.orders.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.adapters.mocks.MockLocationAdapter;
-import nl.tudelft.sem.orders.adapters.remote.UserRemoteAdapter;
+import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.OrderLogic;
 import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
@@ -182,4 +186,34 @@ class OrderControllerMockitoTest {
         verify(userMicroservice).isCustomer(userID);
         verify(orderLogic).updateDishes(orderID, userID, request.getDishes());
     }
+
+    @Test
+    public void testOrderOrderIDReorderPost() throws Exception {
+        Order order = new Order(1L,
+            1L,
+            13L,
+            new ArrayList<>(),
+            new Location().city("Kraków").country("PL").postalCode("123ZT"),
+            nl.tudelft.sem.orders.model.Order.StatusEnum.PENDING).courierID(3L);
+
+        when(orderLogic.reorder(anyLong(), anyLong())).thenReturn(order);
+        ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(order, response.getBody());
+    }
+
+    @Test
+    public void testOrderOrderIDReorderPostNotFound() throws Exception {
+        when(orderLogic.reorder(anyLong(), anyLong())).thenThrow(NotFoundException.class);
+        ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testOrderOrderIDReorderPostMalformed() throws Exception {
+        when(orderLogic.reorder(anyLong(), anyLong())).thenThrow(MalformedException.class);
+        ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
 }
