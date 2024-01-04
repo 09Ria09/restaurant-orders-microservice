@@ -72,6 +72,8 @@ test-order-microservice:
     paths:
       - order-microservice/build/reports/jacoco/test/html/
       - order-microservice/build/reports/jacoco/test/jacocoTestReport.xml
+    reports:
+      junit: order-microservice/build/test-results/test/TEST-*.xml
 
 coverage-order-microservice:
   extends:
