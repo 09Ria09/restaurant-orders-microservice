@@ -78,8 +78,10 @@ coverage-order-microservice:
     - .build_cached
   needs:
     - gradle_build
+    - test-order-microservice
   dependencies:
     - gradle_build
+    - test-order-microservice
   stage: coverage
   image: registry.gitlab.com/haynes/jacoco2cobertura:1.0.9
   script:
