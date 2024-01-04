@@ -22,5 +22,5 @@ public interface UserMicroservice {
 
     boolean isCustomer(long userId) throws ApiException;
 
-    boolean isVendor(long vendorID) throws ApiException;
+    boolean isVendor(long userId) throws ApiException;
 }

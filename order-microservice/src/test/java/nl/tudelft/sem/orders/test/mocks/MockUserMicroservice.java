@@ -42,6 +42,10 @@ public class MockUserMicroservice implements UserMicroservice {
 
     @Override
     public boolean isVendor(long userId) throws ApiException {
+        if (userId == 100L) {
+            return false;
+        }
+
         return true;
     }
 

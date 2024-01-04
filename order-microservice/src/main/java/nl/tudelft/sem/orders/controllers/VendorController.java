@@ -7,6 +7,7 @@ import nl.tudelft.sem.orders.api.VendorApi;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.ring0.VendorLogic;
 import nl.tudelft.sem.users.ApiException;
@@ -62,4 +63,17 @@ public class VendorController implements VendorApi {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @Override
+    public ResponseEntity<Void> vendorDishDishIDDelete(Long userID, Long dishID) {
+        try {
+            vendorLogic.deleteDishById(userID, dishID);
+            return ResponseEntity.ok().build();
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (MalformedException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
 }

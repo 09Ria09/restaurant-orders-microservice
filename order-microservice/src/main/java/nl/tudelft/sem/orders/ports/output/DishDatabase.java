@@ -7,4 +7,5 @@ public interface DishDatabase {
 
     void save(Dish toSave);
 
+    void delete(Dish dish);
 }

@@ -45,7 +45,7 @@ paths:
           description: The id of the user
           required: true
           schema:
-            type: integer
+            $ref: '#/components/schemas/IdType'
       responses:
         '200':
           description: In case the user exists this returns the list of orders as explained in the description.
@@ -532,7 +532,7 @@ components:
       properties:
         orderID:
           type: integer
-          x-field-extra-annotation: "@javax.persistence.Id"
+          x-field-extra-annotation: "@javax.persistence.Id\n  @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)"
           format: int64
           example: 2115
         customerID:
@@ -595,7 +595,7 @@ components:
       properties:
         dishID:
           type: integer
-          x-field-extra-annotation: "@javax.persistence.Id"
+          x-field-extra-annotation: "@javax.persistence.Id\n  @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)"
           format: int64
           example: 2115
         vendorID:
