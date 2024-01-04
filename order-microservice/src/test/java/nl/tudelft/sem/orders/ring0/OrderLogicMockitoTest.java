@@ -27,15 +27,17 @@ import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.test.mocks.MockPaymentService;
 import nl.tudelft.sem.users.ApiException;
+import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response.UserTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 
 public class OrderLogicMockitoTest {
 
     OrderDatabase orderDatabase;
     DishDatabase dishDatabase;
     private UserMicroservice userMicroservice;
-    private OrderLogic orderFacade;
+    private OrderLogic orderLogic;
     private LocationService locationService;
 
     @BeforeEach
@@ -44,8 +46,7 @@ public class OrderLogicMockitoTest {
         dishDatabase = mock(DishDatabase.class);
         userMicroservice = mock(UserMicroservice.class);
         locationService = mock(LocationService.class);
-
-        orderFacade = new OrderLogic(
+        orderLogic = new OrderLogic(
             orderDatabase,
             dishDatabase,
             userMicroservice,
@@ -69,7 +70,7 @@ public class OrderLogicMockitoTest {
             location,
             Order.StatusEnum.UNPAID));
 
-        Order result = orderFacade.createOrder(customerId, vendorId);
+        Order result = orderLogic.createOrder(customerId, vendorId);
 
         assertNotNull(result);
         assertEquals(customerId, result.getCustomerID());
@@ -99,7 +100,7 @@ public class OrderLogicMockitoTest {
         when(dishDatabase.getById(dishId)).thenReturn(mockDish);
         when(orderDatabase.getById(orderId)).thenReturn(order);
 
-        Float totalPrice = orderFacade.updateDishes(orderId, customerId, dishes);
+        Float totalPrice = orderLogic.updateDishes(orderId, customerId, dishes);
 
         assertNotNull(totalPrice);
         assertEquals(4 * mockDish.getPrice(), totalPrice);
@@ -118,7 +119,7 @@ public class OrderLogicMockitoTest {
 
         when(orderDatabase.getById(orderId)).thenReturn(null);
 
-        assertThrows(EntityNotFoundException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+        assertThrows(EntityNotFoundException.class, () -> orderLogic.updateDishes(orderId, customerId, dishes));
     }
 
     @Test
@@ -139,7 +140,7 @@ public class OrderLogicMockitoTest {
         when(orderDatabase.getById(orderId)).thenReturn(order);
         when(dishDatabase.getById(dishId)).thenThrow(EntityNotFoundException.class);
 
-        assertThrows(IllegalStateException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+        assertThrows(IllegalStateException.class, () -> orderLogic.updateDishes(orderId, customerId, dishes));
     }
 
     @Test
@@ -163,7 +164,124 @@ public class OrderLogicMockitoTest {
         when(dishDatabase.getById(dishId)).thenReturn(mockDish);
         when(orderDatabase.getById(orderId)).thenReturn(order);
 
-        assertThrows(IllegalStateException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+        assertThrows(IllegalStateException.class, () -> orderLogic.updateDishes(orderId, customerId, dishes));
+    }
+
+    @Test
+    void getOrdersAdmin() {
+        Long userID = 1L;
+        final UserTypeEnum userType = UserTypeEnum.ADMIN;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, userID, vendorId,
+                new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId,
+                new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+
+        ArrayList<Order> allOrders = new ArrayList<>();
+        allOrders.add(order);
+        allOrders.add(order2);
+        when(orderDatabase.findAllOrders()).thenReturn(allOrders);
+
+        assertEquals(orderLogic.getOrders(userID, userType), allOrders);
+        verify(orderDatabase, times(1)).findAllOrders();
+    }
+
+    @Test
+    void getOrdersVendor() {
+        Long userID = 1L;
+        final UserTypeEnum userType = UserTypeEnum.VENDOR;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+
+        ArrayList<Order> expected = new ArrayList<>();
+        expected.add(order);
+        when(orderDatabase.findByVendorID(vendorId)).thenReturn(expected);
+
+        assertEquals(orderLogic.getOrders(vendorId, userType), expected);
+        verify(orderDatabase, times(1)).findByVendorID(vendorId);
+    }
+
+    @Test
+    void getOrdersCourier() {
+        Long userID = 1L;
+        final UserTypeEnum userType = UserTypeEnum.COURIER;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+
+        ArrayList<Order> expected = new ArrayList<>();
+        expected.add(order);
+        when(orderDatabase.findByCourierID(userID)).thenReturn(expected);
+
+        assertEquals(orderLogic.getOrders(userID, userType), expected);
+        verify(orderDatabase, times(1)).findByCourierID(userID);
+    }
+
+    @Test
+    void getOrdersCustomer() {
+        Long userID = 1L;
+        final UserTypeEnum userType = UserTypeEnum.CUSTOMER;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+
+        ArrayList<Order> expected = new ArrayList<>();
+        expected.add(order);
+        when(orderDatabase.findByCustomerID(userID)).thenReturn(expected);
+
+        assertEquals(orderLogic.getOrders(userID, userType), expected);
+        verify(orderDatabase, times(1)).findByCustomerID(userID);
+    }
+
+    @Test
+    void getOrdersNullFound() {
+        Long userID = 1L;
+        final UserTypeEnum userType = UserTypeEnum.CUSTOMER;
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 2123L;
+        final long anotherVendorId = 3L;
+        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+                null, Order.StatusEnum.UNPAID);
+
+        ArrayList<Order> expected = new ArrayList<>();
+        expected.add(order);
+        when(orderDatabase.findByCustomerID(userID)).thenReturn(null);
+
+        assertThrows(IllegalStateException.class,
+                () -> orderLogic.getOrders(userID, userType));
+        verify(orderDatabase, times(1)).findByCustomerID(userID);
+    }
+
+    @Test
+    void getOrdersNullType() {
+        Long userID = 1L;
+        final UserTypeEnum userType = null;
+
+        assertThrows(IllegalStateException.class,
+                () -> orderLogic.getOrders(userID, userType));
+        verify(orderDatabase, times(0)).findByCustomerID(userID);
     }
 
     @Test
@@ -193,7 +311,7 @@ public class OrderLogicMockitoTest {
             null,
             Order.StatusEnum.UNPAID));
 
-        Order newOrder = orderFacade.reorder(1L, 1L);
+        Order newOrder = orderLogic.reorder(1L, 1L);
         assertEquals(order.getCustomerID(), newOrder.getCustomerID());
         assertEquals(order.getVendorID(), newOrder.getVendorID());
         assertEquals(Order.StatusEnum.UNPAID, newOrder.getStatus());
@@ -203,7 +321,7 @@ public class OrderLogicMockitoTest {
     public void testReorderMalformedExceptionOrderNotExisting() {
         when(orderDatabase.getById(anyLong())).thenReturn(null);
 
-        assertThrows(MalformedException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(MalformedException.class, () -> orderLogic.reorder(1L, 1L));
     }
 
     @Test
@@ -211,7 +329,7 @@ public class OrderLogicMockitoTest {
         Order order = new Order(1L, 1L, 1L, null, null, Order.StatusEnum.ACCEPTED);
         when(orderDatabase.getById(1L)).thenReturn(order);
 
-        assertThrows(MalformedException.class, () -> orderFacade.reorder(2L, 1L));
+        assertThrows(MalformedException.class, () -> orderLogic.reorder(2L, 1L));
     }
 
     @Test
@@ -220,7 +338,7 @@ public class OrderLogicMockitoTest {
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(1L)).thenReturn(false);
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
     }
 
     @Test
@@ -230,7 +348,7 @@ public class OrderLogicMockitoTest {
         when(userMicroservice.isVendor(1L)).thenReturn(true);
         when(locationService.isCloseBy(any(), any())).thenReturn(false);
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
     }
 
     @Test
@@ -254,7 +372,7 @@ public class OrderLogicMockitoTest {
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(null);
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
     }
 
     @Test
@@ -283,6 +401,6 @@ public class OrderLogicMockitoTest {
             new ArrayList<>(),
             1.0f));
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
     }
 }

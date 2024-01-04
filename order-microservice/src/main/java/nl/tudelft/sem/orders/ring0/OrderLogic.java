@@ -144,6 +144,26 @@ public class OrderLogic implements OrderLogicInterface {
         }
     }
 
+    @Override
+    public List<Order> getOrders(Long userID, UsersGetUserTypeIdGet200Response.UserTypeEnum userType) {
+        // Sidenote: There is no null check for userID in this method as that is already checked in the controller, so
+        // there is no need to do that here.
+        if (userType == null) {
+            throw new IllegalStateException("The user has a null userType");
+        }
+        List<Order> foundOrders;
+        switch (userType) {
+            case ADMIN -> foundOrders = orderDatabase.findAllOrders();
+            case VENDOR -> foundOrders = orderDatabase.findByVendorID(userID);
+            case COURIER -> foundOrders = orderDatabase.findByCourierID(userID);
+            default -> foundOrders = orderDatabase.findByCustomerID(userID);
+        }
+        if (foundOrders == null) {
+            throw new IllegalStateException("The database query went wrong");
+        }
+        return foundOrders;
+    }
+
     /**
      * Reorders an existing order. The method first checks if the order exists,
      * and if the user is the owner of the order.

@@ -1,6 +1,7 @@
 package nl.tudelft.sem.orders.test.mocks;
 
 import java.util.ArrayList;
+import java.util.List;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
@@ -28,6 +29,26 @@ public class MockOrderDatabase implements OrderDatabase {
         toSave.setOrderID((long) saveRequests.size() + 1);
         saveRequests.add(toSave);
         return toSave;
+    }
+
+    @Override
+    public List<Order> findByVendorID(long vendorID) {
+        return null;
+    }
+
+    @Override
+    public List<Order> findByCustomerID(long customerID) {
+        return null;
+    }
+
+    @Override
+    public List<Order> findByCourierID(long courierID) {
+        return null;
+    }
+
+    @Override
+    public List<Order> findAllOrders() {
+        return null;
     }
 
     /**
