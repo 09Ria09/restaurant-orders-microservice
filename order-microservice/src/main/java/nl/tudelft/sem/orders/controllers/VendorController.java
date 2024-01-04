@@ -2,6 +2,7 @@ package nl.tudelft.sem.orders.controllers;
 
 
 import java.util.List;
+import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.api.VendorApi;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 public class VendorController implements VendorApi {
@@ -40,33 +42,24 @@ public class VendorController implements VendorApi {
     @Override
     public ResponseEntity<List<Dish>> vendorDishPost(Dish dish) {
         try {
-            if (dish.getVendorID() == null || dish.getDishID() == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            if (!userMicroservice.isVendor(dish.getVendorID())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
             return ResponseEntity.ok(
                     vendorLogic.addDish(dish));
-        } catch (ApiException e) {
+        } catch (ApiException | IllegalStateException e) {
             return ResponseEntity.badRequest().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
     @Override
     public ResponseEntity<Void> vendorDishPut(Dish dish) {
         try {
-            if (dish.getVendorID() == null || dish.getDishID() == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            //if it can't find the dish to be edited
-            if (!vendorLogic.dishExists(dish.getDishID())) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
             vendorLogic.modifyDish(dish);
             return ResponseEntity.ok().build();
-        } catch (ApiException e) {
+        } catch (IllegalStateException | ApiException e) {
             return ResponseEntity.badRequest().build();
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 }

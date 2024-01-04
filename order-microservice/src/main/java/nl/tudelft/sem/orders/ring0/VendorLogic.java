@@ -3,6 +3,7 @@ package nl.tudelft.sem.orders.ring0;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.domain.GeoLocation;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
@@ -16,6 +17,8 @@ import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -132,16 +135,21 @@ public class VendorLogic implements VendorLogicInterface {
     }
 
     /**
-     * Adds the given dish to the database with a new ID.
+     * Adds the given dish to the database.
      *
      * @param dish the dish to be added
      * @return the added dish
      */
-    public List<Dish> addDish(Dish dish) {
-        long id = dishDatabase.getLastId() + 1;
-        Dish d = new Dish(id, dish.getVendorID(),
+    public List<Dish> addDish(Dish dish) throws ApiException {
+        Dish d = new Dish(dish.getDishID(), dish.getVendorID(),
                 dish.getName(), dish.getDescription(),
                 dish.getIngredients(), dish.getPrice());
+        if (dish.getVendorID() == null || dish.getDishID() == null) {
+            throw new IllegalStateException();
+        }
+        if (!userMicroservice.isVendor(dish.getVendorID())) {
+            throw new SecurityException();
+        }
         dishDatabase.save(d);
         List<Dish> res = new ArrayList<>();
         res.add(d);
@@ -149,16 +157,20 @@ public class VendorLogic implements VendorLogicInterface {
     }
 
     /**
-     * Checks if there is a Dish with the given ID in the database.
+     * Modifies dish.
      *
-     * @param dishID the ID to check
-     * @return true if there is a dish with the given ID
+     * @param dish Changed dish.
+     * @throws ApiException .
+     * @throws EntityNotFoundException thrown if dish to be changed does not exist
+     * @throws IllegalStateException thrown if invalid dish
      */
-    public boolean dishExists(Long dishID) {
-        return dishDatabase.getById(dishID) != null;
-    }
-
-    public void modifyDish(Dish dish) throws ApiException {
+    public void modifyDish(Dish dish) throws ApiException, EntityNotFoundException, IllegalStateException {
+        if (dish.getVendorID() == null || dish.getDishID() == null) {
+            throw new IllegalStateException();
+        }
+        if (dishDatabase.getById(dish.getDishID()) == null) {
+            throw new EntityNotFoundException();
+        }
         dishDatabase.save(dish);
     }
 }

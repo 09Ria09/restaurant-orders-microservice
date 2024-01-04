@@ -6,6 +6,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import nl.tudelft.sem.orders.model.Dish;
+import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
+import nl.tudelft.sem.orders.ports.output.DishDatabase;
+import nl.tudelft.sem.orders.ports.output.LocationService;
+import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.ring0.VendorLogic;
 import nl.tudelft.sem.users.ApiException;
@@ -20,26 +24,35 @@ class VendorControllerMockitoTest {
     private UserMicroservice userMicroservice;
     private VendorLogic vendorLogic;
     private VendorController vendorController;
+    private OrderDatabase orderDatabase;
+    private DeliveryMicroservice deliveryMicroservice;
+    private LocationService locationService;
+    private DishDatabase dishDatabase;
 
     @BeforeEach
     public void setUp() {
         userMicroservice = mock(UserMicroservice.class);
-        vendorLogic = mock(VendorLogic.class);
+        orderDatabase = mock(OrderDatabase.class);
+        deliveryMicroservice = mock(DeliveryMicroservice.class);
+        locationService = mock(LocationService.class);
+        dishDatabase = mock(DishDatabase.class);
+        vendorLogic = new VendorLogic(orderDatabase, userMicroservice, deliveryMicroservice,
+                locationService, dishDatabase);
         vendorController = new VendorController(vendorLogic, userMicroservice);
     }
 
     @Test
-    void vendorDishPostBadRequest() {
+    void vendorDishPostBadRequest() throws ApiException {
         Dish d = new Dish(null, 11L, "potato", "good",
                 List.of("potatofirsthalf", "potatosecondhalf"), 5.5F);
         assertEquals(HttpStatus.BAD_REQUEST,
                 vendorController.vendorDishPost(d)
                         .getStatusCode());
+
         Dish d2 = new Dish(1L, null, "potato", "good",
                 List.of("potatofirsthalf", "potatosecondhalf"), 5.5F);
         assertEquals(HttpStatus.BAD_REQUEST,
-                vendorController.vendorDishPost(d2)
-                        .getStatusCode());
+                vendorController.vendorDishPost(d2).getStatusCode());
     }
 
     @Test
@@ -80,7 +93,7 @@ class VendorControllerMockitoTest {
     void vendorDishPutNotFound() {
         Dish d = new Dish(1L, 11L, "potato", "good",
                 List.of("potatofirsthalf", "potatosecondhalf"), 5.5F);
-        when(vendorLogic.dishExists(1L)).thenReturn(false);
+        when(dishDatabase.getById(1L)).thenReturn(null);
         assertEquals(HttpStatus.NOT_FOUND,
                 vendorController.vendorDishPut(d)
                         .getStatusCode());
@@ -90,7 +103,7 @@ class VendorControllerMockitoTest {
     void vendorDishPutOK() {
         Dish d = new Dish(1L, 11L, "potato", "good",
                 List.of("potatofirsthalf", "potatosecondhalf"), 5.5F);
-        when(vendorLogic.dishExists(1L)).thenReturn(true);
+        when(dishDatabase.getById(1L)).thenReturn(d);
         assertEquals(HttpStatus.OK,
                 vendorController.vendorDishPut(d)
                         .getStatusCode());

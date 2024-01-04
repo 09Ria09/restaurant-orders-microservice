@@ -7,6 +7,4 @@ public interface DishDatabase {
 
     void save(Dish toSave);
 
-    Long getLastId();
-
 }

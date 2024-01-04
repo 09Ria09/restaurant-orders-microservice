@@ -19,13 +19,5 @@ public class DishDatabaseAdapter implements DishDatabase {
         dishRepository.saveAndFlush(toSave);
     }
 
-    @Override
-    public Long getLastId() {
-        Dish dish = dishRepository.findTopByOrderByDishIDDesc();
-        if (dish == null) {
-            return 0L;
-        }
-        return dish.getDishID();
-    }
 
 }
