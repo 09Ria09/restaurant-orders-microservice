@@ -141,15 +141,21 @@ public class VendorLogic implements VendorLogicInterface {
      * @return the added dish
      */
     public List<Dish> addDish(Dish dish) throws ApiException {
-        Dish d = new Dish(dish.getDishID(), dish.getVendorID(),
-                dish.getName(), dish.getDescription(),
-                dish.getIngredients(), dish.getPrice());
+        Dish d = new Dish();
+        d.setVendorID(dish.getVendorID());
+        d.setName(dish.getName());
+        d.setDescription(dish.getDescription());
+        d.setIngredients(dish.getIngredients());
+        d.setPrice(dish.getPrice());
+
         if (dish.getVendorID() == null || dish.getDishID() == null) {
             throw new IllegalStateException();
         }
+
         if (!userMicroservice.isVendor(dish.getVendorID())) {
             throw new SecurityException();
         }
+
         dishDatabase.save(d);
         List<Dish> res = new ArrayList<>();
         res.add(d);
@@ -165,12 +171,15 @@ public class VendorLogic implements VendorLogicInterface {
      * @throws IllegalStateException thrown if invalid dish
      */
     public void modifyDish(Dish dish) throws ApiException, EntityNotFoundException, IllegalStateException {
+
         if (dish.getVendorID() == null || dish.getDishID() == null) {
             throw new IllegalStateException();
         }
+
         if (dishDatabase.getById(dish.getDishID()) == null) {
             throw new EntityNotFoundException();
         }
+
         dishDatabase.save(dish);
     }
 
