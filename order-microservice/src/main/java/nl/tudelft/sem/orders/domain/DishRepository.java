@@ -7,4 +7,5 @@ import org.springframework.stereotype.Component;
 @Component
 public interface DishRepository extends JpaRepository<Dish, Long> {
     Dish findByDishID(Long dishId);
+
 }
