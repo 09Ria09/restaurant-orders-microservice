@@ -3,6 +3,7 @@ package nl.tudelft.sem.orders.ring0;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.domain.GeoLocation;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
@@ -17,6 +18,8 @@ import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -129,6 +132,55 @@ public class VendorLogic implements VendorLogicInterface {
         } catch (Exception e) {
             throw new MalformedException();
         }
+    }
+
+    /**
+     * Adds the given dish to the database.
+     *
+     * @param dish the dish to be added
+     * @return the added dish
+     */
+    public List<Dish> addDish(Dish dish) throws ApiException {
+        Dish d = new Dish();
+        d.setVendorID(dish.getVendorID());
+        d.setName(dish.getName());
+        d.setDescription(dish.getDescription());
+        d.setIngredients(dish.getIngredients());
+        d.setPrice(dish.getPrice());
+
+        if (dish.getVendorID() == null || dish.getDishID() == null) {
+            throw new IllegalStateException();
+        }
+
+        if (!userMicroservice.isVendor(dish.getVendorID())) {
+            throw new SecurityException();
+        }
+
+        dishDatabase.save(d);
+        List<Dish> res = new ArrayList<>();
+        res.add(d);
+        return res;
+    }
+
+    /**
+     * Modifies dish.
+     *
+     * @param dish Changed dish.
+     * @throws ApiException .
+     * @throws EntityNotFoundException thrown if dish to be changed does not exist
+     * @throws IllegalStateException thrown if invalid dish
+     */
+    public void modifyDish(Dish dish) throws ApiException, EntityNotFoundException, IllegalStateException {
+
+        if (dish.getVendorID() == null || dish.getDishID() == null) {
+            throw new IllegalStateException();
+        }
+
+        if (dishDatabase.getById(dish.getDishID()) == null) {
+            throw new EntityNotFoundException();
+        }
+
+        dishDatabase.save(dish);
     }
 
     /**
