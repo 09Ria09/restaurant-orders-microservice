@@ -9,6 +9,16 @@ import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 public class MockDeliveryMicroservice implements DeliveryMicroservice {
     private boolean failRadius;
 
+    public boolean isFailNew() {
+        return failNew;
+    }
+
+    public void setFailNew(boolean failNew) {
+        this.failNew = failNew;
+    }
+
+    private boolean failNew;
+
 
     @Override
     public List<GetDeliveryRadiuses200ResponseInner> getRadii(long userId)
@@ -27,6 +37,26 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
         }
 
         return 5;
+    }
+
+    @Override
+    public long getDeliveryRadius(long vendorId, long userId)
+        throws ApiException {
+        if (failRadius) {
+            throw new ApiException();
+        }
+
+        return 5;
+    }
+
+    @Override
+    public void newDelivery(long vendorId, long orderId, long userId)
+        throws ApiException {
+        if (failNew) {
+            throw new ApiException();
+        }
+
+        return;
     }
 
     public boolean isFailRadius() {

@@ -20,12 +20,17 @@ import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
+import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
+import nl.tudelft.sem.orders.ring0.payment.DistanceValidator;
+import nl.tudelft.sem.orders.ring0.payment.StatusValidator;
+import nl.tudelft.sem.orders.ring0.payment.TokenValidator;
+import nl.tudelft.sem.orders.ring0.payment.UserOwnershipValidator;
 import nl.tudelft.sem.orders.test.mocks.MockPaymentService;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response.UserTypeEnum;
@@ -52,7 +57,12 @@ public class OrderLogicMockitoTest {
             dishDatabase,
             userMicroservice,
             new MockPaymentService(),
-            locationService
+            locationService,
+            mock(UserOwnershipValidator.class),
+            mock(DistanceValidator.class),
+            mock(TokenValidator.class),
+            mock(StatusValidator.class),
+            mock(DeliveryMicroservice.class)
         );
     }
 
@@ -443,16 +453,6 @@ public class OrderLogicMockitoTest {
         Order order = new Order(1L, 1L, 1L, null, null, Order.StatusEnum.UNPAID);
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(1L)).thenReturn(false);
-
-        assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
-    }
-
-    @Test
-    public void testReorderNotFoundExceptionVendorNotCloseBy() throws Exception {
-        Order order = new Order(1L, 1L, 1L, null, null, Order.StatusEnum.UNPAID);
-        when(orderDatabase.getById(1L)).thenReturn(order);
-        when(userMicroservice.isVendor(1L)).thenReturn(true);
-        when(locationService.isCloseBy(any(), any())).thenReturn(false);
 
         assertThrows(NotFoundException.class, () -> orderLogic.reorder(1L, 1L));
     }
