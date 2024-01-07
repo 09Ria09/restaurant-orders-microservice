@@ -11,6 +11,10 @@ public class MockLocationService implements LocationService {
             return new GeoLocation(89, 40);
         }
 
+        if (location.getCity().equals("c")) {
+            return new GeoLocation(12, -40);
+        }
+
         return new GeoLocation(1, 2);
     }
 

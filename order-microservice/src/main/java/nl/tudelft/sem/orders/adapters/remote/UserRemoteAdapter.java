@@ -21,12 +21,10 @@ public class UserRemoteAdapter implements UserMicroservice {
         this.vendors = vendors;
     }
 
-    @Override
     public UsersGetUserTypeIdGet200Response.UserTypeEnum getUserType(long userId) throws ApiException {
         return users.usersGetUserTypeIdGet(userId).getUserType();
     }
 
-    @Override
     public UsersIdGet200Response getUserById(long userId) throws ApiException {
         return users.usersIdGet(userId);
     }
@@ -96,4 +94,47 @@ public class UserRemoteAdapter implements UserMicroservice {
         return UsersGetUserTypeIdGet200Response.UserTypeEnum.VENDOR.equals(userType);
     }
 
+    /**
+     * Checks if the user is a courier.
+     *
+     * @param courierId the id of the vendor
+     * @return true if the user is a vendor, false otherwise
+     * @throws ApiException if the user does not exist
+     */
+    @Override
+    public boolean isCourier(long courierId) throws ApiException {
+        UsersGetUserTypeIdGet200Response.UserTypeEnum userType = getUserType(courierId);
+
+        return UsersGetUserTypeIdGet200Response.UserTypeEnum.COURIER.equals(userType);
+    }
+
+    /**
+     * Checks if the user is an admin.
+     *
+     * @param adminId the id of the vendor
+     * @return true if the user is a vendor, false otherwise
+     * @throws ApiException if the user does not exist
+     */
+    @Override
+    public boolean isAdmin(long adminId) throws ApiException {
+        UsersGetUserTypeIdGet200Response.UserTypeEnum userType = getUserType(adminId);
+
+        return UsersGetUserTypeIdGet200Response.UserTypeEnum.ADMIN.equals(userType);
+    }
+
+    /**
+     * Returns true iff the user exists.
+     *
+     * @param userId The userId to check.
+     * @return True iff the user exists.
+     */
+    @Override
+    public boolean doesUserExist(long userId) {
+        try {
+            getUserById(userId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

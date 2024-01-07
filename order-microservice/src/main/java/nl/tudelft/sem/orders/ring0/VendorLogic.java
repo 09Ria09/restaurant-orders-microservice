@@ -112,17 +112,16 @@ public class VendorLogic implements VendorLogicInterface {
                                       Location location)
         throws MalformedException {
         try {
-            UsersGetUserTypeIdGet200Response.UserTypeEnum userType =
-                userMicroservice.getUserType(userId);
+            if (!userMicroservice.isCustomer(userId)) {
+                throw new MalformedException();
+            }
 
             if (location == null) {
-                // I have to use this ugly hack because people from
+                // I have to use this ugly hack because
                 // group c did not fix their specification
                 // TODO: contact group c?
 
-                location = mapLocations(
-                    userMicroservice.getUserById(userId).getCustomer()
-                        .getAddress());
+                location = userMicroservice.getCustomerAddress(userId);
             }
 
             // For now we will ignore search

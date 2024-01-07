@@ -62,11 +62,7 @@ public class OrderLogic implements OrderLogicInterface {
             throw new MalformedException();
         }
 
-        UsersGetUserTypeIdGet200Response.UserTypeEnum userType;
-
-        try {
-            userType = userMicroservice.getUserType(userId);
-        } catch (Exception e) {
+        if (!userMicroservice.doesUserExist(userId)) {
             throw new MalformedException();
         }
 
@@ -97,7 +93,8 @@ public class OrderLogic implements OrderLogicInterface {
         order.setLocation(userMicroservice.getCustomerAddress(customerId));
         order.setStatus(Order.StatusEnum.UNPAID);
 
-        return orderDatabase.save(order);
+        orderDatabase.save(order);
+        return order;
     }
 
     /**
@@ -113,7 +110,9 @@ public class OrderLogic implements OrderLogicInterface {
         Order order = orderDatabase.getById(orderId);
         // Check if the order exists and the user
         // owns the order and if the order is unpaid.
-        if (order == null || order.getCustomerID() != customerId || order.getStatus() != Order.StatusEnum.UNPAID) {
+        if (order == null
+            || order.getCustomerID() != customerId
+            || order.getStatus() != Order.StatusEnum.UNPAID) {
             throw new EntityNotFoundException();
         }
 
@@ -145,22 +144,23 @@ public class OrderLogic implements OrderLogicInterface {
     }
 
     @Override
-    public List<Order> getOrders(Long userID, UsersGetUserTypeIdGet200Response.UserTypeEnum userType) {
-        // Sidenote: There is no null check for userID in this method as that is already checked in the controller, so
-        // there is no need to do that here.
-        if (userType == null) {
-            throw new IllegalStateException("The user has a null userType");
+    public List<Order> getOrders(Long userID) throws ApiException {
+        List<Order> foundOrders = null;
+
+        if (userMicroservice.isCustomer(userID)) {
+            foundOrders = orderDatabase.findByCustomerID(userID);
+        } else if (userMicroservice.isVendor(userID)) {
+            foundOrders = orderDatabase.findByVendorID(userID);
+        } else if (userMicroservice.isAdmin(userID)) {
+            foundOrders = orderDatabase.findAllOrders();
+        } else if (userMicroservice.isCourier(userID)) {
+            foundOrders = orderDatabase.findByCourierID(userID);
         }
-        List<Order> foundOrders;
-        switch (userType) {
-            case ADMIN -> foundOrders = orderDatabase.findAllOrders();
-            case VENDOR -> foundOrders = orderDatabase.findByVendorID(userID);
-            case COURIER -> foundOrders = orderDatabase.findByCourierID(userID);
-            default -> foundOrders = orderDatabase.findByCustomerID(userID);
-        }
+
         if (foundOrders == null) {
             throw new IllegalStateException("The database query went wrong");
         }
+
         return foundOrders;
     }
 

@@ -47,18 +47,16 @@ public class MockUserMicroservice implements UserMicroservice {
     }
 
     @Override
-    public UsersGetUserTypeIdGet200Response.UserTypeEnum getUserType(
-        long userId) throws ApiException {
-        switch ((int) userId) {
-            case 1:
-                return UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER;
-            default:
-                throw new ApiException();
-        }
+    public boolean isAdmin(long userId) throws ApiException {
+        return false;
     }
 
     @Override
-    public UsersIdGet200Response getUserById(long userId) throws ApiException {
-        throw new ApiException();
+    public boolean isCourier(long userId) throws ApiException {
+        return false;
+    }
+
+    public boolean doesUserExist(long userId) {
+        return true;
     }
 }

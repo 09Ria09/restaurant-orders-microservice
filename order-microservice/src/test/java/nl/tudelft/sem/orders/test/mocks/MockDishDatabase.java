@@ -31,7 +31,7 @@ public class MockDishDatabase implements DishDatabase {
      */
     public void clean() {
         mocks.clear();
-        mocks.add(new Dish().dishID(1L).name("a").price(1.0f).vendorID(1L));
-        mocks.add(new Dish().dishID(2L).name("a").price(1.0f).vendorID(100L));
+        mocks.add(new Dish().dishID(1L).name("a").price(1.0f).vendorID(0L));
+        mocks.add(new Dish().dishID(2L).name("a").price(1.0f).vendorID(3L));
     }
 }
