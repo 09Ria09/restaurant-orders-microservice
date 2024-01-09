@@ -116,16 +116,13 @@ public class OrderController implements OrderApi {
         if (userID == null) {
             return ResponseEntity.badRequest().build();
         }
-        UsersGetUserTypeIdGet200Response.UserTypeEnum userType;
-        try {
-            userType = userMicroservice.getUserType(userID);
-        } catch (ApiException e) {
-            return ResponseEntity.badRequest().build();
-        }
+
         List<Order> retrievedOrders;
         try {
-            retrievedOrders  = orderLogic.getOrders(userID, userType);
+            retrievedOrders  = orderLogic.getOrders(userID);
         } catch (IllegalStateException ise) {
+            return ResponseEntity.badRequest().build();
+        } catch (ApiException api) {
             return ResponseEntity.badRequest().build();
         }
 

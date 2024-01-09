@@ -15,7 +15,7 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
         throws ApiException {
         List<GetDeliveryRadiuses200ResponseInner> res = new ArrayList<>();
         res.add(
-            new GetDeliveryRadiuses200ResponseInner().radius(4).vendorID(100L));
+            new GetDeliveryRadiuses200ResponseInner().radius(4).vendorID(3L));
 
         return res;
     }

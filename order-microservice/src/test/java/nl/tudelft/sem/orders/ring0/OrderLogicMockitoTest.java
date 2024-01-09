@@ -1,5 +1,6 @@
 package nl.tudelft.sem.orders.ring0;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -123,6 +124,98 @@ public class OrderLogicMockitoTest {
     }
 
     @Test
+    void updateDishesInvalidCustomer() {
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 221L;
+        final long customerId = 143L;
+
+        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        dish.setId(dishId);
+        dish.setQuantity(4);
+
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        dishes.add(dish);
+
+        Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
+        Order order = new Order(orderId, customerId, 2L, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+
+        when(orderDatabase.getById(orderId)).thenReturn(order);
+        when(dishDatabase.getById(dishId)).thenReturn(mockDish);
+
+        assertThrows(EntityNotFoundException.class, () -> orderLogic.updateDishes(orderId, customerId + 1, dishes));
+    }
+
+    @Test
+    void updateDishesInvalidStatus() {
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 221L;
+        final long customerId = 143L;
+
+        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        dish.setId(dishId);
+        dish.setQuantity(4);
+
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        dishes.add(dish);
+
+        Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
+        Order order = new Order(orderId, customerId, 2L, new ArrayList<>(), null, Order.StatusEnum.PENDING);
+
+        when(orderDatabase.getById(orderId)).thenReturn(order);
+        when(dishDatabase.getById(dishId)).thenReturn(mockDish);
+
+        assertThrows(EntityNotFoundException.class, () -> orderLogic.updateDishes(orderId, customerId, dishes));
+    }
+
+    @Test
+    void updateDishesNullPrice() {
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 221L;
+        final long customerId = 143L;
+
+        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        dish.setId(dishId);
+        dish.setQuantity(4);
+
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        dishes.add(dish);
+
+        Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
+        Order order = new Order(orderId, customerId, 2L, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+
+        when(orderDatabase.getById(orderId)).thenReturn(order);
+        when(dishDatabase.getById(dishId)).thenReturn(null);
+
+        assertThrows(IllegalStateException.class, () -> orderLogic.updateDishes(orderId, customerId, dishes));
+    }
+
+    @Test
+    void updateDishesNullQuant() {
+        final long orderId = 2311L;
+        final long dishId = 413L;
+        final long vendorId = 221L;
+        final long customerId = 143L;
+
+        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        dish.setId(dishId);
+        dish.setQuantity(null);
+
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        dishes.add(dish);
+
+        Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
+        Order order = new Order(orderId, customerId, 2L, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+
+        when(orderDatabase.getById(orderId)).thenReturn(order);
+        when(dishDatabase.getById(dishId)).thenReturn(mockDish);
+
+        assertThrows(IllegalStateException.class, () -> orderLogic.updateDishes(orderId, customerId, dishes));
+    }
+
+    @Test
     void updateDishesMissingDish() {
         final long orderId = 2311L;
         final long dishId = 413L;
@@ -168,9 +261,14 @@ public class OrderLogicMockitoTest {
     }
 
     @Test
-    void getOrdersAdmin() {
+    void getOrdersAdmin() throws ApiException {
         Long userID = 1L;
-        final UserTypeEnum userType = UserTypeEnum.ADMIN;
+
+        when(userMicroservice.isCustomer(userID)).thenReturn(false);
+        when(userMicroservice.isVendor(userID)).thenReturn(false);
+        when(userMicroservice.isAdmin(userID)).thenReturn(true);
+        when(userMicroservice.isCourier(userID)).thenReturn(false);
+
         final long orderId = 2311L;
         final long dishId = 413L;
         final long vendorId = 2123L;
@@ -185,35 +283,45 @@ public class OrderLogicMockitoTest {
         allOrders.add(order2);
         when(orderDatabase.findAllOrders()).thenReturn(allOrders);
 
-        assertEquals(orderLogic.getOrders(userID, userType), allOrders);
+        assertEquals(assertDoesNotThrow(() -> orderLogic.getOrders(userID)), allOrders);
         verify(orderDatabase, times(1)).findAllOrders();
     }
 
     @Test
-    void getOrdersVendor() {
-        Long userID = 1L;
-        final UserTypeEnum userType = UserTypeEnum.VENDOR;
+    void getOrdersVendor() throws ApiException {
+        final long vendorId = 2123L;
+
+        when(userMicroservice.isCustomer(2123L)).thenReturn(false);
+        when(userMicroservice.isVendor(2123L)).thenReturn(true);
+        when(userMicroservice.isAdmin(2123L)).thenReturn(false);
+        when(userMicroservice.isCourier(2123L)).thenReturn(false);
+
         final long orderId = 2311L;
         final long dishId = 413L;
-        final long vendorId = 2123L;
+
         final long anotherVendorId = 3L;
-        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+        final Order order = new Order(orderId, 1L, vendorId, new ArrayList<>(),
                 null, Order.StatusEnum.UNPAID);
-        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+        final Order order2 = new Order(orderId, 1L, anotherVendorId, new ArrayList<>(),
                 null, Order.StatusEnum.UNPAID);
 
         ArrayList<Order> expected = new ArrayList<>();
         expected.add(order);
         when(orderDatabase.findByVendorID(vendorId)).thenReturn(expected);
 
-        assertEquals(orderLogic.getOrders(vendorId, userType), expected);
+        assertEquals(assertDoesNotThrow(() -> orderLogic.getOrders(vendorId)), expected);
         verify(orderDatabase, times(1)).findByVendorID(vendorId);
     }
 
     @Test
-    void getOrdersCourier() {
+    void getOrdersCourier() throws ApiException {
         Long userID = 1L;
-        final UserTypeEnum userType = UserTypeEnum.COURIER;
+
+        when(userMicroservice.isCustomer(1L)).thenReturn(false);
+        when(userMicroservice.isVendor(1L)).thenReturn(false);
+        when(userMicroservice.isAdmin(1L)).thenReturn(false);
+        when(userMicroservice.isCourier(1L)).thenReturn(true);
+
         final long orderId = 2311L;
         final long dishId = 413L;
         final long vendorId = 2123L;
@@ -227,14 +335,19 @@ public class OrderLogicMockitoTest {
         expected.add(order);
         when(orderDatabase.findByCourierID(userID)).thenReturn(expected);
 
-        assertEquals(orderLogic.getOrders(userID, userType), expected);
+        assertEquals(assertDoesNotThrow(() -> orderLogic.getOrders(userID)), expected);
         verify(orderDatabase, times(1)).findByCourierID(userID);
     }
 
     @Test
-    void getOrdersCustomer() {
+    void getOrdersCustomer() throws ApiException {
         Long userID = 1L;
-        final UserTypeEnum userType = UserTypeEnum.CUSTOMER;
+
+        when(userMicroservice.isCustomer(1L)).thenReturn(true);
+        when(userMicroservice.isVendor(1L)).thenReturn(false);
+        when(userMicroservice.isAdmin(1L)).thenReturn(false);
+        when(userMicroservice.isCourier(1L)).thenReturn(false);
+
         final long orderId = 2311L;
         final long dishId = 413L;
         final long vendorId = 2123L;
@@ -248,40 +361,33 @@ public class OrderLogicMockitoTest {
         expected.add(order);
         when(orderDatabase.findByCustomerID(userID)).thenReturn(expected);
 
-        assertEquals(orderLogic.getOrders(userID, userType), expected);
+        assertEquals(assertDoesNotThrow(() -> orderLogic.getOrders(userID)), expected);
         verify(orderDatabase, times(1)).findByCustomerID(userID);
     }
 
     @Test
-    void getOrdersNullFound() {
-        Long userID = 1L;
-        final UserTypeEnum userType = UserTypeEnum.CUSTOMER;
-        final long orderId = 2311L;
-        final long dishId = 413L;
-        final long vendorId = 2123L;
-        final long anotherVendorId = 3L;
-        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
-                null, Order.StatusEnum.UNPAID);
-        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
-                null, Order.StatusEnum.UNPAID);
+    void getOrdersNoSuchUser() throws ApiException {
+        Long userID = 21L;
 
-        ArrayList<Order> expected = new ArrayList<>();
-        expected.add(order);
-        when(orderDatabase.findByCustomerID(userID)).thenReturn(null);
+        when(userMicroservice.isCustomer(userID)).thenThrow(new ApiException());
+        when(userMicroservice.isVendor(userID)).thenThrow(new ApiException());
+        when(userMicroservice.isAdmin(userID)).thenThrow(new ApiException());
+        when(userMicroservice.isCourier(userID)).thenThrow(new ApiException());
 
-        assertThrows(IllegalStateException.class,
-                () -> orderLogic.getOrders(userID, userType));
-        verify(orderDatabase, times(1)).findByCustomerID(userID);
-    }
-
-    @Test
-    void getOrdersNullType() {
-        Long userID = 1L;
-        final UserTypeEnum userType = null;
-
-        assertThrows(IllegalStateException.class,
-                () -> orderLogic.getOrders(userID, userType));
+        assertThrows(ApiException.class,
+                () -> orderLogic.getOrders(userID));
         verify(orderDatabase, times(0)).findByCustomerID(userID);
+    }
+
+    @Test
+    void getOrdersNone() throws ApiException {
+        when(userMicroservice.isCustomer(1L)).thenReturn(false);
+        when(userMicroservice.isVendor(1L)).thenReturn(false);
+        when(userMicroservice.isAdmin(1L)).thenReturn(false);
+        when(userMicroservice.isCourier(1L)).thenReturn(false);
+
+        assertThrows(IllegalStateException.class,
+            () -> orderLogic.getOrders(1L));
     }
 
     @Test

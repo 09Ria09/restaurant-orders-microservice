@@ -8,13 +8,7 @@ import nl.tudelft.sem.users.model.UsersIdGet200Response;
 import nl.tudelft.sem.users.model.Vendor;
 
 public interface UserMicroservice {
-    UsersGetUserTypeIdGet200Response.UserTypeEnum getUserType(long userId)
-            throws ApiException;
-
-    UsersIdGet200Response getUserById(long userId) throws ApiException;
-
     List<Vendor> getAllVendors() throws ApiException;
-
 
     Location getCustomerAddress(long customerId) throws ApiException;
 
@@ -23,4 +17,10 @@ public interface UserMicroservice {
     boolean isCustomer(long userId) throws ApiException;
 
     boolean isVendor(long userId) throws ApiException;
+
+    boolean isCourier(long userId) throws ApiException;
+
+    boolean isAdmin(long userId) throws ApiException;
+
+    boolean doesUserExist(long userId);
 }
