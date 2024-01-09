@@ -1,10 +1,6 @@
 package nl.tudelft.sem.orders.controllers;
 
-
 import java.util.List;
-
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import nl.tudelft.sem.orders.api.VendorApi;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
@@ -16,11 +12,7 @@ import nl.tudelft.sem.users.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.constraints.NotNull;
 
 @RestController
 public class VendorController implements VendorApi {
@@ -67,7 +59,7 @@ public class VendorController implements VendorApi {
         }
 
         try {
-            if (!userMicroservice.isVendor(userID) | !userMicroservice.isCustomer(customerID)){
+            if (!userMicroservice.isVendor(userID) | !userMicroservice.isCustomer(customerID)) {
                 return ResponseEntity.badRequest().build();
             }
         } catch (ApiException e) {

@@ -1,9 +1,13 @@
 package nl.tudelft.sem.orders.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.swagger.annotations.Api;
+import java.util.ArrayList;
+import java.util.List;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
@@ -15,8 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
-import java.util.List;
 
 
 class VendorControllerMockitoTest {
@@ -53,7 +55,7 @@ class VendorControllerMockitoTest {
     }
 
     @Test
-    void vendorOrderCustomerOK () throws ApiException {
+    void vendorOrderCustomerOK() throws ApiException {
         Order order = new Order();
         List<Order> expected = new ArrayList<>();
         expected.add(order);
@@ -61,10 +63,10 @@ class VendorControllerMockitoTest {
         long customerID = 2;
         when(userMicroservice.isVendor(1)).thenReturn(true);
         when(userMicroservice.isCustomer(2)).thenReturn(true);
-        when(vendorLogic.getPastOrdersForCustomer(1L,2L)).thenReturn(expected);
+        when(vendorLogic.getPastOrdersForCustomer(1L, 2L)).thenReturn(expected);
 
         ResponseEntity<List<Order>> expectedResponse = ResponseEntity.ok(expected);
-        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID,customerID);
+        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);
 
         assertEquals(expectedResponse, actual);
     }
@@ -94,14 +96,14 @@ class VendorControllerMockitoTest {
     }
 
     @Test
-    void vendorOrderCustomerNotVendor () throws ApiException {
+    void vendorOrderCustomerNotVendor() throws ApiException {
         long vendorID = 1;
         long customerID = 2;
         when(userMicroservice.isVendor(1)).thenReturn(false);
         when(userMicroservice.isCustomer(2)).thenReturn(true);
 
         ResponseEntity<List<Order>> expectedResponse = ResponseEntity.badRequest().build();
-        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID,customerID);
+        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);
 
         assertEquals(expectedResponse, actual);
     }
@@ -114,7 +116,7 @@ class VendorControllerMockitoTest {
         when(userMicroservice.isCustomer(2)).thenReturn(false);
 
         ResponseEntity<List<Order>> expectedResponse = ResponseEntity.badRequest().build();
-        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID,customerID);
+        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);
 
         assertEquals(expectedResponse, actual);
     }
@@ -127,7 +129,7 @@ class VendorControllerMockitoTest {
         when(userMicroservice.isCustomer(2)).thenReturn(true);
 
         ResponseEntity<List<Order>> expectedResponse = ResponseEntity.badRequest().build();
-        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID,customerID);
+        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);
 
         assertEquals(expectedResponse, actual);
     }
@@ -140,7 +142,7 @@ class VendorControllerMockitoTest {
         when(userMicroservice.isCustomer(2)).thenThrow(new ApiException("L Request"));
 
         ResponseEntity<List<Order>> expectedResponse = ResponseEntity.badRequest().build();
-        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID,customerID);
+        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);
 
         assertEquals(expectedResponse, actual);
     }
