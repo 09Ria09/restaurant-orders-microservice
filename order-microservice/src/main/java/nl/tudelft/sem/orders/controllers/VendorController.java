@@ -71,7 +71,7 @@ public class VendorController implements VendorApi {
                 return ResponseEntity.badRequest().build();
             }
         } catch (ApiException e) {
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.badRequest().build();
         }
 
         List<Order> customerOrders = vendorLogic.getPastOrdersForCustomer(userID, customerID);
