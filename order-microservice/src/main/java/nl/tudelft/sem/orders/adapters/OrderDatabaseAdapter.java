@@ -23,6 +23,11 @@ public class OrderDatabaseAdapter implements OrderDatabase {
     }
 
     @Override
+    public List<Order> findByVendorIDAndCustomerID(long vendorID, long customerID) {
+        return orderRepository.findByVendorIDAndCustomerID(vendorID, customerID);
+    }
+
+    @Override
     public List<Order> findByVendorID(long vendorID) {
         return orderRepository.findByVendorID(vendorID);
     }
@@ -41,4 +46,6 @@ public class OrderDatabaseAdapter implements OrderDatabase {
     public List<Order> findAllOrders() {
         return orderRepository.findAll();
     }
+
+
 }

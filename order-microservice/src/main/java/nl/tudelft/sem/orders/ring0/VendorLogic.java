@@ -6,6 +6,7 @@ import java.util.List;
 import nl.tudelft.sem.orders.domain.GeoLocation;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
+import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
@@ -17,6 +18,7 @@ import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -159,4 +161,16 @@ public class VendorLogic implements VendorLogicInterface {
         }
     }
 
+    /**
+     * Gets all the orders at this vendor from the specific customer.
+     *
+     * @param userID The vendor's ID.
+     * @param customerID The customer's ID.
+     * @return List of the orders at this vendor by the specific customer.
+     */
+    @Override
+    public List<Order> getPastOrdersForCustomer(Long userID, Long customerID) {
+        List<Order> foundOrders = orderDatabase.findByVendorIDAndCustomerID(userID, customerID);
+        return foundOrders;
+    }
 }
