@@ -55,14 +55,12 @@ class VendorControllerMockitoTest {
     }
 
     @Test
-    void vendorOrderCustomerOK() throws ApiException {
+    void vendorOrderCustomerOK() throws ApiException, ForbiddenException {
         Order order = new Order();
         List<Order> expected = new ArrayList<>();
         expected.add(order);
         long vendorID = 1;
         long customerID = 2;
-        when(userMicroservice.isVendor(1)).thenReturn(true);
-        when(userMicroservice.isCustomer(2)).thenReturn(true);
         when(vendorLogic.getPastOrdersForCustomer(1L, 2L)).thenReturn(expected);
 
         ResponseEntity<List<Order>> expectedResponse = ResponseEntity.ok(expected);
@@ -96,50 +94,11 @@ class VendorControllerMockitoTest {
     }
 
     @Test
-    void vendorOrderCustomerNotVendor() throws ApiException {
+    void vendorOrderCustomerNotVendorOrCustomer() throws ApiException, ForbiddenException {
         long vendorID = 1;
         long customerID = 2;
-        when(userMicroservice.isVendor(1)).thenReturn(false);
-        when(userMicroservice.isCustomer(2)).thenReturn(true);
 
-        ResponseEntity<List<Order>> expectedResponse = ResponseEntity.badRequest().build();
-        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);
-
-        assertEquals(expectedResponse, actual);
-    }
-
-    @Test
-    void vendorOrderCustomerNotCustomer() throws ApiException {
-        long vendorID = 1;
-        long customerID = 2;
-        when(userMicroservice.isVendor(1)).thenReturn(true);
-        when(userMicroservice.isCustomer(2)).thenReturn(false);
-
-        ResponseEntity<List<Order>> expectedResponse = ResponseEntity.badRequest().build();
-        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);
-
-        assertEquals(expectedResponse, actual);
-    }
-
-    @Test
-    void vendorOrderCustomerException1() throws ApiException {
-        long vendorID = 1;
-        long customerID = 2;
-        when(userMicroservice.isVendor(1)).thenThrow(new ApiException("L Request"));
-        when(userMicroservice.isCustomer(2)).thenReturn(true);
-
-        ResponseEntity<List<Order>> expectedResponse = ResponseEntity.badRequest().build();
-        ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);
-
-        assertEquals(expectedResponse, actual);
-    }
-
-    @Test
-    void vendorOrderCustomerException2() throws ApiException {
-        long vendorID = 1;
-        long customerID = 2;
-        when(userMicroservice.isVendor(1)).thenReturn(true);
-        when(userMicroservice.isCustomer(2)).thenThrow(new ApiException("L Request"));
+        when(vendorLogic.getPastOrdersForCustomer(1L, 2L)).thenThrow(new ForbiddenException());
 
         ResponseEntity<List<Order>> expectedResponse = ResponseEntity.badRequest().build();
         ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);

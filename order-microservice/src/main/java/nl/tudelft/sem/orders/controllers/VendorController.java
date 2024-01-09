@@ -58,15 +58,12 @@ public class VendorController implements VendorApi {
             return ResponseEntity.badRequest().build();
         }
 
+        List<Order> customerOrders;
         try {
-            if (!userMicroservice.isVendor(userID) | !userMicroservice.isCustomer(customerID)) {
-                return ResponseEntity.badRequest().build();
-            }
-        } catch (ApiException e) {
+            customerOrders = vendorLogic.getPastOrdersForCustomer(userID, customerID);
+        } catch (ForbiddenException e) {
             return ResponseEntity.badRequest().build();
         }
-
-        List<Order> customerOrders = vendorLogic.getPastOrdersForCustomer(userID, customerID);
         return ResponseEntity.ok(customerOrders);
 
     }

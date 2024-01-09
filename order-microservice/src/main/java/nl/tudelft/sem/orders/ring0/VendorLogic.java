@@ -169,8 +169,14 @@ public class VendorLogic implements VendorLogicInterface {
      * @return List of the orders at this vendor by the specific customer.
      */
     @Override
-    public List<Order> getPastOrdersForCustomer(Long userID, Long customerID) {
-        List<Order> foundOrders = orderDatabase.findByVendorIDAndCustomerID(userID, customerID);
-        return foundOrders;
+    public List<Order> getPastOrdersForCustomer(Long userID, Long customerID) throws ForbiddenException {
+        try {
+            if (!userMicroservice.isVendor(userID) | !userMicroservice.isCustomer(customerID)) {
+                throw new ForbiddenException();
+            }
+        } catch (ApiException e) {
+            throw new ForbiddenException();
+        }
+        return orderDatabase.findByVendorIDAndCustomerID(userID, customerID);
     }
 }

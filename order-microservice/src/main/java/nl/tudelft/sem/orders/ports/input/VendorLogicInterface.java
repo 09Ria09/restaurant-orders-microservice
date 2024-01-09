@@ -13,5 +13,5 @@ public interface VendorLogicInterface {
 
     void deleteDishById(Long userId, Long dishId) throws MalformedException, ForbiddenException;
 
-    List<Order> getPastOrdersForCustomer(Long userID, Long customerID);
+    List<Order> getPastOrdersForCustomer(Long userID, Long customerID) throws ForbiddenException;
 }
