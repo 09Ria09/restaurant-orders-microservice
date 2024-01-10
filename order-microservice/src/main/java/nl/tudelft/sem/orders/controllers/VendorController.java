@@ -2,9 +2,6 @@ package nl.tudelft.sem.orders.controllers;
 
 
 import java.util.List;
-
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import nl.tudelft.sem.orders.api.VendorApi;
 import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.Location;
@@ -15,10 +12,7 @@ import nl.tudelft.sem.orders.ring0.VendorLogic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.constraints.NotNull;
 
 @RestController
 public class VendorController implements VendorApi {
@@ -55,10 +49,16 @@ public class VendorController implements VendorApi {
         }
     }
 
+    /**
+     * Gets the analytics for a vendor.
+     *
+     * @param userID The id of the vendor (required)
+     * @return The calculated analytics
+     */
     public ResponseEntity<List<Analytic>> vendorAnalyticsGet(
             Long userID
     ) {
-        if(userID == null){
+        if (userID == null) {
             return ResponseEntity.badRequest().build();
         }
 
