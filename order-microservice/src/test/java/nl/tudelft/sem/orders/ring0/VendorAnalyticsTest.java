@@ -3,6 +3,7 @@ package nl.tudelft.sem.orders.ring0;
 import nl.tudelft.sem.delivery.model.Delivery;
 import nl.tudelft.sem.delivery.model.DeliveryTimes;
 import nl.tudelft.sem.orders.model.AnalyticOrderVolumeInner;
+import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
@@ -46,6 +47,9 @@ class VendorAnalyticsTest {
 
     @Test
     void getPopularDishes() {
+        Dish dish1 = new Dish();
+        Dish dish2 = new Dish();
+        Dish dish3 = new Dish();
     }
 
     @Test
