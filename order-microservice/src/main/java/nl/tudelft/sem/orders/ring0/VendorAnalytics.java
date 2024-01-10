@@ -51,7 +51,7 @@ public class VendorAnalytics {
         return analytics;
     }
 
-    private List<AnalyticCustomerPreferencesInner> getCustomerPreferences(List<Order> allOrders) {
+    public List<AnalyticCustomerPreferencesInner> getCustomerPreferences(List<Order> allOrders) {
         HashMap<Long, HashMap<Long, Integer>> dishesPerCustomer = new HashMap<>();
         for(Order o : allOrders){
             Long customerID = o.getCustomerID();
@@ -89,7 +89,7 @@ public class VendorAnalytics {
         return customerPreferences;
     }
 
-    private List<Dish> getPopularDishes(List<Order> allOrders) {
+    public List<Dish> getPopularDishes(List<Order> allOrders) {
         List<OrderDishesInner> dishesInners = allOrders.stream()
                 .flatMap(x -> x.getDishes().stream())
                 .collect(Collectors.toList());
@@ -119,7 +119,7 @@ public class VendorAnalytics {
         return popularDishes;
     }
 
-    private List<Integer> getPeakHours(List<Delivery> deliveries) {
+    public List<Integer> getPeakHours(List<Delivery> deliveries) {
         List<Integer> peakHours = new ArrayList<>();
         hourDeliveries[] hours = new hourDeliveries[24];
 
@@ -139,7 +139,7 @@ public class VendorAnalytics {
         return peakHours;
     }
 
-    private List<AnalyticOrderVolumeInner> calculateOrderVolume(List<Delivery> deliveries){
+    public List<AnalyticOrderVolumeInner> calculateOrderVolume(List<Delivery> deliveries){
         List<AnalyticOrderVolumeInner> orderVolumes = new ArrayList<>();
         int[] days = new int[7];
 
