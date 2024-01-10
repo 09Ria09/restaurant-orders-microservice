@@ -144,7 +144,7 @@ public class VendorAnalytics {
         List<Dish> popularDishes = new ArrayList<>();
 
         for (Map.Entry<Dish, Integer> entry : dishAmounts.entrySet()) {
-            if (entry.getValue() >= Math.floor(popularThreshold * maxAmount)) {
+            if (entry.getValue() >= popularThreshold * maxAmount) {
                 popularDishes.add(entry.getKey());
             }
         }

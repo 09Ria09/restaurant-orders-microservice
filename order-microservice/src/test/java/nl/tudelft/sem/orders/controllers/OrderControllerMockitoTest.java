@@ -257,6 +257,20 @@ class OrderControllerMockitoTest {
     }
 
     @Test
+    void orderGetException2() throws ApiException {
+        Long userID = 1L;
+        when(userMicroservice.getUserType(1L))
+                .thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER);
+        when(orderLogic.getOrders(1l,
+                UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER))
+                .thenThrow(new IllegalStateException("blah"));
+
+        ResponseEntity<List<Order>> expected = ResponseEntity.badRequest().build();
+        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testOrderOrderIDReorderPost() throws Exception {
         Order order = new Order(1L,
             1L,

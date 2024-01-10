@@ -1,9 +1,9 @@
 package nl.tudelft.sem.orders.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
+import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
@@ -12,6 +12,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 class VendorControllerMockitoTest {
@@ -45,5 +48,23 @@ class VendorControllerMockitoTest {
     void vendorDishDishIDDeleteOK() {
         ResponseEntity<Void> response = vendorController.vendorDishDishIDDelete(1L, 1L);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void vendorAnalyticsNull() {
+        ResponseEntity<List<Analytic>> expected = ResponseEntity.badRequest().build();
+        assertEquals(expected, vendorController.vendorAnalyticsGet(null));
+    }
+
+    @Test
+    void vendorAnalyticsOK() {
+        Analytic x = new Analytic();
+        x.setOrderVolume(new ArrayList<>());
+        x.setCustomerPreferences(new ArrayList<>());
+        List<Analytic> expected = new ArrayList<>();
+        expected.add(x);
+        when(vendorLogic.getVendorAnalysis(1L)).thenReturn(expected);
+
+        assertEquals(ResponseEntity.ok(expected), vendorController.vendorAnalyticsGet(1L));
     }
 }
