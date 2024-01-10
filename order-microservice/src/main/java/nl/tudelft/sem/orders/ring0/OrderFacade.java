@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderLogic implements OrderLogicInterface {
+public class OrderFacade implements OrderLogicInterface {
     private final transient OrderDatabase orderDatabase;
     private final transient DishDatabase dishDatabase;
     private final transient UserMicroservice userMicroservice;
@@ -54,16 +54,16 @@ public class OrderLogic implements OrderLogicInterface {
      */
     //CHECKSTYLE:OFF
     @Autowired
-    public OrderLogic(OrderDatabase orderDatabase,
-                      DishDatabase dishDatabase,
-                      UserMicroservice userMicroservice,
-                      PaymentService paymentService,
-                      LocationService locationService,
-                      UserOwnershipValidator userOwnershipValidator,
-                      DistanceValidator distanceValidator,
-                      TokenValidator tokenValidator,
-                      StatusValidator statusValidator,
-                      DeliveryMicroservice deliveryMicroservice) {
+    public OrderFacade(OrderDatabase orderDatabase,
+                       DishDatabase dishDatabase,
+                       UserMicroservice userMicroservice,
+                       PaymentService paymentService,
+                       LocationService locationService,
+                       UserOwnershipValidator userOwnershipValidator,
+                       DistanceValidator distanceValidator,
+                       TokenValidator tokenValidator,
+                       StatusValidator statusValidator,
+                       DeliveryMicroservice deliveryMicroservice) {
         //CHECKSTYLE:ON
         this.orderDatabase = orderDatabase;
         this.dishDatabase = dishDatabase;

@@ -4,9 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.ArrayList;
-import java.util.Objects;
-import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
@@ -21,14 +18,14 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootTest
 @Import(TestConfig.class)
-class OrderLogicTest {
+class OrderFacadeTest {
     @Autowired
     private MockOrderDatabase orderDatabase;
     @Autowired
     private MockDeliveryMicroservice mockDeliveryMicroservice;
 
     @Autowired
-    private OrderLogic orderFacade;
+    private OrderFacade orderFacade;
 
     @BeforeEach
     void clean() {

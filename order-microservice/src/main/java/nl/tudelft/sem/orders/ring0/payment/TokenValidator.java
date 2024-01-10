@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TokenValidator extends BaseHandler {
+public class TokenValidator extends BaseValidator {
     private final transient PaymentService paymentService;
 
     @Autowired

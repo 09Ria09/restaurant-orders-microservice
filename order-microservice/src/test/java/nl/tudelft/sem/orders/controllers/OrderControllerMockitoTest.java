@@ -21,9 +21,8 @@ import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
-import nl.tudelft.sem.orders.ring0.OrderLogic;
+import nl.tudelft.sem.orders.ring0.OrderFacade;
 import nl.tudelft.sem.users.ApiException;
-import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -34,15 +33,15 @@ class OrderControllerMockitoTest {
 
     private UserMicroservice userMicroservice;
     private LocationService locationService;
-    private OrderLogic orderLogic;
+    private OrderFacade orderFacade;
     private OrderController orderController;
 
     @BeforeEach
     public void setUp() {
         userMicroservice = mock(UserMicroservice.class);
         locationService = mock(MockLocationAdapter.class);
-        orderLogic = mock(OrderLogic.class);
-        orderController = new OrderController(orderLogic, userMicroservice, locationService);
+        orderFacade = mock(OrderFacade.class);
+        orderController = new OrderController(orderFacade, userMicroservice, locationService);
     }
 
     @Test
@@ -52,7 +51,7 @@ class OrderControllerMockitoTest {
 
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(orderLogic.createOrder(userID, vendorID)).thenReturn(new Order());
+        when(orderFacade.createOrder(userID, vendorID)).thenReturn(new Order());
 
         ResponseEntity<Order> responseEntity = orderController.orderPost(userID, vendorID);
 
@@ -60,7 +59,7 @@ class OrderControllerMockitoTest {
         verify(userMicroservice).getCustomerAddress(userID);
         verify(userMicroservice).getVendorAddress(vendorID);
         verify(userMicroservice).isCustomer(userID);
-        verify(orderLogic).createOrder(userID, vendorID);
+        verify(orderFacade).createOrder(userID, vendorID);
     }
 
     @Test
@@ -70,13 +69,13 @@ class OrderControllerMockitoTest {
 
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(userMicroservice.isCustomer(userID)).thenReturn(false);
-        when(orderLogic.createOrder(userID, vendorID)).thenReturn(new Order());
+        when(orderFacade.createOrder(userID, vendorID)).thenReturn(new Order());
 
         ResponseEntity<Order> responseEntity = orderController.orderPost(userID, vendorID);
 
         assertEquals(ResponseEntity.status(HttpStatus.FORBIDDEN).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verifyNoInteractions(orderLogic);
+        verifyNoInteractions(orderFacade);
     }
 
     @Test
@@ -85,13 +84,13 @@ class OrderControllerMockitoTest {
         long vendorID = 2L;
         when(locationService.isCloseBy(any(), any())).thenReturn(false);
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(orderLogic.createOrder(userID, vendorID)).thenReturn(new Order());
+        when(orderFacade.createOrder(userID, vendorID)).thenReturn(new Order());
 
         ResponseEntity<Order> responseEntity = orderController.orderPost(userID, vendorID);
 
         assertEquals(ResponseEntity.status(HttpStatus.BAD_REQUEST).build(), responseEntity);
         verify(locationService).isCloseBy(any(), any());
-        verifyNoInteractions(orderLogic);
+        verifyNoInteractions(orderFacade);
     }
 
     @Test
@@ -100,12 +99,12 @@ class OrderControllerMockitoTest {
         long vendorID = 2L;
         when(locationService.isCloseBy(any(), any())).thenReturn(false);
         when(userMicroservice.isCustomer(userID)).thenThrow(new ApiException());
-        when(orderLogic.createOrder(userID, vendorID)).thenReturn(new Order());
+        when(orderFacade.createOrder(userID, vendorID)).thenReturn(new Order());
 
         ResponseEntity<Order> responseEntity = orderController.orderPost(userID, vendorID);
 
         assertEquals(ResponseEntity.status(HttpStatus.BAD_REQUEST).build(), responseEntity);
-        verifyNoInteractions(orderLogic);
+        verifyNoInteractions(orderFacade);
     }
 
     @Test
@@ -114,7 +113,7 @@ class OrderControllerMockitoTest {
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenReturn(10.0F);
+        when(orderFacade.updateDishes(orderID, userID, request.getDishes())).thenReturn(10.0F);
 
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
@@ -124,7 +123,7 @@ class OrderControllerMockitoTest {
 
         assertEquals(ResponseEntity.ok(expectedResponse), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verify(orderLogic).updateDishes(orderID, userID, request.getDishes());
+        verify(orderFacade).updateDishes(orderID, userID, request.getDishes());
     }
 
     @Test
@@ -133,14 +132,14 @@ class OrderControllerMockitoTest {
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
         when(userMicroservice.isCustomer(userID)).thenReturn(false);
-        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenReturn(10.0F);
+        when(orderFacade.updateDishes(orderID, userID, request.getDishes())).thenReturn(10.0F);
 
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
 
         assertEquals(ResponseEntity.status(HttpStatus.FORBIDDEN).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verifyNoInteractions(orderLogic);
+        verifyNoInteractions(orderFacade);
     }
 
     @Test
@@ -149,14 +148,14 @@ class OrderControllerMockitoTest {
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenThrow(new IllegalStateException());
+        when(orderFacade.updateDishes(orderID, userID, request.getDishes())).thenThrow(new IllegalStateException());
 
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
 
         assertEquals(ResponseEntity.status(HttpStatus.BAD_REQUEST).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verify(orderLogic).updateDishes(orderID, userID, request.getDishes());
+        verify(orderFacade).updateDishes(orderID, userID, request.getDishes());
     }
 
     @Test
@@ -165,14 +164,14 @@ class OrderControllerMockitoTest {
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
         when(userMicroservice.isCustomer(userID)).thenThrow(new ApiException());
-        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenThrow(new IllegalStateException());
+        when(orderFacade.updateDishes(orderID, userID, request.getDishes())).thenThrow(new IllegalStateException());
 
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
 
         assertEquals(ResponseEntity.status(HttpStatus.FORBIDDEN).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verifyNoInteractions(orderLogic);
+        verifyNoInteractions(orderFacade);
     }
 
     @Test
@@ -181,14 +180,14 @@ class OrderControllerMockitoTest {
         long orderID = 2L;
         OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
         when(userMicroservice.isCustomer(userID)).thenReturn(true);
-        when(orderLogic.updateDishes(orderID, userID, request.getDishes())).thenThrow(new EntityNotFoundException());
+        when(orderFacade.updateDishes(orderID, userID, request.getDishes())).thenThrow(new EntityNotFoundException());
 
         ResponseEntity<OrderOrderIDDishesPut200Response> responseEntity =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
 
         assertEquals(ResponseEntity.status(HttpStatus.NOT_FOUND).build(), responseEntity);
         verify(userMicroservice).isCustomer(userID);
-        verify(orderLogic).updateDishes(orderID, userID, request.getDishes());
+        verify(orderFacade).updateDishes(orderID, userID, request.getDishes());
     }
 
     @Test
@@ -201,18 +200,18 @@ class OrderControllerMockitoTest {
     @Test
     void orderGetAdmin() throws ApiException {
         Long userID = 1L;
-        when(orderLogic.getOrders(1L))
+        when(orderFacade.getOrders(1L))
                 .thenReturn(new ArrayList<Order>());
 
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
 
-        verify(orderLogic).getOrders(1L);
+        verify(orderFacade).getOrders(1L);
     }
 
     @Test
     void orderGetIse() throws ApiException {
         Long userID = 1L;
-        when(orderLogic.getOrders(1L))
+        when(orderFacade.getOrders(1L))
             .thenThrow(new IllegalStateException());
 
         assertEquals(HttpStatus.BAD_REQUEST, orderController.orderGet(userID).getStatusCode());
@@ -222,7 +221,7 @@ class OrderControllerMockitoTest {
     void orderGetException() throws ApiException {
         Long userID = 1L;
 
-        when(orderLogic.getOrders(1L)).thenThrow(new ApiException());
+        when(orderFacade.getOrders(1L)).thenThrow(new ApiException());
 
         ResponseEntity<List<Order>> expected = ResponseEntity.badRequest().build();
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
@@ -238,7 +237,7 @@ class OrderControllerMockitoTest {
             new Location().city("Kraków").country("PL").postalCode("123ZT"),
             nl.tudelft.sem.orders.model.Order.StatusEnum.PENDING).courierID(3L);
 
-        when(orderLogic.reorder(anyLong(), anyLong())).thenReturn(order);
+        when(orderFacade.reorder(anyLong(), anyLong())).thenReturn(order);
         ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(order, response.getBody());
@@ -246,14 +245,14 @@ class OrderControllerMockitoTest {
 
     @Test
     public void testOrderOrderIDReorderPostNotFound() throws Exception {
-        when(orderLogic.reorder(anyLong(), anyLong())).thenThrow(NotFoundException.class);
+        when(orderFacade.reorder(anyLong(), anyLong())).thenThrow(NotFoundException.class);
         ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     public void testOrderOrderIDReorderPostMalformed() throws Exception {
-        when(orderLogic.reorder(anyLong(), anyLong())).thenThrow(MalformedException.class);
+        when(orderFacade.reorder(anyLong(), anyLong())).thenThrow(MalformedException.class);
         ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }

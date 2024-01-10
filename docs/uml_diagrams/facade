@@ -1,0 +1,55 @@
+@startuml
+
+title Facade design pattern
+
+class VendorFacade {
+ +List<Long> vendorsInRadius(..)
+ +List<Dish> addDish(..)
+ +void modifyDish(..)
+ +void deleteDishById(..)
+}
+
+class OrderFacade {
+ +void payForOrder(..)
+ +Order createOrder(..)
+ +Float updateDishes(..)
+ +List<Order> getOrders(..)
+ +Order reorder(..)
+}
+
+interface UserMicroservice
+interface DishDatabase
+interface OrderDatabase
+interface RadiusStrategy
+interface SearchStrategy
+interface PaymentService
+interface LocationService
+interface BaseValidator
+class DistanceValidator
+class StatusValidator
+class TokenValidator
+class UserOwnershipValidator
+interface DeliveryMicroservice
+
+DistanceValidator <|.. BaseValidator
+StatusValidator <|.. BaseValidator
+TokenValidator <|.. BaseValidator
+UserOwnershipValidator <|.. BaseValidator
+
+VendorFacade o-up- RadiusStrategy
+VendorFacade o-up- UserMicroservice
+VendorFacade o-up- DishDatabase
+VendorFacade o-up- SearchStrategy
+
+OrderFacade o-up- OrderDatabase
+OrderFacade o-up- DishDatabase
+OrderFacade o-up- UserMicroservice
+OrderFacade o-up- PaymentService
+OrderFacade o-up- LocationService
+OrderFacade o-up- StatusValidator
+OrderFacade o-up- DistanceValidator
+OrderFacade o-up- TokenValidator
+OrderFacade o-up- UserOwnershipValidator
+OrderFacade o-up- DeliveryMicroservice
+
+@enduml

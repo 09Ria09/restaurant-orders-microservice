@@ -6,12 +6,11 @@ import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.VerificationException;
-import nl.tudelft.sem.users.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DistanceValidator extends BaseHandler {
+public class DistanceValidator extends BaseValidator {
     private final transient LocationService locationService;
     private final transient UserMicroservice userMicroservice;
     private final transient OrderDatabase orderDatabase;

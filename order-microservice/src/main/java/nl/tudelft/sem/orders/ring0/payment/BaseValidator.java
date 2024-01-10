@@ -2,7 +2,7 @@ package nl.tudelft.sem.orders.ring0.payment;
 
 import nl.tudelft.sem.orders.result.VerificationException;
 
-public abstract class BaseHandler implements Validator {
+public abstract class BaseValidator implements Validator {
     private transient Validator next;
 
     public void setNext(Validator h) {

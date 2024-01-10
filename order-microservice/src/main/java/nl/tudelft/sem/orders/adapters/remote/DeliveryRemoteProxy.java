@@ -9,14 +9,17 @@ import nl.tudelft.sem.delivery.model.CreateDeliveryRequest;
 import nl.tudelft.sem.delivery.model.GetDeliveryRadiuses200ResponseInner;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public class DeliveryRemoteAdapter implements DeliveryMicroservice {
+@Component
+public class DeliveryRemoteProxy implements DeliveryMicroservice {
     private transient VendorApi vendorApi;
     private transient AdminApi adminApi;
     private transient DeliveryApi deliveryApi;
 
-    DeliveryRemoteAdapter(VendorApi deliveryApi, AdminApi adminApi,
-                                 DeliveryApi api) {
+    @Autowired
+    DeliveryRemoteProxy(VendorApi deliveryApi, AdminApi adminApi,
+                        DeliveryApi api) {
         this.vendorApi = deliveryApi;
         this.adminApi = adminApi;
         this.deliveryApi = api;

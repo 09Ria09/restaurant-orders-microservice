@@ -2,13 +2,12 @@ package nl.tudelft.sem.orders.ring0.payment;
 
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
-import nl.tudelft.sem.orders.ports.output.PaymentService;
 import nl.tudelft.sem.orders.result.VerificationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StatusValidator extends BaseHandler {
+public class StatusValidator extends BaseValidator {
     private final transient OrderDatabase orderDatabase;
 
     @Autowired
