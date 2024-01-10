@@ -70,13 +70,17 @@ public class OrderFacadeMockitoTest {
         final long customerId = 1L;
         final long vendorId = 2L;
         final Location location = new Location();
-        Order orderNoId = new Order(null, customerId, vendorId, new ArrayList<>(), location, Order.StatusEnum.UNPAID);
+        Order orderNoId =
+            new Order(null, customerId, vendorId, new ArrayList<>(), 0F,
+                location, Order.StatusEnum.UNPAID);
 
-        when(userMicroservice.getCustomerAddress(customerId)).thenReturn(new Location());
+        when(userMicroservice.getCustomerAddress(customerId)).thenReturn(
+            new Location());
         when(orderDatabase.save(orderNoId)).thenReturn(new Order(1L,
             customerId,
             vendorId,
             new ArrayList<>(),
+            0F,
             location,
             Order.StatusEnum.UNPAID));
 
@@ -97,20 +101,27 @@ public class OrderFacadeMockitoTest {
         final long customerId = 143L;
         final long vendorId = 2123L;
 
-        final Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
-        final Order order = new Order(orderId, customerId, vendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        final Dish mockDish =
+            new Dish(dishId, vendorId, "name", "description", new ArrayList<>(),
+                23.4f);
+        final Order order =
+            new Order(orderId, customerId, vendorId, new ArrayList<>(), 1F,
+                null, Order.StatusEnum.UNPAID);
 
-        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        OrderOrderIDDishesPutRequestDishesInner dish =
+            new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);
         dish.setQuantity(4);
 
-        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes =
+            new ArrayList<>();
         dishes.add(dish);
 
         when(dishDatabase.getById(dishId)).thenReturn(mockDish);
         when(orderDatabase.getById(orderId)).thenReturn(order);
 
-        Float totalPrice = orderFacade.updateDishes(orderId, customerId, dishes);
+        Float totalPrice =
+            orderFacade.updateDishes(orderId, customerId, dishes);
 
         assertNotNull(totalPrice);
         assertEquals(4 * mockDish.getPrice(), totalPrice);
@@ -125,11 +136,13 @@ public class OrderFacadeMockitoTest {
         final long orderId = 2311L;
         final long customerId = 143L;
 
-        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes =
+            new ArrayList<>();
 
         when(orderDatabase.getById(orderId)).thenReturn(null);
 
-        assertThrows(EntityNotFoundException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+        assertThrows(EntityNotFoundException.class,
+            () -> orderFacade.updateDishes(orderId, customerId, dishes));
     }
 
     @Test
@@ -139,20 +152,27 @@ public class OrderFacadeMockitoTest {
         final long vendorId = 221L;
         final long customerId = 143L;
 
-        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        OrderOrderIDDishesPutRequestDishesInner dish =
+            new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);
         dish.setQuantity(4);
 
-        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes =
+            new ArrayList<>();
         dishes.add(dish);
 
-        Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
-        Order order = new Order(orderId, customerId, 2L, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        Dish mockDish =
+            new Dish(dishId, vendorId, "name", "description", new ArrayList<>(),
+                23.4f);
+        Order order =
+            new Order(orderId, customerId, 2L, new ArrayList<>(), 1F, null,
+                Order.StatusEnum.UNPAID);
 
         when(orderDatabase.getById(orderId)).thenReturn(order);
         when(dishDatabase.getById(dishId)).thenReturn(mockDish);
 
-        assertThrows(EntityNotFoundException.class, () -> orderFacade.updateDishes(orderId, customerId + 1, dishes));
+        assertThrows(EntityNotFoundException.class,
+            () -> orderFacade.updateDishes(orderId, customerId + 1, dishes));
     }
 
     @Test
@@ -162,20 +182,27 @@ public class OrderFacadeMockitoTest {
         final long vendorId = 221L;
         final long customerId = 143L;
 
-        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        OrderOrderIDDishesPutRequestDishesInner dish =
+            new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);
         dish.setQuantity(4);
 
-        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes =
+            new ArrayList<>();
         dishes.add(dish);
 
-        Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
-        Order order = new Order(orderId, customerId, 2L, new ArrayList<>(), null, Order.StatusEnum.PENDING);
+        Dish mockDish =
+            new Dish(dishId, vendorId, "name", "description", new ArrayList<>(),
+                23.4f);
+        Order order =
+            new Order(orderId, customerId, 2L, new ArrayList<>(), 1F, null,
+                Order.StatusEnum.PENDING);
 
         when(orderDatabase.getById(orderId)).thenReturn(order);
         when(dishDatabase.getById(dishId)).thenReturn(mockDish);
 
-        assertThrows(EntityNotFoundException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+        assertThrows(EntityNotFoundException.class,
+            () -> orderFacade.updateDishes(orderId, customerId, dishes));
     }
 
     @Test
@@ -185,20 +212,27 @@ public class OrderFacadeMockitoTest {
         final long vendorId = 221L;
         final long customerId = 143L;
 
-        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        OrderOrderIDDishesPutRequestDishesInner dish =
+            new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);
         dish.setQuantity(4);
 
-        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes =
+            new ArrayList<>();
         dishes.add(dish);
 
-        Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
-        Order order = new Order(orderId, customerId, 2L, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        Dish mockDish =
+            new Dish(dishId, vendorId, "name", "description", new ArrayList<>(),
+                23.4f);
+        Order order =
+            new Order(orderId, customerId, 2L, new ArrayList<>(), 1F, null,
+                Order.StatusEnum.UNPAID);
 
         when(orderDatabase.getById(orderId)).thenReturn(order);
         when(dishDatabase.getById(dishId)).thenReturn(null);
 
-        assertThrows(IllegalStateException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+        assertThrows(IllegalStateException.class,
+            () -> orderFacade.updateDishes(orderId, customerId, dishes));
     }
 
     @Test
@@ -208,20 +242,27 @@ public class OrderFacadeMockitoTest {
         final long vendorId = 221L;
         final long customerId = 143L;
 
-        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        OrderOrderIDDishesPutRequestDishesInner dish =
+            new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);
         dish.setQuantity(null);
 
-        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes =
+            new ArrayList<>();
         dishes.add(dish);
 
-        Dish mockDish = new Dish(dishId, vendorId, "name", "description", new ArrayList<>(), 23.4f);
-        Order order = new Order(orderId, customerId, 2L, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        Dish mockDish =
+            new Dish(dishId, vendorId, "name", "description", new ArrayList<>(),
+                23.4f);
+        Order order =
+            new Order(orderId, customerId, 2L, new ArrayList<>(), 1F, null,
+                Order.StatusEnum.UNPAID);
 
         when(orderDatabase.getById(orderId)).thenReturn(order);
         when(dishDatabase.getById(dishId)).thenReturn(mockDish);
 
-        assertThrows(IllegalStateException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+        assertThrows(IllegalStateException.class,
+            () -> orderFacade.updateDishes(orderId, customerId, dishes));
     }
 
     @Test
@@ -230,19 +271,25 @@ public class OrderFacadeMockitoTest {
         final long dishId = 413L;
         final long customerId = 143L;
 
-        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        OrderOrderIDDishesPutRequestDishesInner dish =
+            new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);
         dish.setQuantity(4);
 
-        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes =
+            new ArrayList<>();
         dishes.add(dish);
 
-        Order order = new Order(orderId, customerId, 2L, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        Order order =
+            new Order(orderId, customerId, 2L, new ArrayList<>(), 1F, null,
+                Order.StatusEnum.UNPAID);
 
         when(orderDatabase.getById(orderId)).thenReturn(order);
-        when(dishDatabase.getById(dishId)).thenThrow(EntityNotFoundException.class);
+        when(dishDatabase.getById(dishId)).thenThrow(
+            EntityNotFoundException.class);
 
-        assertThrows(IllegalStateException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+        assertThrows(IllegalStateException.class,
+            () -> orderFacade.updateDishes(orderId, customerId, dishes));
     }
 
     @Test
@@ -252,21 +299,27 @@ public class OrderFacadeMockitoTest {
         final long customerId = 143L;
         final long vendorId = 2123L;
         final long anotherVendorId = 3L;
-        final Order order = new Order(orderId, customerId, vendorId, new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+        final Order order =
+            new Order(orderId, customerId, vendorId, new ArrayList<>(), 1F,
+                null, Order.StatusEnum.UNPAID);
 
-        OrderOrderIDDishesPutRequestDishesInner dish = new OrderOrderIDDishesPutRequestDishesInner();
+        OrderOrderIDDishesPutRequestDishesInner dish =
+            new OrderOrderIDDishesPutRequestDishesInner();
         dish.setId(dishId);
         dish.setQuantity(4);
 
-        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes = new ArrayList<>();
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes =
+            new ArrayList<>();
         dishes.add(dish);
 
-        Dish mockDish = new Dish(dishId, anotherVendorId, "name", "description", new ArrayList<>(), 23.4f);
+        Dish mockDish = new Dish(dishId, anotherVendorId, "name", "description",
+            new ArrayList<>(), 23.4f);
 
         when(dishDatabase.getById(dishId)).thenReturn(mockDish);
         when(orderDatabase.getById(orderId)).thenReturn(order);
 
-        assertThrows(IllegalStateException.class, () -> orderFacade.updateDishes(orderId, customerId, dishes));
+        assertThrows(IllegalStateException.class,
+            () -> orderFacade.updateDishes(orderId, customerId, dishes));
     }
 
     @Test
@@ -283,16 +336,17 @@ public class OrderFacadeMockitoTest {
         final long vendorId = 2123L;
         final long anotherVendorId = 3L;
         final Order order = new Order(orderId, userID, vendorId,
-                new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+            new ArrayList<>(), 1F, null, Order.StatusEnum.UNPAID);
         final Order order2 = new Order(orderId, userID, anotherVendorId,
-                new ArrayList<>(), null, Order.StatusEnum.UNPAID);
+            new ArrayList<>(), 2F, null, Order.StatusEnum.UNPAID);
 
         ArrayList<Order> allOrders = new ArrayList<>();
         allOrders.add(order);
         allOrders.add(order2);
         when(orderDatabase.findAllOrders()).thenReturn(allOrders);
 
-        assertEquals(assertDoesNotThrow(() -> orderFacade.getOrders(userID)), allOrders);
+        assertEquals(assertDoesNotThrow(() -> orderFacade.getOrders(userID)),
+            allOrders);
         verify(orderDatabase, times(1)).findAllOrders();
     }
 
@@ -309,16 +363,19 @@ public class OrderFacadeMockitoTest {
         final long dishId = 413L;
 
         final long anotherVendorId = 3L;
-        final Order order = new Order(orderId, 1L, vendorId, new ArrayList<>(),
+        final Order order =
+            new Order(orderId, 1L, vendorId, new ArrayList<>(), 1F,
                 null, Order.StatusEnum.UNPAID);
-        final Order order2 = new Order(orderId, 1L, anotherVendorId, new ArrayList<>(),
+        final Order order2 =
+            new Order(orderId, 1L, anotherVendorId, new ArrayList<>(), 2F,
                 null, Order.StatusEnum.UNPAID);
 
         ArrayList<Order> expected = new ArrayList<>();
         expected.add(order);
         when(orderDatabase.findByVendorID(vendorId)).thenReturn(expected);
 
-        assertEquals(assertDoesNotThrow(() -> orderFacade.getOrders(vendorId)), expected);
+        assertEquals(assertDoesNotThrow(() -> orderFacade.getOrders(vendorId)),
+            expected);
         verify(orderDatabase, times(1)).findByVendorID(vendorId);
     }
 
@@ -335,16 +392,19 @@ public class OrderFacadeMockitoTest {
         final long dishId = 413L;
         final long vendorId = 2123L;
         final long anotherVendorId = 3L;
-        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+        final Order order =
+            new Order(orderId, userID, vendorId, new ArrayList<>(), 1f,
                 null, Order.StatusEnum.UNPAID);
-        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+        final Order order2 =
+            new Order(orderId, userID, anotherVendorId, new ArrayList<>(), 2f,
                 null, Order.StatusEnum.UNPAID);
 
         ArrayList<Order> expected = new ArrayList<>();
         expected.add(order);
         when(orderDatabase.findByCourierID(userID)).thenReturn(expected);
 
-        assertEquals(assertDoesNotThrow(() -> orderFacade.getOrders(userID)), expected);
+        assertEquals(assertDoesNotThrow(() -> orderFacade.getOrders(userID)),
+            expected);
         verify(orderDatabase, times(1)).findByCourierID(userID);
     }
 
@@ -361,16 +421,19 @@ public class OrderFacadeMockitoTest {
         final long dishId = 413L;
         final long vendorId = 2123L;
         final long anotherVendorId = 3L;
-        final Order order = new Order(orderId, userID, vendorId, new ArrayList<>(),
+        final Order order =
+            new Order(orderId, userID, vendorId, new ArrayList<>(), 1f,
                 null, Order.StatusEnum.UNPAID);
-        final Order order2 = new Order(orderId, userID, anotherVendorId, new ArrayList<>(),
+        final Order order2 =
+            new Order(orderId, userID, anotherVendorId, new ArrayList<>(), 2f,
                 null, Order.StatusEnum.UNPAID);
 
         ArrayList<Order> expected = new ArrayList<>();
         expected.add(order);
         when(orderDatabase.findByCustomerID(userID)).thenReturn(expected);
 
-        assertEquals(assertDoesNotThrow(() -> orderFacade.getOrders(userID)), expected);
+        assertEquals(assertDoesNotThrow(() -> orderFacade.getOrders(userID)),
+            expected);
         verify(orderDatabase, times(1)).findByCustomerID(userID);
     }
 
@@ -384,7 +447,7 @@ public class OrderFacadeMockitoTest {
         when(userMicroservice.isCourier(userID)).thenThrow(new ApiException());
 
         assertThrows(ApiException.class,
-                () -> orderFacade.getOrders(userID));
+            () -> orderFacade.getOrders(userID));
         verify(orderDatabase, times(0)).findByCustomerID(userID);
     }
 
@@ -412,6 +475,7 @@ public class OrderFacadeMockitoTest {
             1L,
             2L,
             new ArrayList<>(List.of(dishInner)),
+            1f,
             null,
             Order.StatusEnum.ACCEPTED);
 
@@ -423,6 +487,7 @@ public class OrderFacadeMockitoTest {
             1L,
             2L,
             new ArrayList<>(List.of(dishInner)),
+            1f,
             null,
             Order.StatusEnum.UNPAID));
 
@@ -436,24 +501,30 @@ public class OrderFacadeMockitoTest {
     public void testReorderMalformedExceptionOrderNotExisting() {
         when(orderDatabase.getById(anyLong())).thenReturn(null);
 
-        assertThrows(MalformedException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(MalformedException.class,
+            () -> orderFacade.reorder(1L, 1L));
     }
 
     @Test
     public void testReorderMalformedExceptionOrderNotOwned() {
-        Order order = new Order(1L, 1L, 1L, null, null, Order.StatusEnum.ACCEPTED);
+        Order order =
+            new Order(1L, 1L, 1L, null, 1f, null, Order.StatusEnum.ACCEPTED);
         when(orderDatabase.getById(1L)).thenReturn(order);
 
-        assertThrows(MalformedException.class, () -> orderFacade.reorder(2L, 1L));
+        assertThrows(MalformedException.class,
+            () -> orderFacade.reorder(2L, 1L));
     }
 
     @Test
-    public void testReorderNotFoundExceptionVendorNotExisting() throws Exception {
-        Order order = new Order(1L, 1L, 1L, null, null, Order.StatusEnum.UNPAID);
+    public void testReorderNotFoundExceptionVendorNotExisting()
+        throws Exception {
+        Order order =
+            new Order(1L, 1L, 1L, null, 1f, null, Order.StatusEnum.UNPAID);
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(1L)).thenReturn(false);
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class,
+            () -> orderFacade.reorder(1L, 1L));
     }
 
     @Test
@@ -469,6 +540,7 @@ public class OrderFacadeMockitoTest {
             1L,
             2L,
             new ArrayList<>(List.of(dishInner)),
+            1f,
             null,
             Order.StatusEnum.ACCEPTED);
 
@@ -477,7 +549,8 @@ public class OrderFacadeMockitoTest {
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(null);
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class,
+            () -> orderFacade.reorder(1L, 1L));
     }
 
     @Test
@@ -493,6 +566,7 @@ public class OrderFacadeMockitoTest {
             1L,
             2L,
             new ArrayList<>(List.of(dishInner)),
+            1f,
             null,
             Order.StatusEnum.ACCEPTED);
 
@@ -506,6 +580,7 @@ public class OrderFacadeMockitoTest {
             new ArrayList<>(),
             1.0f));
 
-        assertThrows(NotFoundException.class, () -> orderFacade.reorder(1L, 1L));
+        assertThrows(NotFoundException.class,
+            () -> orderFacade.reorder(1L, 1L));
     }
 }

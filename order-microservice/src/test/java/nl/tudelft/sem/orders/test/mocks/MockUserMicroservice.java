@@ -40,7 +40,6 @@ public class MockUserMicroservice implements UserMicroservice {
                 .surname("Chłop").address(new Location().city("a"))),
     };
 
-
     @Override
     public List<Vendor> getAllVendors() throws ApiException {
         return Arrays.asList(users).stream()

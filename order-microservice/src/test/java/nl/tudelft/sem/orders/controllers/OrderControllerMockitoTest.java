@@ -234,6 +234,7 @@ class OrderControllerMockitoTest {
             1L,
             13L,
             new ArrayList<>(),
+            1f,
             new Location().city("Kraków").country("PL").postalCode("123ZT"),
             nl.tudelft.sem.orders.model.Order.StatusEnum.PENDING).courierID(3L);
 
