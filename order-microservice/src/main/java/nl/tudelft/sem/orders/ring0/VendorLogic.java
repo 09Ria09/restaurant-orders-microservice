@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import nl.tudelft.sem.orders.domain.GeoLocation;
+import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
+import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
@@ -27,6 +29,8 @@ public class VendorLogic implements VendorLogicInterface {
     private transient LocationService locationService;
     private transient DishDatabase dishDatabase;
 
+    private transient VendorAnalytics vendorAnalytics;
+
 
     /**
      * Creates a new vendor logic.
@@ -41,12 +45,14 @@ public class VendorLogic implements VendorLogicInterface {
                        UserMicroservice userMicroservice,
                        DeliveryMicroservice deliveryMicroservice,
                        LocationService locationService,
-                       DishDatabase dishDatabase) {
+                       DishDatabase dishDatabase,
+                       VendorAnalytics vendorAnalytics) {
         this.orderDatabase = orderDatabase;
         this.userMicroservice = userMicroservice;
         this.deliveryMicroservice = deliveryMicroservice;
         this.locationService = locationService;
         this.dishDatabase = dishDatabase;
+        this.vendorAnalytics = vendorAnalytics;
     }
 
     private Location mapLocations(
@@ -159,4 +165,7 @@ public class VendorLogic implements VendorLogicInterface {
         }
     }
 
+    public List<Analytic> getVendorAnalysis(Long vendorID) {
+        return vendorAnalytics.analyseOrders(vendorID);
+    }
 }

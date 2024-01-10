@@ -4,6 +4,7 @@ import java.util.List;
 import nl.tudelft.sem.delivery.ApiException;
 import nl.tudelft.sem.delivery.api.AdminApi;
 import nl.tudelft.sem.delivery.api.VendorApi;
+import nl.tudelft.sem.delivery.model.Delivery;
 import nl.tudelft.sem.delivery.model.GetDeliveryRadiuses200ResponseInner;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,5 +29,10 @@ public class DeliveryRemoteAdapter implements DeliveryMicroservice {
     public Integer getAdminRadius(long userId) throws ApiException {
         // TODO: ask group b why this endpoint requires a user id??
         return adminApi.getCurrentDefaultRadius(userId).getRadius();
+    }
+
+    @Override
+    public Delivery getDelivery(long userID, long orderID) {
+        return null;
     }
 }
