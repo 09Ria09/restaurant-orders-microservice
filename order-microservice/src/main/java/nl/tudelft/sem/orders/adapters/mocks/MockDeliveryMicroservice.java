@@ -17,4 +17,16 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
     public Integer getAdminRadius(long userId) throws ApiException {
         return 5;
     }
+
+    @Override
+    public long getDeliveryRadius(long vendorId, long userId)
+        throws ApiException {
+        return 5;
+    }
+
+    @Override
+    public void newDelivery(long vendorId, long orderId, long userId)
+        throws ApiException {
+        return;
+    }
 }

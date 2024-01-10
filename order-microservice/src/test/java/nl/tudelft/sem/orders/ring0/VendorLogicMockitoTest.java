@@ -10,9 +10,12 @@ import java.util.List;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.ring0.distance.GeoDistanceStrategy;
+import nl.tudelft.sem.orders.ring0.distance.SimpleWordMatchStrategy;
 import nl.tudelft.sem.orders.test.TestConfig;
 import nl.tudelft.sem.orders.test.mocks.MockDeliveryMicroservice;
 import nl.tudelft.sem.orders.test.mocks.MockDishDatabase;
+import nl.tudelft.sem.orders.test.mocks.MockUserMicroservice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +24,24 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootTest
 @Import(TestConfig.class)
-class VendorLogicTest {
-    @Autowired
+class VendorLogicMockitoTest {
     private VendorFacade vendorFacade;
 
-    @Autowired
     private MockDeliveryMicroservice deliveryMicroservice;
 
-    @Autowired
     private MockDishDatabase dishDatabase;
+
+    @Autowired
+    VendorLogicMockitoTest(MockDeliveryMicroservice mockDeliveryMicroservice,
+                           MockDishDatabase mockDishDatabase,
+                           MockUserMicroservice mockUserMicroservice,
+                           GeoDistanceStrategy geoDistanceStrategy) {
+        this.deliveryMicroservice = mockDeliveryMicroservice;
+        this.dishDatabase = mockDishDatabase;
+
+        this.vendorFacade = new VendorFacade(mockUserMicroservice, dishDatabase,
+            geoDistanceStrategy, new SimpleWordMatchStrategy());
+    }
 
     @BeforeEach
     void clean() {
@@ -80,7 +92,8 @@ class VendorLogicTest {
         long dishId = 100L;
 
         // Test MalformedException when dish does not exist
-        assertThrows(MalformedException.class, () -> vendorFacade.deleteDishById(userId, dishId));
+        assertThrows(MalformedException.class,
+            () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test
@@ -88,7 +101,8 @@ class VendorLogicTest {
         long userId = 100L;
         long dishId = 1L;
 
-        assertThrows(MalformedException.class, () -> vendorFacade.deleteDishById(userId, dishId));
+        assertThrows(MalformedException.class,
+            () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test
@@ -96,7 +110,8 @@ class VendorLogicTest {
         long userId = 3L;
         long dishId = 1L;
 
-        assertThrows(ForbiddenException.class, () -> vendorFacade.deleteDishById(userId, dishId));
+        assertThrows(ForbiddenException.class,
+            () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test
@@ -105,7 +120,8 @@ class VendorLogicTest {
         long dishId = 2L;
 
         // Test ForbiddenException when user is not a vendor
-        assertThrows(ForbiddenException.class, () -> vendorFacade.deleteDishById(userId, dishId));
+        assertThrows(ForbiddenException.class,
+            () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test
@@ -114,7 +130,8 @@ class VendorLogicTest {
         long dishId = 1L;
 
         // Test ForbiddenException when user is not an owner of the dish
-        assertThrows(ForbiddenException.class, () -> vendorFacade.deleteDishById(userId, dishId));
+        assertThrows(ForbiddenException.class,
+            () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test

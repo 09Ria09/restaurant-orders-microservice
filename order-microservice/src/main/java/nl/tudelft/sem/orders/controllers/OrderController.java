@@ -12,9 +12,8 @@ import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
-import nl.tudelft.sem.orders.ring0.OrderLogic;
+import nl.tudelft.sem.orders.ring0.OrderFacade;
 import nl.tudelft.sem.users.ApiException;
-import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,18 +26,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController implements OrderApi {
     private final transient UserMicroservice userMicroservice;
     private final transient LocationService locationService;
-    private final transient OrderLogic orderLogic;
+    private final transient OrderFacade orderFacade;
 
     /**
      * Creates a new OrderController instance.
      *
-     * @param orderLogic The class providing orders logic.
+     * @param orderFacade The class providing orders logic.
      */
     @Autowired
-    public OrderController(OrderLogic orderLogic,
+    public OrderController(OrderFacade orderFacade,
                            UserMicroservice userMicroservice,
                            LocationService locationService) {
-        this.orderLogic = orderLogic;
+        this.orderFacade = orderFacade;
         this.userMicroservice = userMicroservice;
         this.locationService = locationService;
     }
@@ -50,7 +49,7 @@ public class OrderController implements OrderApi {
         @NotNull OrderOrderIDPayPostRequest orderOrderIDPayPostRequest
     ) {
         try {
-            orderLogic.payForOrder(userId, orderId,
+            orderFacade.payForOrder(userId, orderId,
                 orderOrderIDPayPostRequest.getPaymentConfirmation());
             return ResponseEntity.ok().build();
         } catch (ForbiddenException e) {
@@ -72,7 +71,7 @@ public class OrderController implements OrderApi {
                 return ResponseEntity.badRequest().build();
             }
             return ResponseEntity.ok(
-                orderLogic.createOrder(userID, vendorID));
+                orderFacade.createOrder(userID, vendorID));
         } catch (ApiException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -86,7 +85,7 @@ public class OrderController implements OrderApi {
         try {
             if (userMicroservice.isCustomer(userID)) {
                 try {
-                    Float newTotalPrice = orderLogic.updateDishes(orderID, userID,
+                    Float newTotalPrice = orderFacade.updateDishes(orderID, userID,
                         orderOrderIDDishesPutRequest.getDishes());
 
                     OrderOrderIDDishesPut200Response response =
@@ -119,7 +118,7 @@ public class OrderController implements OrderApi {
 
         List<Order> retrievedOrders;
         try {
-            retrievedOrders  = orderLogic.getOrders(userID);
+            retrievedOrders  = orderFacade.getOrders(userID);
         } catch (IllegalStateException ise) {
             return ResponseEntity.badRequest().build();
         } catch (ApiException api) {
@@ -132,7 +131,7 @@ public class OrderController implements OrderApi {
     @Override
     public ResponseEntity<Order> orderOrderIDReorderPost(Long userID, Long orderID) {
         try {
-            return ResponseEntity.ok(orderLogic.reorder(userID, orderID));
+            return ResponseEntity.ok(orderFacade.reorder(userID, orderID));
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (MalformedException e) {
