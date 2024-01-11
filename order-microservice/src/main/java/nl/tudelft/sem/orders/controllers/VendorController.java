@@ -8,6 +8,7 @@ import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.VendorFacade;
 import nl.tudelft.sem.users.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +90,14 @@ public class VendorController implements VendorApi {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok(customerOrders);
+    }
 
+    @Override
+    public ResponseEntity<List<Dish>> vendorDishVendorIDGet(Long vendorID, Long userID) {
+        try {
+            return ResponseEntity.ok(vendorFacade.getDishesRemoveUserAllergies(vendorID, userID));
+        } catch (NotFoundException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

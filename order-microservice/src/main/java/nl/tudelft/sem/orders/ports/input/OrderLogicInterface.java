@@ -23,4 +23,7 @@ public interface OrderLogicInterface {
     List<Order> getOrders(Long userID) throws ApiException;
 
     Order reorder(Long userID, Long orderID) throws MalformedException, NotFoundException;
+
+    void rateOrder(Long userID, Long orderID, Integer rating)
+            throws MalformedException, ForbiddenException, ApiException;
 }

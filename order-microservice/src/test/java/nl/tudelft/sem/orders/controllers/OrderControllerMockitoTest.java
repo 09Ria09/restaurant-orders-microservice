@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -17,8 +18,10 @@ import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
+import nl.tudelft.sem.orders.model.OrderOrderIDRatePostRequest;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.OrderFacade;
@@ -256,6 +259,38 @@ class OrderControllerMockitoTest {
         when(orderFacade.reorder(anyLong(), anyLong())).thenThrow(MalformedException.class);
         ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void testOrderOrderIDRatePostBadRequest() throws ForbiddenException, MalformedException, ApiException {
+        doThrow(MalformedException.class).when(orderFacade).rateOrder(1L, 2L, 11);
+        OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
+        request.setRating(11);
+
+        assertEquals(HttpStatus.BAD_REQUEST,
+                orderController.orderOrderIDRatePost(1L, 2L, request)
+                        .getStatusCode());
+    }
+
+    @Test
+    public void testOrderOrderIDRatePostForbidden() throws ForbiddenException, MalformedException, ApiException {
+        doThrow(ForbiddenException.class).when(orderFacade).rateOrder(1L, 2L, 7);
+        OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
+        request.setRating(7);
+
+        assertEquals(HttpStatus.FORBIDDEN,
+                orderController.orderOrderIDRatePost(1L, 2L, request)
+                        .getStatusCode());
+    }
+
+    @Test
+    public void testOrderOrderIDRatePostOK() {
+        OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
+        request.setRating(7);
+
+        assertEquals(HttpStatus.OK,
+                orderController.orderOrderIDRatePost(1L, 2L, request)
+                        .getStatusCode());
     }
 
 }

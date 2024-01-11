@@ -5,8 +5,6 @@ import java.util.List;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.users.ApiException;
-import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
-import nl.tudelft.sem.users.model.UsersIdGet200Response;
 import nl.tudelft.sem.users.model.Vendor;
 
 public class MockUserMicroservice implements UserMicroservice {
@@ -37,6 +35,11 @@ public class MockUserMicroservice implements UserMicroservice {
     }
 
     @Override
+    public List<String> getCustomerAllergies(long userId) throws ApiException {
+        return new ArrayList<>();
+    }
+
+    @Override
     public boolean isCustomer(long userId) throws ApiException {
         return true;
     }
@@ -59,4 +62,5 @@ public class MockUserMicroservice implements UserMicroservice {
     public boolean doesUserExist(long userId) {
         return true;
     }
+
 }

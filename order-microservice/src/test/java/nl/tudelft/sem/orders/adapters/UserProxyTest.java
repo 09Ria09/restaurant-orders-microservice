@@ -8,6 +8,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
+import java.util.Arrays;
+import java.util.List;
 import nl.tudelft.sem.orders.adapters.remote.UserRemoteProxy;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ring0.distance.LocationMapper;
@@ -134,5 +136,26 @@ public class UserProxyTest {
         assertEquals(userLocation.getCity(), orderLocation.getCity());
         assertEquals(userLocation.getStreet() + ' ' + userLocation.getStreetNumber(), orderLocation.getAddress());
         assertEquals(userLocation.getAdditionalRemarks(), orderLocation.getAdditionalRemarks());
+    }
+
+    @Test
+    void testGetCustomerAllergies() throws ApiException {
+        long userId = 1L;
+        List<String> expectedAllergies = Arrays.asList("allergy1", "allergy2");
+        Customer customer = new Customer();
+        customer.setAllergens(expectedAllergies);
+        doReturn(new UsersIdGet200Response(customer)).when(userRemoteAdapter).getUserById(userId);
+
+        List<String> result = userRemoteAdapter.getCustomerAllergies(userId);
+
+        assertEquals(expectedAllergies, result);
+    }
+
+    @Test
+    void testGetCustomerAllergiesThrowApiException() throws ApiException {
+        long userId = 1L;
+        doThrow(new ApiException()).when(userRemoteAdapter).getUserById(userId);
+
+        assertThrows(ApiException.class, () -> userRemoteAdapter.getCustomerAllergies(userId));
     }
 }

@@ -25,6 +25,7 @@ import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.payment.DistanceValidator;
@@ -582,5 +583,73 @@ public class OrderFacadeMockitoTest {
 
         assertThrows(NotFoundException.class,
             () -> orderFacade.reorder(1L, 1L));
+    }
+
+    @Test
+    void testRateOrderInvalidUserID() {
+        assertThrows(MalformedException.class,
+                () -> orderFacade.rateOrder(null, 2L, 7));
+    }
+
+    @Test
+    void testRateOrderInvalidOrderID() {
+        assertThrows(MalformedException.class,
+                () -> orderFacade.rateOrder(1L, null, 7));
+    }
+
+    @Test
+    void testRateOrderNoOrder() {
+        final Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(), 0F,
+                        location, Order.StatusEnum.ACCEPTED);
+        when(orderDatabase.getById(1L)).thenReturn(null);
+        assertThrows(MalformedException.class,
+                () -> orderFacade.rateOrder(1L, 1L, 7));
+
+    }
+
+    @Test
+    void testRateOrderWrongRating() {
+        final Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(), 0F,
+                location, Order.StatusEnum.ACCEPTED);
+        when(orderDatabase.getById(1L)).thenReturn(order);
+        assertThrows(MalformedException.class,
+                () -> orderFacade.rateOrder(2L, 1L, 11));
+        assertThrows(MalformedException.class,
+                () -> orderFacade.rateOrder(2L, 1L, -2));
+
+    }
+
+    @Test
+    void testRateOrderDifferentCustomer() throws ApiException {
+        final Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(), 0F,
+                location, Order.StatusEnum.ACCEPTED);
+        when(orderDatabase.getById(1L)).thenReturn(order);
+        when(userMicroservice.isAdmin(2L)).thenReturn(false);
+        assertThrows(ForbiddenException.class,
+                () -> orderFacade.rateOrder(999L, 1L, 7));
+
+    }
+
+    @Test
+    void testRateOrderAdmin() throws ApiException {
+        final Location location = new Location();
+        Order order = new Order(1L, 99999L, 3L, new ArrayList<>(), 0F,
+                location, Order.StatusEnum.ACCEPTED);
+        when(orderDatabase.getById(1L)).thenReturn(order);
+        when(userMicroservice.isAdmin(2L)).thenReturn(true);
+        assertDoesNotThrow(() -> orderFacade.rateOrder(2L, 1L, 7));
+    }
+
+    @Test
+    void testRateOrderAllGood() throws ApiException {
+        final Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(), 0F,
+                location, Order.StatusEnum.ACCEPTED);
+        when(orderDatabase.getById(1L)).thenReturn(order);
+        when(userMicroservice.isAdmin(2L)).thenReturn(false);
+        assertDoesNotThrow(() -> orderFacade.rateOrder(2L, 1L, 7));
     }
 }

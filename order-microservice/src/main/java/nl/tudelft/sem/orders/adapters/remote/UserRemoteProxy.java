@@ -14,7 +14,7 @@ import nl.tudelft.sem.users.model.Vendor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class UserRemoteProxy implements UserMicroservice {
     private final transient UserApi users;
     private final transient VendorApi vendors;
@@ -70,6 +70,12 @@ public class UserRemoteProxy implements UserMicroservice {
         Vendor user = getUserById(vendorId).getVendor();
         nl.tudelft.sem.users.model.Location address = user.getLocation();
         return locationMapper.mapLocations(address);
+    }
+
+    @Override
+    public List<String> getCustomerAllergies(long userId) throws ApiException {
+        Customer customer = getUserById(userId).getCustomer();
+        return customer.getAllergens();
     }
 
     /**
