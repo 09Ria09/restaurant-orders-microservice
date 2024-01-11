@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Configuration
@@ -100,21 +101,25 @@ public class MicroConfig {
     }*/
 
     @Bean
+    @Primary
     public UserMicroservice userMicroservice() {
         return new MockUserMicroservice();
     }
 
     @Bean
+    @Primary
     public DeliveryMicroservice deliveryMicroservice() {
         return new MockDeliveryMicroservice();
     }
 
     @Bean
+    @Primary
     public LocationService locationService() {
         return new MockLocationAdapter();
     }
 
     @Bean
+    @Primary
     public PaymentService paymentService() {
         return new MockPaymentAdapter();
     }

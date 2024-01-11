@@ -8,10 +8,9 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
-import nl.tudelft.sem.orders.adapters.remote.UserRemoteProxy;
 import java.util.Arrays;
 import java.util.List;
-import nl.tudelft.sem.orders.adapters.remote.UserRemoteAdapter;
+import nl.tudelft.sem.orders.adapters.remote.UserRemoteProxy;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ring0.distance.LocationMapper;
 import nl.tudelft.sem.users.ApiException;

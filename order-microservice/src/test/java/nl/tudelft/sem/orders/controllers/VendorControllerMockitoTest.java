@@ -14,11 +14,10 @@ import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.VendorFacade;
 import nl.tudelft.sem.orders.ring0.distance.RadiusStrategy;
 import nl.tudelft.sem.orders.ring0.distance.SearchStrategy;
-import nl.tudelft.sem.orders.result.NotFoundException;
-import nl.tudelft.sem.orders.ring0.VendorLogic;
 import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,7 @@ class VendorControllerMockitoTest {
         dishDatabase = mock(DishDatabase.class);
         vendorFacade = mock(VendorFacade.class);
 
-        vendorFacadeNOTmocked = new VendorFacade(userMicroservice, dishDatabase,
+        vendorFacadeNOTmocked = new VendorFacade(userMicroservice, orderDatabase, dishDatabase,
             mock(RadiusStrategy.class), mock(SearchStrategy.class)
         );
 
@@ -148,7 +147,7 @@ class VendorControllerMockitoTest {
         Long vendorId = 1L;
         Long userId = 2L;
         List<Dish> expectedDishes = List.of(new Dish(), new Dish(), new Dish());
-        when(vendorLogic.getDishesRemoveUserAllergies(vendorId, userId)).thenReturn(expectedDishes);
+        when(vendorFacade.getDishesRemoveUserAllergies(vendorId, userId)).thenReturn(expectedDishes);
 
         ResponseEntity<List<Dish>> result = vendorController.vendorDishVendorIDGet(vendorId, userId);
 
@@ -159,7 +158,7 @@ class VendorControllerMockitoTest {
     void testVendorDishVendorIDGetWithNotFoundException() throws NotFoundException {
         Long vendorId = 1L;
         Long userId = 2L;
-        when(vendorLogic.getDishesRemoveUserAllergies(vendorId, userId)).thenThrow(new NotFoundException());
+        when(vendorFacade.getDishesRemoveUserAllergies(vendorId, userId)).thenThrow(new NotFoundException());
 
         ResponseEntity<List<Dish>> result = vendorController.vendorDishVendorIDGet(vendorId, userId);
 

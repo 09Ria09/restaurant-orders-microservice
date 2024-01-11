@@ -10,6 +10,7 @@ import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
+import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
@@ -48,6 +49,7 @@ public class VendorFacade implements VendorLogicInterface {
         this.dishDatabase = dishDatabase;
         this.searchStrategy = searchStrategy;
         this.radiusStrategy = radiusStrategy;
+        this.orderDatabase = orderDatabase;
     }
 
     @Override
