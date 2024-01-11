@@ -1,11 +1,11 @@
 package nl.tudelft.sem.orders.controllers;
 
-
 import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.api.VendorApi;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
+import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
@@ -72,6 +72,24 @@ public class VendorController implements VendorApi {
         } catch (MalformedException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+    }
+
+    @Override
+    public ResponseEntity<List<Order>> vendorCustomerIDPastGet(
+            Long userID,
+            Long customerID
+    ) {
+        if (userID == null | customerID == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<Order> customerOrders;
+        try {
+            customerOrders = vendorFacade.getPastOrdersForCustomer(userID, customerID);
+        } catch (ForbiddenException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(customerOrders);
     }
 
     @Override

@@ -20,6 +20,11 @@ public class MockOrderDatabase implements OrderDatabase {
         return mocks[(int) orderId - 1];
     }
 
+    @Override
+    public List<Order> findByVendorIDAndCustomerID(long vendorID, long customerID) {
+        return null;
+    }
+
     public ArrayList<Order> getSaveRequests() {
         return saveRequests;
     }
