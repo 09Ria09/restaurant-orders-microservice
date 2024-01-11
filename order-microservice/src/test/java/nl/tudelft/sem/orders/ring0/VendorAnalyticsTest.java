@@ -1,21 +1,25 @@
 package nl.tudelft.sem.orders.ring0;
 
-import nl.tudelft.sem.delivery.model.Delivery;
-import nl.tudelft.sem.delivery.model.DeliveryTimes;
-import nl.tudelft.sem.orders.model.*;
-import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
-import nl.tudelft.sem.orders.ports.output.OrderDatabase;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import nl.tudelft.sem.delivery.model.Delivery;
+import nl.tudelft.sem.delivery.model.DeliveryTimes;
+import nl.tudelft.sem.orders.model.AnalyticCustomerPreferencesInner;
+import nl.tudelft.sem.orders.model.AnalyticOrderVolumeInner;
+import nl.tudelft.sem.orders.model.Dish;
+import nl.tudelft.sem.orders.model.Order;
+import nl.tudelft.sem.orders.model.OrderDishesInner;
+import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
+import nl.tudelft.sem.orders.ports.output.OrderDatabase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
 class VendorAnalyticsTest {
 
@@ -45,21 +49,22 @@ class VendorAnalyticsTest {
         Dish dish4 = new Dish();
         dish4.setDishID(4L);
 
-        OrderDishesInner dishes1 = new OrderDishesInner(dish3, 1);
+
         List<OrderDishesInner> dishList1 = new ArrayList<>();
-        OrderDishesInner dishes2 = new OrderDishesInner(dish2, 1);
         List<OrderDishesInner> dishList2 = new ArrayList<>();
-        OrderDishesInner dishes3 = new OrderDishesInner(dish3, 2);
-        List<OrderDishesInner> dishList3 = new ArrayList<>();
-        OrderDishesInner dishes4 = new OrderDishesInner(dish3, 3);
-        List<OrderDishesInner> dishList4 = new ArrayList<>();
-        OrderDishesInner dishes5 = new OrderDishesInner(dish4, 1);
+        OrderDishesInner dishes2 = new OrderDishesInner(dish2, 1);
         dishList1.add(dishes2);
         dishList2.add(dishes2);
+        OrderDishesInner dishes4 = new OrderDishesInner(dish3, 3);
         dishList2.add(dishes4);
+        List<OrderDishesInner> dishList3 = new ArrayList<>();
+        OrderDishesInner dishes3 = new OrderDishesInner(dish3, 2);
         dishList3.add(dishes3);
         dishList3.add(dishes2);
+        List<OrderDishesInner> dishList4 = new ArrayList<>();
+        OrderDishesInner dishes1 = new OrderDishesInner(dish3, 1);
         dishList4.add(dishes1);
+        OrderDishesInner dishes5 = new OrderDishesInner(dish4, 1);
         dishList4.add(dishes5);
 
 
@@ -76,7 +81,7 @@ class VendorAnalyticsTest {
         order4.setCustomerID(3L);
         order4.setDishes(dishList4);
 
-        List<Order>  input = new ArrayList<>();
+        List<Order> input = new ArrayList<>();
         input.add(order1);
         input.add(order2);
         input.add(order3);
@@ -120,7 +125,7 @@ class VendorAnalyticsTest {
         Order order3 = new Order();
         order3.setDishes(dishList3);
 
-        List<Order>  input = new ArrayList<>();
+        List<Order> input = new ArrayList<>();
         input.add(order1);
         input.add(order2);
         input.add(order3);
@@ -195,22 +200,21 @@ class VendorAnalyticsTest {
 
     @Test
     void calculateOrderVolume() {
-        DeliveryTimes sunday = new DeliveryTimes();
-        DeliveryTimes tuesday = new DeliveryTimes();
-        Delivery sundayDelivery;
-        Delivery tuesdayDelivery;
-
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
         Date sundayDate = calendar.getTime();
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.TUESDAY);
         Date tuesdayDate = calendar.getTime();
+        DeliveryTimes tuesday = new DeliveryTimes();
         tuesday.setActualPickupTime(tuesdayDate);
+        DeliveryTimes sunday = new DeliveryTimes();
         sunday.setActualPickupTime(sundayDate);
 
+        Delivery sundayDelivery;
         sundayDelivery = new Delivery();
         sundayDelivery.setTimes(sunday);
 
+        Delivery tuesdayDelivery;
         tuesdayDelivery = new Delivery();
         tuesdayDelivery.setTimes(tuesday);
 

@@ -261,7 +261,7 @@ class OrderControllerMockitoTest {
         Long userID = 1L;
         when(userMicroservice.getUserType(1L))
                 .thenReturn(UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER);
-        when(orderLogic.getOrders(1l,
+        when(orderLogic.getOrders(1L,
                 UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER))
                 .thenThrow(new IllegalStateException("blah"));
 

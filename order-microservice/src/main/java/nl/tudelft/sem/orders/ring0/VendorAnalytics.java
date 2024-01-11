@@ -30,8 +30,8 @@ public class VendorAnalytics {
     private static double popularThreshold = 0.8;
 
     private class HourDeliveries {
-        public int hour;
-        public int deliveries;
+        public transient int hour;
+        public transient int deliveries;
 
         public HourDeliveries(int hour, int deliveries) {
             this.hour = hour;
@@ -174,7 +174,7 @@ public class VendorAnalytics {
             return h1.deliveries - h2.deliveries;
         });
 
-        for (int i = 23; i >=0; i--) {
+        for (int i = 23; i >= 0; i--) {
             peakHours.add(hours[i].hour);
         }
 
