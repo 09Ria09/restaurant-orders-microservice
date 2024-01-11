@@ -1,15 +1,20 @@
 package nl.tudelft.sem.orders.ring0;
 
+import static java.util.Collections.disjoint;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
+import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.distance.RadiusStrategy;
 import nl.tudelft.sem.orders.ring0.distance.SearchStrategy;
 import nl.tudelft.sem.users.ApiException;
@@ -18,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class VendorFacade implements VendorLogicInterface {
+    private final transient OrderDatabase orderDatabase;
     private transient UserMicroservice userMicroservice;
     private transient DishDatabase dishDatabase;
     private transient RadiusStrategy radiusStrategy;
@@ -27,13 +33,15 @@ public class VendorFacade implements VendorLogicInterface {
     /**
      * Creates a new Vedor facade.
      *
-     * @param userMicroservice The user microservice.
+     * @param userMicroservice The user microservice
+     * @param orderDatabase The database output port.
      * @param dishDatabase The dish database.
      * @param radiusStrategy The chosen radius strategy.
      * @param searchStrategy The chosen search strategy.
      */
     @Autowired
     public VendorFacade(UserMicroservice userMicroservice,
+                        OrderDatabase orderDatabase,
                         DishDatabase dishDatabase,
                         RadiusStrategy radiusStrategy,
                         SearchStrategy searchStrategy) {
@@ -41,6 +49,7 @@ public class VendorFacade implements VendorLogicInterface {
         this.dishDatabase = dishDatabase;
         this.searchStrategy = searchStrategy;
         this.radiusStrategy = radiusStrategy;
+        this.orderDatabase = orderDatabase;
     }
 
     @Override
@@ -138,6 +147,33 @@ public class VendorFacade implements VendorLogicInterface {
             }
         } catch (ApiException e) {
             throw new MalformedException();
+        }
+    }
+
+    public List<Dish> getDishes(Long vendorId) throws NotFoundException {
+        return dishDatabase.findDishesByVendorID(vendorId);
+    }
+
+    /**
+     * Gets all the dishes of a restaurant and filters them according to the user's allergies.
+     * If there is no userId or it's not found, return all dishes.
+     */
+    public List<Dish> getDishesRemoveUserAllergies(Long vendorId, Long userId) throws NotFoundException {
+        if (userId == null) {
+            return getDishes(vendorId);
+        }
+
+        List<Dish> dishes = getDishes(vendorId);
+
+        try {
+            List<String> allergies = userMicroservice.getCustomerAllergies(userId);
+
+            return dishes.stream()
+                .filter(dish -> dish.getAllergens() == null || !disjoint(dish.getAllergens(), allergies))
+                .collect(Collectors.toList());
+
+        } catch (ApiException ignored) {
+            return dishes;
         }
     }
 
