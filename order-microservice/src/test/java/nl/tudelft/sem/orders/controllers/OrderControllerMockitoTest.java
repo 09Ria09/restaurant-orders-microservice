@@ -206,7 +206,7 @@ class OrderControllerMockitoTest {
                 .thenReturn(new ArrayList<Order>());
 
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
-
+        assertEquals(ResponseEntity.ok(new ArrayList<Order>()), actual);
         verify(orderLogic).getOrders(1L, UsersGetUserTypeIdGet200Response.UserTypeEnum.ADMIN);
     }
 

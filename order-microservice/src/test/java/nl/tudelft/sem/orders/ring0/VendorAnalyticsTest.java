@@ -22,11 +22,6 @@ class VendorAnalyticsTest {
     DeliveryMicroservice deliveryMicroservice;
     OrderDatabase orderDatabase;
     VendorAnalytics vendorAnalytics;
-    DeliveryTimes sunday = new DeliveryTimes();
-    DeliveryTimes tuesday = new DeliveryTimes();
-    Delivery sundayDelivery;
-
-    Delivery tuesdayDelivery;
 
     @BeforeEach
     void setUp() {
@@ -107,7 +102,7 @@ class VendorAnalyticsTest {
         OrderDishesInner dishes1 = new OrderDishesInner(dish1, 10);
         List<OrderDishesInner> dishList1 = new ArrayList<>();
         dishList1.add(dishes1);
-        OrderDishesInner dishes2 = new OrderDishesInner(dish2, 8);
+        OrderDishesInner dishes2 = new OrderDishesInner(dish2, 6);
         List<OrderDishesInner> dishList2 = new ArrayList<>();
         dishList2.add(dishes2);
         OrderDishesInner dishes3 = new OrderDishesInner(dish3, 6);
@@ -115,6 +110,8 @@ class VendorAnalyticsTest {
         dishList3.add(dishes3);
         OrderDishesInner dishes4 = new OrderDishesInner(dish3, 1);
         dishList2.add(dishes4);
+        OrderDishesInner dishes5 = new OrderDishesInner(dish2, 2);
+        dishList3.add(dishes5);
 
         Order order1 = new Order();
         order1.setDishes(dishList1);
@@ -137,10 +134,72 @@ class VendorAnalyticsTest {
 
     @Test
     void getPeakHours() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        Date twelve = calendar.getTime();
+        DeliveryTimes twelveTime = new DeliveryTimes();
+        twelveTime.setActualPickupTime(twelve);
+        calendar.set(Calendar.HOUR_OF_DAY, 11);
+        Date eleven = calendar.getTime();
+        DeliveryTimes elevenTime = new DeliveryTimes();
+        elevenTime.setActualPickupTime(eleven);
+        calendar.set(Calendar.HOUR_OF_DAY, 19);
+        Date nineteen = calendar.getTime();
+        DeliveryTimes nineteenTime = new DeliveryTimes();
+        nineteenTime.setActualPickupTime(nineteen);
+        calendar.set(Calendar.HOUR_OF_DAY, 20);
+        Date twenty = calendar.getTime();
+        DeliveryTimes twentyTime = new DeliveryTimes();
+        twentyTime.setActualPickupTime(twenty);
+
+        List<Delivery> deliveries = new ArrayList<>();
+        Delivery del11 = new Delivery();
+        del11.setTimes(elevenTime);
+        deliveries.add(del11);
+        Delivery del12 = new Delivery();
+        del12.setTimes(twelveTime);
+        deliveries.add(del12);
+        Delivery del122 = new Delivery();
+        del122.setTimes(twelveTime);
+        deliveries.add(del122);
+        Delivery del19 = new Delivery();
+        del19.setTimes(nineteenTime);
+        deliveries.add(del19);
+        Delivery del192 = new Delivery();
+        del192.setTimes(nineteenTime);
+        deliveries.add(del192);
+        Delivery del193 = new Delivery();
+        del193.setTimes(nineteenTime);
+        deliveries.add(del193);
+        Delivery del20 = new Delivery();
+        del20.setTimes(twentyTime);
+        deliveries.add(del20);
+        Delivery del202 = new Delivery();
+        del202.setTimes(twentyTime);
+        deliveries.add(del202);
+        Delivery del203 = new Delivery();
+        del203.setTimes(twentyTime);
+        deliveries.add(del203);
+        Delivery del204 = new Delivery();
+        del204.setTimes(twentyTime);
+        deliveries.add(del204);
+
+        List<Integer> actual = vendorAnalytics.getPeakHours(deliveries);
+        assertEquals(20, actual.get(0));
+        assertEquals(19, actual.get(1));
+        assertEquals(12, actual.get(2));
+        assertEquals(11, actual.get(3));
+        assertEquals(23, actual.get(4));
+        assertEquals(0, actual.get(23));
     }
 
     @Test
     void calculateOrderVolume() {
+        DeliveryTimes sunday = new DeliveryTimes();
+        DeliveryTimes tuesday = new DeliveryTimes();
+        Delivery sundayDelivery;
+        Delivery tuesdayDelivery;
+
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
         Date sundayDate = calendar.getTime();

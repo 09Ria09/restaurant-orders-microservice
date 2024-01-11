@@ -153,7 +153,8 @@ public class VendorAnalytics {
     }
 
     /**
-     * Get the peak hours for this retaurant.
+     * Get the peak hours for this restaurant.
+     * If there are two hours with the same amount of orders, the later hour is shown first in the list
      *
      * @param deliveries The deliveries from this restaurant
      * @return List of hours sorted by intensity of orders
@@ -173,8 +174,8 @@ public class VendorAnalytics {
             return h1.deliveries - h2.deliveries;
         });
 
-        for (int i = 0; i < 24; i++) {
-            peakHours.add(i, hours[i].hour);
+        for (int i = 23; i >=0; i--) {
+            peakHours.add(hours[i].hour);
         }
 
         return peakHours;
