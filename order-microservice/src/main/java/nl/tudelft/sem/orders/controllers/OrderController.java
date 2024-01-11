@@ -7,6 +7,7 @@ import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
 import nl.tudelft.sem.orders.model.OrderOrderIDPayPostRequest;
+import nl.tudelft.sem.orders.model.OrderOrderIDRatePostRequest;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
@@ -115,6 +116,23 @@ public class OrderController implements OrderApi {
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (MalformedException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<Void> orderOrderIDRatePost(
+            Long userID,
+            Long orderID,
+            OrderOrderIDRatePostRequest orderOrderIDRatePostRequest
+    ) {
+        try {
+            orderFacade.rateOrder(userID, orderID,
+                    orderOrderIDRatePostRequest.getRating());
+            return ResponseEntity.ok().build();
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (MalformedException | ApiException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
