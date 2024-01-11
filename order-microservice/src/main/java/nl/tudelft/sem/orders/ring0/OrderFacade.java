@@ -132,7 +132,15 @@ public class OrderFacade implements OrderLogicInterface {
      */
     @Override
     public Order createOrder(long customerId, long vendorId)
-        throws ApiException {
+        throws ApiException, MalformedException, ForbiddenException {
+        if (!userMicroservice.isCustomer(customerId)) {
+            throw new ForbiddenException();
+        }
+        if (!locationService.isCloseBy(userMicroservice.getCustomerAddress(customerId),
+            userMicroservice.getVendorAddress(vendorId))) {
+            throw new MalformedException();
+        }
+
         Order order = new Order();
         order.setCustomerID(customerId);
         order.setVendorID(vendorId);
@@ -154,8 +162,12 @@ public class OrderFacade implements OrderLogicInterface {
      */
     public Float updateDishes(long orderId, long customerId,
                               @Valid List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes)
-        throws EntityNotFoundException, IllegalStateException {
+        throws EntityNotFoundException, IllegalStateException, ApiException {
         Order order = orderDatabase.getById(orderId);
+        if (!userMicroservice.isCustomer(customerId)) {
+            throw new ApiException();
+        }
+
         // Check if the order exists and the user
         // owns the order and if the order is unpaid.
         if (order == null

@@ -11,7 +11,7 @@ import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class DeliveryRemoteProxy implements DeliveryMicroservice {
     private transient VendorApi vendorApi;
     private transient AdminApi adminApi;

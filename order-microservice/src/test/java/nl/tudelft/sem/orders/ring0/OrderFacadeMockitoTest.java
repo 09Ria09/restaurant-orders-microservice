@@ -25,6 +25,7 @@ import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.payment.DistanceValidator;
@@ -46,11 +47,15 @@ public class OrderFacadeMockitoTest {
     private LocationService locationService;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws ApiException {
         orderDatabase = mock(OrderDatabase.class);
         dishDatabase = mock(DishDatabase.class);
         userMicroservice = mock(UserMicroservice.class);
         locationService = mock(LocationService.class);
+
+        when(locationService.isCloseBy(any(), any())).thenReturn(true);
+        when(userMicroservice.isCustomer(anyLong())).thenReturn(true);
+
         orderFacade = new OrderFacade(
             orderDatabase,
             dishDatabase,
@@ -66,7 +71,7 @@ public class OrderFacadeMockitoTest {
     }
 
     @Test
-    void createOrder() throws ApiException {
+    void createOrder() throws ApiException, ForbiddenException, MalformedException {
         final long customerId = 1L;
         final long vendorId = 2L;
         final Location location = new Location();
@@ -95,7 +100,32 @@ public class OrderFacadeMockitoTest {
     }
 
     @Test
-    void updateDishesValidData() {
+    void createOrderNotClose() {
+        final long customerId = 1L;
+        final long vendorId = 2L;
+
+        when(locationService.isCloseBy(any(), any())).thenReturn(false);
+
+        assertThrows(MalformedException.class, () -> orderFacade.createOrder(customerId, vendorId));
+
+        verify(orderDatabase, times(0)).save(any());
+    }
+
+
+    @Test
+    void createOrderNotACustomer() throws ApiException {
+        final long customerId = 1L;
+        final long vendorId = 2L;
+
+        when(userMicroservice.isCustomer(anyLong())).thenReturn(false);
+
+        assertThrows(ForbiddenException.class, () -> orderFacade.createOrder(customerId, vendorId));
+
+        verify(orderDatabase, times(0)).save(any());
+    }
+
+    @Test
+    void updateDishesValidData() throws ApiException {
         final long orderId = 2311L;
         final long dishId = 413L;
         final long customerId = 143L;
@@ -142,6 +172,22 @@ public class OrderFacadeMockitoTest {
         when(orderDatabase.getById(orderId)).thenReturn(null);
 
         assertThrows(EntityNotFoundException.class,
+            () -> orderFacade.updateDishes(orderId, customerId, dishes));
+    }
+
+    @Test
+    void updateDishesNotACustomer() throws ApiException {
+        final long orderId = 2311L;
+        final long customerId = 143L;
+
+        when(userMicroservice.isCustomer(anyLong())).thenReturn(false);
+
+        List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes =
+            new ArrayList<>();
+
+        when(orderDatabase.getById(orderId)).thenReturn(null);
+
+        assertThrows(ApiException.class,
             () -> orderFacade.updateDishes(orderId, customerId, dishes));
     }
 

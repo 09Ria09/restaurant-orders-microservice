@@ -14,7 +14,7 @@ import nl.tudelft.sem.users.model.Vendor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class UserRemoteProxy implements UserMicroservice {
     private final transient UserApi users;
     private final transient VendorApi vendors;
