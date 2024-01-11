@@ -1,18 +1,14 @@
 package nl.tudelft.sem.orders.test.mocks;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.model.Admin;
 import nl.tudelft.sem.users.model.Courier;
 import nl.tudelft.sem.users.model.Customer;
 import nl.tudelft.sem.users.model.Location;
-import nl.tudelft.sem.users.model.User;
-import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import nl.tudelft.sem.users.model.UsersIdGet200Response;
 import nl.tudelft.sem.users.model.Vendor;
 
@@ -65,6 +61,11 @@ public class MockUserMicroservice implements UserMicroservice {
 
         return locationConverter(
             ((Vendor) users[(int) vendorId].getActualInstance()).getLocation());
+    }
+
+    @Override
+    public List<String> getCustomerAllergies(long userId) throws ApiException {
+        return null;
     }
 
     @Override

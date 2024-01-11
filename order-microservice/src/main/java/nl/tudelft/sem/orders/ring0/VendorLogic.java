@@ -1,8 +1,11 @@
 package nl.tudelft.sem.orders.ring0;
 
+import static java.util.Collections.disjoint;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.domain.GeoLocation;
 import nl.tudelft.sem.orders.model.Dish;
@@ -15,20 +18,18 @@ import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.users.ApiException;
-import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
 public class VendorLogic implements VendorLogicInterface {
-    private transient OrderDatabase orderDatabase;
-    private transient UserMicroservice userMicroservice;
-    private transient DeliveryMicroservice deliveryMicroservice;
-    private transient LocationService locationService;
-    private transient DishDatabase dishDatabase;
+    private final transient OrderDatabase orderDatabase;
+    private final transient UserMicroservice userMicroservice;
+    private final transient DeliveryMicroservice deliveryMicroservice;
+    private final transient LocationService locationService;
+    private final transient DishDatabase dishDatabase;
 
 
     /**
@@ -40,10 +41,8 @@ public class VendorLogic implements VendorLogicInterface {
      * @param locationService      The output port for the location service.
      */
     @Autowired
-    public VendorLogic(OrderDatabase orderDatabase,
-                       UserMicroservice userMicroservice,
-                       DeliveryMicroservice deliveryMicroservice,
-                       LocationService locationService,
+    public VendorLogic(OrderDatabase orderDatabase, UserMicroservice userMicroservice,
+                       DeliveryMicroservice deliveryMicroservice, LocationService locationService,
                        DishDatabase dishDatabase) {
         this.orderDatabase = orderDatabase;
         this.userMicroservice = userMicroservice;
@@ -52,8 +51,7 @@ public class VendorLogic implements VendorLogicInterface {
         this.dishDatabase = dishDatabase;
     }
 
-    private Location mapLocations(
-        nl.tudelft.sem.users.model.Location preLocation) {
+    private Location mapLocations(nl.tudelft.sem.users.model.Location preLocation) {
         // TODO: definitely contact group c.
         Location location = new Location();
         location.setCity(preLocation.getCity());
@@ -65,8 +63,7 @@ public class VendorLogic implements VendorLogicInterface {
         return location;
     }
 
-    private List<Long> performRadiusCheck(Long userId, Location loc)
-        throws MalformedException {
+    private List<Long> performRadiusCheck(Long userId, Location loc) throws MalformedException {
         try {
             var distances = deliveryMicroservice.getRadii(userId);
             var allVendors = userMicroservice.getAllVendors();
@@ -92,11 +89,9 @@ public class VendorLogic implements VendorLogicInterface {
 
             for (var pair : distanceMap.entrySet()) {
                 Location vendorLocation = locationMap.get(pair.getKey());
-                GeoLocation vendorGeoLocation =
-                    locationService.getGeoLocation(vendorLocation);
+                GeoLocation vendorGeoLocation = locationService.getGeoLocation(vendorLocation);
 
-                if (userGeoLocation.distanceTo(vendorGeoLocation)
-                    <= pair.getValue()) {
+                if (userGeoLocation.distanceTo(vendorGeoLocation) <= pair.getValue()) {
                     result.add(pair.getKey());
                 }
             }
@@ -108,9 +103,7 @@ public class VendorLogic implements VendorLogicInterface {
     }
 
     @Override
-    public List<Long> vendorsInRadius(Long userId, String search,
-                                      Location location)
-        throws MalformedException {
+    public List<Long> vendorsInRadius(Long userId, String search, Location location) throws MalformedException {
         try {
             if (!userMicroservice.isCustomer(userId)) {
                 throw new MalformedException();
@@ -165,9 +158,9 @@ public class VendorLogic implements VendorLogicInterface {
      * Modifies dish.
      *
      * @param dish Changed dish.
-     * @throws ApiException .
+     * @throws ApiException            .
      * @throws EntityNotFoundException thrown if dish to be changed does not exist
-     * @throws IllegalStateException thrown if invalid dish
+     * @throws IllegalStateException   thrown if invalid dish
      */
     public void modifyDish(Dish dish) throws ApiException, EntityNotFoundException, IllegalStateException {
 
@@ -191,8 +184,7 @@ public class VendorLogic implements VendorLogicInterface {
      * @throws ForbiddenException If the user is not a vendor or does not own the dish.
      */
     @Override
-    public void deleteDishById(Long userId, Long dishId)
-        throws MalformedException, ForbiddenException {
+    public void deleteDishById(Long userId, Long dishId) throws MalformedException, ForbiddenException {
         Dish dish = dishDatabase.getById(dishId);
 
         if (dish == null) {
@@ -207,6 +199,30 @@ public class VendorLogic implements VendorLogicInterface {
             }
         } catch (ApiException e) {
             throw new MalformedException();
+        }
+    }
+
+    public List<Dish> getDishes(Long vendorId) throws NotFoundException {
+        return dishDatabase.findDishesByVendorID(vendorId);
+    }
+
+    /**
+     * Gets all the dishes of a restaurant and filters them according to the user's allergies.
+     * If there is no userId or it's not found, return all dishes.
+     */
+    public List<Dish> getDishesRemoveUserAllergies(Long vendorId, Long userId) throws NotFoundException {
+        if (userId == null) {
+            return getDishes(vendorId);
+        }
+        List<Dish> dishes = getDishes(vendorId);
+        try {
+            List<String> allergies = userMicroservice.getCustomerAllergies(userId);
+            return dishes.stream()
+                .filter(dish -> dish.getAllergens() == null || !disjoint(dish.getAllergens(), allergies))
+                .collect(Collectors.toList());
+
+        } catch (ApiException ignored) {
+            return dishes;
         }
     }
 

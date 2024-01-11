@@ -58,6 +58,12 @@ public class UserRemoteAdapter implements UserMicroservice {
         return locationConverter(address);
     }
 
+    @Override
+    public List<String> getCustomerAllergies(long userId) throws ApiException {
+        Customer customer = getUserById(userId).getCustomer();
+        return customer.getAllergens();
+    }
+
     private Location locationConverter(nl.tudelft.sem.users.model.Location address) {
         Location location = new Location();
         location.setCountry(address.getCountry());

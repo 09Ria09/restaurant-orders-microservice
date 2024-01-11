@@ -1,6 +1,7 @@
 package nl.tudelft.sem.orders.test.mocks;
 
 import java.util.ArrayList;
+import java.util.List;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 
@@ -24,6 +25,11 @@ public class MockDishDatabase implements DishDatabase {
     @Override
     public void delete(Dish dish) {
         mocks.remove(dish);
+    }
+
+    @Override
+    public List<Dish> findDishesByVendorID(Long vendorId) {
+        return null;
     }
 
     /**
