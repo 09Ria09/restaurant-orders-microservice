@@ -11,4 +11,13 @@ public class MockPaymentService implements PaymentService {
 
         return true;
     }
+
+    @Override
+    public boolean finalizePayment(String token) {
+        if (token == "finfail") {
+            return false;
+        }
+
+        return true;
+    }
 }

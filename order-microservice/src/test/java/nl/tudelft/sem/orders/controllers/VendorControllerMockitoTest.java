@@ -17,7 +17,9 @@ import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
-import nl.tudelft.sem.orders.ring0.VendorLogic;
+import nl.tudelft.sem.orders.ring0.VendorFacade;
+import nl.tudelft.sem.orders.ring0.distance.RadiusStrategy;
+import nl.tudelft.sem.orders.ring0.distance.SearchStrategy;
 import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,8 +31,8 @@ import org.springframework.http.ResponseEntity;
 class VendorControllerMockitoTest {
 
     private UserMicroservice userMicroservice;
-    private VendorLogic vendorLogic;
-    private VendorLogic vendorLogicNOTmocked;
+    private VendorFacade vendorFacade;
+    private VendorFacade vendorFacadeNOTmocked;
     private VendorController vendorController;
     private VendorController vendorController2;
     private OrderDatabase orderDatabase;
@@ -45,12 +47,14 @@ class VendorControllerMockitoTest {
         deliveryMicroservice = mock(DeliveryMicroservice.class);
         locationService = mock(LocationService.class);
         dishDatabase = mock(DishDatabase.class);
-        vendorLogic = mock(VendorLogic.class);
+        vendorFacade = mock(VendorFacade.class);
 
-        vendorLogicNOTmocked = new VendorLogic(orderDatabase, userMicroservice, deliveryMicroservice,
-                locationService, dishDatabase);
-        vendorController = new VendorController(vendorLogic, userMicroservice);
-        vendorController2 = new VendorController(vendorLogicNOTmocked, userMicroservice);
+        vendorFacadeNOTmocked = new VendorFacade(userMicroservice, dishDatabase,
+            mock(RadiusStrategy.class), mock(SearchStrategy.class), null
+        );
+
+        vendorController = new VendorController(vendorFacade);
+        vendorController2 = new VendorController(vendorFacadeNOTmocked);
     }
 
     @Test
@@ -123,14 +127,14 @@ class VendorControllerMockitoTest {
 
     @Test
     void vendorDishDishIDDeleteForbidden() throws ForbiddenException, MalformedException {
-        doThrow(ForbiddenException.class).when(vendorLogic).deleteDishById(1L, 1L);
+        doThrow(ForbiddenException.class).when(vendorFacade).deleteDishById(1L, 1L);
         ResponseEntity<Void> response = vendorController.vendorDishDishIDDelete(1L, 1L);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
     void vendorDishDishIDDeleteForbiddenMalformed() throws ForbiddenException, MalformedException {
-        doThrow(MalformedException.class).when(vendorLogic).deleteDishById(1L, 1L);
+        doThrow(MalformedException.class).when(vendorFacade).deleteDishById(1L, 1L);
         ResponseEntity<Void> response = vendorController.vendorDishDishIDDelete(1L, 1L);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
@@ -148,7 +152,7 @@ class VendorControllerMockitoTest {
         expected.add(order);
         long vendorID = 1;
         long customerID = 2;
-        when(vendorLogic.getPastOrdersForCustomer(1L, 2L)).thenReturn(expected);
+        when(vendorFacade.getPastOrdersForCustomer(1L, 2L)).thenReturn(expected);
 
         ResponseEntity<List<Order>> expectedResponse = ResponseEntity.ok(expected);
         ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);
@@ -185,7 +189,7 @@ class VendorControllerMockitoTest {
         long vendorID = 1;
         long customerID = 2;
 
-        when(vendorLogic.getPastOrdersForCustomer(1L, 2L)).thenThrow(new ForbiddenException());
+        when(vendorFacade.getPastOrdersForCustomer(1L, 2L)).thenThrow(new ForbiddenException());
 
         ResponseEntity<List<Order>> expectedResponse = ResponseEntity.badRequest().build();
         ResponseEntity<List<Order>> actual = vendorController.vendorCustomerIDPastGet(vendorID, customerID);

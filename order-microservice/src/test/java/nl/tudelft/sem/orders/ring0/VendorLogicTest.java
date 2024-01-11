@@ -27,7 +27,7 @@ import org.springframework.http.ResponseEntity;
 @Import(TestConfig.class)
 class VendorLogicTest {
     @Autowired
-    private VendorLogic vendorLogic;
+    private VendorFacade vendorFacade;
 
     @Autowired
     private MockDeliveryMicroservice deliveryMicroservice;
@@ -45,14 +45,14 @@ class VendorLogicTest {
     void vendorsInRadiusFailRadius() {
         deliveryMicroservice.setFailRadius(true);
         assertThrows(MalformedException.class, () ->
-            vendorLogic.vendorsInRadius(1L, "none", null));
+            vendorFacade.vendorsInRadius(1L, "none", null));
         deliveryMicroservice.setFailRadius(false);
     }
 
     @Test
     void vendorsInRadius() {
         List<Long> retried = assertDoesNotThrow(() ->
-            vendorLogic.vendorsInRadius(1L, "none", null));
+            vendorFacade.vendorsInRadius(1L, "none", null));
 
         assertEquals(retried, new ArrayList<>());
     }
@@ -60,7 +60,7 @@ class VendorLogicTest {
     @Test
     void vendorsInRadiusWithLocation() {
         List<Long> retried = assertDoesNotThrow(() ->
-            vendorLogic.vendorsInRadius(1L, "none", new Location().city("a")));
+            vendorFacade.vendorsInRadius(1L, "none", new Location().city("a")));
 
         assertEquals(0L, retried.get(0));
         assertEquals(1, retried.size());
@@ -69,13 +69,13 @@ class VendorLogicTest {
     @Test
     void vendorsInRadiusWrongCustomer() {
         assertThrows(MalformedException.class, () ->
-            vendorLogic.vendorsInRadius(100L, "none", null));
+            vendorFacade.vendorsInRadius(100L, "none", null));
     }
 
     @Test
     void vendorsInRadiusNotACustomer() {
         assertThrows(MalformedException.class, () ->
-            vendorLogic.vendorsInRadius(0L, "none", null));
+            vendorFacade.vendorsInRadius(0L, "none", null));
     }
 
     @Test
@@ -84,7 +84,7 @@ class VendorLogicTest {
         long dishId = 100L;
 
         // Test MalformedException when dish does not exist
-        assertThrows(MalformedException.class, () -> vendorLogic.deleteDishById(userId, dishId));
+        assertThrows(MalformedException.class, () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test
@@ -92,7 +92,7 @@ class VendorLogicTest {
         long userId = 100L;
         long dishId = 1L;
 
-        assertThrows(MalformedException.class, () -> vendorLogic.deleteDishById(userId, dishId));
+        assertThrows(MalformedException.class, () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test
@@ -100,7 +100,7 @@ class VendorLogicTest {
         long userId = 3L;
         long dishId = 1L;
 
-        assertThrows(ForbiddenException.class, () -> vendorLogic.deleteDishById(userId, dishId));
+        assertThrows(ForbiddenException.class, () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test
@@ -109,7 +109,7 @@ class VendorLogicTest {
         long dishId = 2L;
 
         // Test ForbiddenException when user is not a vendor
-        assertThrows(ForbiddenException.class, () -> vendorLogic.deleteDishById(userId, dishId));
+        assertThrows(ForbiddenException.class, () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test
@@ -118,7 +118,7 @@ class VendorLogicTest {
         long dishId = 1L;
 
         // Test ForbiddenException when user is not an owner of the dish
-        assertThrows(ForbiddenException.class, () -> vendorLogic.deleteDishById(userId, dishId));
+        assertThrows(ForbiddenException.class, () -> vendorFacade.deleteDishById(userId, dishId));
     }
 
     @Test
@@ -127,7 +127,7 @@ class VendorLogicTest {
         long dishId = 1L;
 
         // Test that the dish is deleted when the user is a vendor and the owner of the dish
-        assertDoesNotThrow(() -> vendorLogic.deleteDishById(userId, dishId));
+        assertDoesNotThrow(() -> vendorFacade.deleteDishById(userId, dishId));
         assertNull(dishDatabase.getById(dishId));
     }
 
