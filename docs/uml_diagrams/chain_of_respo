@@ -1,0 +1,42 @@
+@startuml
+
+title The validator chain of responsibilty pattern
+
+interface Validator {
+  +setNext(v: Validator)
+  +validate(p: Payment)
+}
+
+abstract BaseValidator {
+  -next: Validator
+  +setNext(v: Validator)
+  +validate(p: Payment)
+}
+
+
+class TokenValidator
+class StatusValidator
+class UserOwnershipValidator
+class DistanceValidator
+
+class VerificationExpcetion
+class PaymentExpcetion
+
+BaseValidator o-- Validator
+Validator <|.. BaseValidator
+
+DistanceValidator <|-- BaseValidator
+StatusValidator <|-- BaseValidator
+TokenValidator <|-- BaseValidator
+
+UserOwnershipValidator <|-down- BaseValidator
+StatusValidator <-down- TokenValidator
+UserOwnershipValidator <-down- StatusValidator
+DistanceValidator <-down- UserOwnershipValidator
+
+VerificationExpcetion <-up- DistanceValidator
+VerificationExpcetion <-up- StatusValidator
+PaymentExpcetion <-up- UserOwnershipValidator
+PaymentExpcetion <-up- TokenValidator
+
+@enduml

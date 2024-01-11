@@ -8,10 +8,12 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
+import nl.tudelft.sem.orders.adapters.remote.UserRemoteProxy;
 import java.util.Arrays;
 import java.util.List;
 import nl.tudelft.sem.orders.adapters.remote.UserRemoteAdapter;
 import nl.tudelft.sem.orders.model.Location;
+import nl.tudelft.sem.orders.ring0.distance.LocationMapper;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.api.UserApi;
 import nl.tudelft.sem.users.api.VendorApi;
@@ -25,11 +27,11 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-public class UserRemoteTest {
+public class UserProxyTest {
 
     @Spy
     @InjectMocks
-    private UserRemoteAdapter userRemoteAdapter;
+    private UserRemoteProxy userRemoteAdapter;
 
     /**
      * Sets up the mocks.
@@ -38,7 +40,7 @@ public class UserRemoteTest {
     public void setUp() {
         UserApi mockUserApi = mock(UserApi.class);
         VendorApi mockVendorApi = mock(VendorApi.class);
-        userRemoteAdapter = new UserRemoteAdapter(mockUserApi, mockVendorApi);
+        userRemoteAdapter = new UserRemoteProxy(mockUserApi, mockVendorApi, new LocationMapper());
         MockitoAnnotations.openMocks(this);
     }
 

@@ -38,6 +38,7 @@
     </module>
 
     <module name="TreeWalker">
+        <module name="SuppressionCommentFilter"/>
         <module name="OuterTypeFilename"/>
         <module name="MethodLength">
             <property name="severity" value="warning"/>

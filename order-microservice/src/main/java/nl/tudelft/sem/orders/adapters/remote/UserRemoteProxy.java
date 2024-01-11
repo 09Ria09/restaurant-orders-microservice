@@ -3,6 +3,7 @@ package nl.tudelft.sem.orders.adapters.remote;
 import java.util.List;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
+import nl.tudelft.sem.orders.ring0.distance.LocationMapper;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.api.UserApi;
 import nl.tudelft.sem.users.api.VendorApi;
@@ -10,14 +11,27 @@ import nl.tudelft.sem.users.model.Customer;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import nl.tudelft.sem.users.model.UsersIdGet200Response;
 import nl.tudelft.sem.users.model.Vendor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public class UserRemoteAdapter implements UserMicroservice {
+@Component
+public class UserRemoteProxy implements UserMicroservice {
     private final transient UserApi users;
     private final transient VendorApi vendors;
+    private final transient LocationMapper locationMapper;
 
 
-    public UserRemoteAdapter(UserApi users, VendorApi vendors) {
+    /**
+     * Create a new remote proxy to the user microservice.
+     *
+     * @param users The users api.
+     * @param vendors The vendors api.
+     * @param locationMapper The location mapper.
+     */
+    @Autowired
+    public UserRemoteProxy(UserApi users, VendorApi vendors, LocationMapper locationMapper) {
         this.users = users;
+        this.locationMapper = locationMapper;
         this.vendors = vendors;
     }
 
@@ -43,7 +57,7 @@ public class UserRemoteAdapter implements UserMicroservice {
     public Location getCustomerAddress(long customerId) throws ApiException {
         Customer user = getUserById(customerId).getCustomer();
         nl.tudelft.sem.users.model.Location address = user.getAddress();
-        return locationConverter(address);
+        return locationMapper.mapLocations(address);
     }
 
     /**
@@ -55,23 +69,13 @@ public class UserRemoteAdapter implements UserMicroservice {
     public Location getVendorAddress(long vendorId) throws ApiException {
         Vendor user = getUserById(vendorId).getVendor();
         nl.tudelft.sem.users.model.Location address = user.getLocation();
-        return locationConverter(address);
+        return locationMapper.mapLocations(address);
     }
 
     @Override
     public List<String> getCustomerAllergies(long userId) throws ApiException {
         Customer customer = getUserById(userId).getCustomer();
         return customer.getAllergens();
-    }
-
-    private Location locationConverter(nl.tudelft.sem.users.model.Location address) {
-        Location location = new Location();
-        location.setCountry(address.getCountry());
-        location.setCity(address.getCity());
-        location.setAddress(address.getStreet() + ' ' + address.getStreetNumber());
-        // location.setPostalCode(address.getPostalCode());
-        location.setAdditionalRemarks(address.getAdditionalRemarks());
-        return location;
     }
 
     /**

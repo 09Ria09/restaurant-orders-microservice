@@ -3,124 +3,69 @@ package nl.tudelft.sem.orders.ring0;
 import static java.util.Collections.disjoint;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
-import nl.tudelft.sem.orders.domain.GeoLocation;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
-import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
-import nl.tudelft.sem.orders.ports.output.LocationService;
-import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
+import nl.tudelft.sem.orders.ring0.distance.RadiusStrategy;
+import nl.tudelft.sem.orders.ring0.distance.SearchStrategy;
 import nl.tudelft.sem.users.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VendorLogic implements VendorLogicInterface {
+public class VendorFacade implements VendorLogicInterface {
     private final transient OrderDatabase orderDatabase;
-    private final transient UserMicroservice userMicroservice;
-    private final transient DeliveryMicroservice deliveryMicroservice;
-    private final transient LocationService locationService;
-    private final transient DishDatabase dishDatabase;
+    private transient UserMicroservice userMicroservice;
+    private transient DishDatabase dishDatabase;
+    private transient RadiusStrategy radiusStrategy;
+    private transient SearchStrategy searchStrategy;
 
 
     /**
-     * Creates a new vendor logic.
+     * Creates a new Vedor facade.
      *
-     * @param orderDatabase        The database output port.
-     * @param userMicroservice     The output port for the user microservice.
-     * @param deliveryMicroservice The output port for the delivery microservice.
-     * @param locationService      The output port for the location service.
+     * @param userMicroservice The user microservice
+     * @param orderDatabase The database output port.
+     * @param dishDatabase The dish database.
+     * @param radiusStrategy The chosen radius strategy.
+     * @param searchStrategy The chosen search strategy.
      */
     @Autowired
-    public VendorLogic(OrderDatabase orderDatabase, UserMicroservice userMicroservice,
-                       DeliveryMicroservice deliveryMicroservice, LocationService locationService,
-                       DishDatabase dishDatabase) {
-        this.orderDatabase = orderDatabase;
+    public VendorFacade(UserMicroservice userMicroservice,
+                        OrderDatabase orderDatabase,
+                        DishDatabase dishDatabase,
+                        RadiusStrategy radiusStrategy,
+                        SearchStrategy searchStrategy) {
         this.userMicroservice = userMicroservice;
-        this.deliveryMicroservice = deliveryMicroservice;
-        this.locationService = locationService;
         this.dishDatabase = dishDatabase;
-    }
-
-    private Location mapLocations(nl.tudelft.sem.users.model.Location preLocation) {
-        // TODO: definitely contact group c.
-        Location location = new Location();
-        location.setCity(preLocation.getCity());
-        location.setCountry(preLocation.getCountry());
-        location.setAdditionalRemarks(preLocation.getAdditionalRemarks());
-        location.setPostalCode(preLocation.getStreetNumber());
-        location.setAddress(preLocation.getStreet());
-
-        return location;
-    }
-
-    private List<Long> performRadiusCheck(Long userId, Location loc) throws MalformedException {
-        try {
-            var distances = deliveryMicroservice.getRadii(userId);
-            var allVendors = userMicroservice.getAllVendors();
-            var defaultRad = deliveryMicroservice.getAdminRadius(userId);
-
-            HashMap<Long, Integer> distanceMap = new HashMap<>();
-            HashMap<Long, Location> locationMap = new HashMap<>();
-
-            for (var d : allVendors) {
-                distanceMap.put(d.getId(), defaultRad);
-                locationMap.put(d.getId(), mapLocations(d.getLocation()));
-            }
-
-            for (var d : distances) {
-                distanceMap.put(d.getVendorID(), d.getRadius());
-            }
-
-            // This algorithm is very simple, and it takes a linear pass over all vendors
-            // we could make this more efficient.
-
-            GeoLocation userGeoLocation = locationService.getGeoLocation(loc);
-            List<Long> result = new ArrayList<>();
-
-            for (var pair : distanceMap.entrySet()) {
-                Location vendorLocation = locationMap.get(pair.getKey());
-                GeoLocation vendorGeoLocation = locationService.getGeoLocation(vendorLocation);
-
-                if (userGeoLocation.distanceTo(vendorGeoLocation) <= pair.getValue()) {
-                    result.add(pair.getKey());
-                }
-            }
-
-            return result;
-        } catch (Exception e) {
-            throw new MalformedException();
-        }
+        this.searchStrategy = searchStrategy;
+        this.radiusStrategy = radiusStrategy;
     }
 
     @Override
-    public List<Long> vendorsInRadius(Long userId, String search, Location location) throws MalformedException {
+    public List<Long> vendorsInRadius(Long userId, String search,
+                                      Location location)
+        throws MalformedException {
         try {
             if (!userMicroservice.isCustomer(userId)) {
                 throw new MalformedException();
             }
 
             if (location == null) {
-                // I have to use this ugly hack because
-                // group c did not fix their specification
-                // TODO: contact group c?
-
                 location = userMicroservice.getCustomerAddress(userId);
             }
 
-            // For now we will ignore search
-            // TODO: implement fuzzy finding based on 'search'
+            var vendors = radiusStrategy.performRadiusCheck(userId, location);
 
-            return performRadiusCheck(userId, location);
+            return searchStrategy.filterOnSearchString(vendors, search);
         } catch (Exception e) {
             throw new MalformedException();
         }
@@ -158,9 +103,9 @@ public class VendorLogic implements VendorLogicInterface {
      * Modifies dish.
      *
      * @param dish Changed dish.
-     * @throws ApiException            .
+     * @throws ApiException .
      * @throws EntityNotFoundException thrown if dish to be changed does not exist
-     * @throws IllegalStateException   thrown if invalid dish
+     * @throws IllegalStateException thrown if invalid dish
      */
     public void modifyDish(Dish dish) throws ApiException, EntityNotFoundException, IllegalStateException {
 
@@ -184,7 +129,8 @@ public class VendorLogic implements VendorLogicInterface {
      * @throws ForbiddenException If the user is not a vendor or does not own the dish.
      */
     @Override
-    public void deleteDishById(Long userId, Long dishId) throws MalformedException, ForbiddenException {
+    public void deleteDishById(Long userId, Long dishId)
+        throws MalformedException, ForbiddenException {
         Dish dish = dishDatabase.getById(dishId);
 
         if (dish == null) {

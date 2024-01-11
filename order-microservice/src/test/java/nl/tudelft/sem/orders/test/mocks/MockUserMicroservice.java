@@ -30,8 +30,11 @@ public class MockUserMicroservice implements UserMicroservice {
         new UsersIdGet200Response(
             new Vendor().id(3L).name("asd").email("asdw").location(
                 new Location().city("c"))),
-    };
 
+        new UsersIdGet200Response(
+            new Customer().id(4L).email("idk@sharklasers.com").name("Drugi")
+                .surname("Chłop").address(new Location().city("a"))),
+    };
 
     @Override
     public List<Vendor> getAllVendors() throws ApiException {
