@@ -270,4 +270,38 @@ public class OrderFacade implements OrderLogicInterface {
 
         return orderDatabase.save(newOrder);
     }
+
+    /**
+     * Adds given rating to the order.
+     *
+     * @param userID id of user who rates.
+     * @param orderID id of order to be rated.
+     * @param rating integer between 0 and 10.
+     * @throws MalformedException Invalid rating value or user id or missing/invalid order id/
+     * @throws ForbiddenException If trying to change a rating not as a customer
+     *      or admin or of not own order (in case of customer).
+     * @throws ApiException .
+     */
+    public void rateOrder(Long userID, Long orderID, Integer rating)
+            throws MalformedException, ForbiddenException, ApiException {
+        if (orderID == null || userID == null) {
+            throw new MalformedException();
+        }
+
+        Order order = orderDatabase.getById(orderID);
+
+        if (order == null || rating < 0 || rating > 10) {
+            throw new MalformedException();
+        }
+
+        if (!userMicroservice.isAdmin(userID)) {
+            if (!order.getCustomerID().equals(userID)) {
+                throw new ForbiddenException();
+            }
+        }
+
+        order.setRating(rating);
+        orderDatabase.save(order);
+    }
+
 }
