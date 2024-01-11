@@ -294,10 +294,8 @@ public class OrderFacade implements OrderLogicInterface {
             throw new MalformedException();
         }
 
-        if (!userMicroservice.isAdmin(userID)) {
-            if (!order.getCustomerID().equals(userID)) {
-                throw new ForbiddenException();
-            }
+        if (!userMicroservice.isAdmin(userID) && !order.getCustomerID().equals(userID)) {
+            throw new ForbiddenException();
         }
 
         order.setRating(rating);
