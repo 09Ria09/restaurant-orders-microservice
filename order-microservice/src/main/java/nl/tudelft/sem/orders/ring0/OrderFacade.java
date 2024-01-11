@@ -54,15 +54,10 @@ public class OrderFacade implements OrderLogicInterface {
      */
     //CHECKSTYLE:OFF
     @Autowired
-    public OrderFacade(OrderDatabase orderDatabase,
-                       DishDatabase dishDatabase,
-                       UserMicroservice userMicroservice,
-                       PaymentService paymentService,
-                       LocationService locationService,
-                       UserOwnershipValidator userOwnershipValidator,
-                       DistanceValidator distanceValidator,
-                       TokenValidator tokenValidator,
-                       StatusValidator statusValidator,
+    public OrderFacade(OrderDatabase orderDatabase, DishDatabase dishDatabase, UserMicroservice userMicroservice,
+                       PaymentService paymentService, LocationService locationService,
+                       UserOwnershipValidator userOwnershipValidator, DistanceValidator distanceValidator,
+                       TokenValidator tokenValidator, StatusValidator statusValidator,
                        DeliveryMicroservice deliveryMicroservice) {
         //CHECKSTYLE:ON
         this.orderDatabase = orderDatabase;
@@ -78,8 +73,7 @@ public class OrderFacade implements OrderLogicInterface {
     }
 
     @Override
-    public void payForOrder(long userId, long orderId,
-                            String paymentConfirmation)
+    public void payForOrder(long userId, long orderId, String paymentConfirmation)
         throws MalformedException, ForbiddenException {
         // create the validation chain
 
@@ -93,8 +87,7 @@ public class OrderFacade implements OrderLogicInterface {
 
 
         try {
-            handler.verify(
-                new Payment(userId, orderId, paymentConfirmation));
+            handler.verify(new Payment(userId, orderId, paymentConfirmation));
         } catch (PaymentException e) {
             throw new ForbiddenException();
         } catch (VerificationException e) {
@@ -117,8 +110,7 @@ public class OrderFacade implements OrderLogicInterface {
         // and inform the vendor of the new order
 
         try {
-            deliveryMicroservice.newDelivery(order.getVendorID(),
-                order.getOrderID(), order.getCustomerID());
+            deliveryMicroservice.newDelivery(order.getVendorID(), order.getOrderID(), order.getCustomerID());
         } catch (nl.tudelft.sem.delivery.ApiException e) {
             throw new MalformedException();
         }
@@ -170,8 +162,7 @@ public class OrderFacade implements OrderLogicInterface {
 
         // Check if the order exists and the user
         // owns the order and if the order is unpaid.
-        if (order == null
-            || order.getCustomerID() != customerId
+        if (order == null || order.getCustomerID() != customerId
             || order.getStatus() != Order.StatusEnum.UNPAID) {
             throw new EntityNotFoundException();
         }
@@ -179,16 +170,15 @@ public class OrderFacade implements OrderLogicInterface {
         // Convert the list of IDs and amounts to a list of Dishes and amounts.
         try {
             OrderDishesInner[] convertedDishes = dishes.stream()
-                .map((dish) -> new OrderDishesInner(
-                    dishDatabase.getById(dish.getId()), dish.getQuantity()))
+                .map((dish) -> new OrderDishesInner(dishDatabase.getById(dish.getId()), dish.getQuantity()))
                 .toArray(OrderDishesInner[]::new);
 
             // Check if the dishes belong to the vendor and calculate the total price.
             float totalPrice = 0;
             for (OrderDishesInner dish : convertedDishes) {
-                if (dish.getDish() == null || dish.getAmount() == null
-                    || !Objects.equals(dish.getDish().getVendorID(),
-                    order.getVendorID())) {
+                if (dish.getDish() == null
+                    || dish.getAmount() == null
+                    || !Objects.equals(dish.getDish().getVendorID(), order.getVendorID())) {
                     throw new IllegalStateException();
                 }
                 totalPrice += dish.getDish().getPrice() * dish.getAmount();
@@ -240,8 +230,7 @@ public class OrderFacade implements OrderLogicInterface {
      * @throws NotFoundException  if the vendor does not exist, is not close by, or if any of the dishes do not exist
      */
     @Override
-    public Order reorder(Long userID, Long orderID)
-        throws MalformedException, NotFoundException {
+    public Order reorder(Long userID, Long orderID) throws MalformedException, NotFoundException {
         Order order = orderDatabase.getById(orderID);
 
         if (order == null || !Objects.equals(order.getCustomerID(), userID)) {
@@ -286,16 +275,16 @@ public class OrderFacade implements OrderLogicInterface {
     /**
      * Adds given rating to the order.
      *
-     * @param userID id of user who rates.
+     * @param userID  id of user who rates.
      * @param orderID id of order to be rated.
-     * @param rating integer between 0 and 10.
+     * @param rating  integer between 0 and 10.
      * @throws MalformedException Invalid rating value or user id or missing/invalid order id/
      * @throws ForbiddenException If trying to change a rating not as a customer
-     *      or admin or of not own order (in case of customer).
-     * @throws ApiException .
+     *                            or admin or of not own order (in case of customer).
+     * @throws ApiException       .
      */
     public void rateOrder(Long userID, Long orderID, Integer rating)
-            throws MalformedException, ForbiddenException, ApiException {
+        throws MalformedException, ForbiddenException, ApiException {
         if (orderID == null || userID == null) {
             throw new MalformedException();
         }

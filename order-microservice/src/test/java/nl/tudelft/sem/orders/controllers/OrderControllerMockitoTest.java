@@ -14,10 +14,7 @@ import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
-import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.model.OrderOrderIDRatePostRequest;
-import nl.tudelft.sem.orders.ports.output.LocationService;
-import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
@@ -49,8 +46,7 @@ class OrderControllerMockitoTest {
     @Test
     void orderGetAdmin() throws ApiException {
         Long userID = 1L;
-        when(orderFacade.getOrders(1L))
-                .thenReturn(new ArrayList<Order>());
+        when(orderFacade.getOrders(1L)).thenReturn(new ArrayList<Order>());
 
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
 
@@ -60,8 +56,7 @@ class OrderControllerMockitoTest {
     @Test
     void orderGetIse() throws ApiException {
         Long userID = 1L;
-        when(orderFacade.getOrders(1L))
-            .thenThrow(new IllegalStateException());
+        when(orderFacade.getOrders(1L)).thenThrow(new IllegalStateException());
 
         assertEquals(HttpStatus.BAD_REQUEST, orderController.orderGet(userID).getStatusCode());
     }
@@ -79,11 +74,7 @@ class OrderControllerMockitoTest {
 
     @Test
     public void testOrderOrderIDReorderPost() throws Exception {
-        Order order = new Order(1L,
-            1L,
-            13L,
-            new ArrayList<>(),
-            1f,
+        Order order = new Order(1L, 1L, 13L, new ArrayList<>(), 1f,
             new Location().city("Kraków").country("PL").postalCode("123ZT"),
             nl.tudelft.sem.orders.model.Order.StatusEnum.PENDING).courierID(3L);
 
@@ -189,15 +180,14 @@ class OrderControllerMockitoTest {
             orderController.orderOrderIDDishesPut(userID, orderID, request);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
+
     @Test
     public void testOrderOrderIDRatePostBadRequest() throws ForbiddenException, MalformedException, ApiException {
         doThrow(MalformedException.class).when(orderFacade).rateOrder(1L, 2L, 11);
         OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
         request.setRating(11);
 
-        assertEquals(HttpStatus.BAD_REQUEST,
-                orderController.orderOrderIDRatePost(1L, 2L, request)
-                        .getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, orderController.orderOrderIDRatePost(1L, 2L, request).getStatusCode());
     }
 
     @Test
@@ -206,9 +196,7 @@ class OrderControllerMockitoTest {
         OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
         request.setRating(7);
 
-        assertEquals(HttpStatus.FORBIDDEN,
-                orderController.orderOrderIDRatePost(1L, 2L, request)
-                        .getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN, orderController.orderOrderIDRatePost(1L, 2L, request).getStatusCode());
     }
 
     @Test
@@ -216,9 +204,7 @@ class OrderControllerMockitoTest {
         OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
         request.setRating(7);
 
-        assertEquals(HttpStatus.OK,
-                orderController.orderOrderIDRatePost(1L, 2L, request)
-                        .getStatusCode());
+        assertEquals(HttpStatus.OK, orderController.orderOrderIDRatePost(1L, 2L, request).getStatusCode());
     }
 
 }
