@@ -162,9 +162,12 @@ public class VendorFacade implements VendorLogicInterface {
         if (userId == null) {
             return getDishes(vendorId);
         }
+
         List<Dish> dishes = getDishes(vendorId);
+
         try {
             List<String> allergies = userMicroservice.getCustomerAllergies(userId);
+
             return dishes.stream()
                 .filter(dish -> dish.getAllergens() == null || !disjoint(dish.getAllergens(), allergies))
                 .collect(Collectors.toList());
