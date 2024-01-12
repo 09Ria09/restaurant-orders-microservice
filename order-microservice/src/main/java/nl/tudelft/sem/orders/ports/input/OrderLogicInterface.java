@@ -8,7 +8,6 @@ import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.users.ApiException;
-import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 
 public interface OrderLogicInterface {
     void payForOrder(long userId, long orderId, String paymentRef)
@@ -25,7 +24,7 @@ public interface OrderLogicInterface {
     Order reorder(Long userID, Long orderID) throws MalformedException, NotFoundException;
 
     void rateOrder(Long userID, Long orderID, Integer rating)
-            throws MalformedException, ForbiddenException, ApiException;
+        throws MalformedException, ForbiddenException, ApiException;
 
     void deleteOrder(Long userID, Long orderID) throws MalformedException, ForbiddenException;
 }

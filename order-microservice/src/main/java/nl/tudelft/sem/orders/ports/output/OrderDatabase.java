@@ -2,7 +2,6 @@ package nl.tudelft.sem.orders.ports.output;
 
 import java.util.List;
 import nl.tudelft.sem.orders.model.Order;
-import org.aspectj.weaver.ast.Or;
 
 
 public interface OrderDatabase {
@@ -17,7 +16,7 @@ public interface OrderDatabase {
     List<Order> findByCourierID(long courierID);
 
     List<Order> findAllOrders();
-    
+
     Order save(Order toSave);
 
     void delete(Order toDelete);
