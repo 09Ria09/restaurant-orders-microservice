@@ -1,6 +1,7 @@
 package nl.tudelft.sem.orders.ring0.distance;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import nl.tudelft.sem.users.model.Vendor;
 import org.springframework.stereotype.Component;
@@ -14,8 +15,8 @@ public class FuzzyFindStrategy implements SearchStrategy {
             vendors = vendors.stream()
                 .filter(vendor -> {
                     int distance = calculateLevenshteinDistance(
-                        vendor.getName().toLowerCase(),
-                        search.toLowerCase()
+                        vendor.getName().toLowerCase(Locale.getDefault()),
+                        search.toLowerCase(Locale.getDefault())
                     );
                     return distance <= 2;
                 })
