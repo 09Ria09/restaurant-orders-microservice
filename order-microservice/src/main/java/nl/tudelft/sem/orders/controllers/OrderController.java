@@ -78,8 +78,7 @@ public class OrderController implements OrderApi {
     }
 
     @Override
-    public ResponseEntity<OrderOrderIDDishesPut200Response>
-    orderOrderIDDishesPut(
+    public ResponseEntity<OrderOrderIDDishesPut200Response> orderOrderIDDishesPut(
         Long userID, Long orderID,
         OrderOrderIDDishesPutRequest orderOrderIDDishesPutRequest) {
         try {

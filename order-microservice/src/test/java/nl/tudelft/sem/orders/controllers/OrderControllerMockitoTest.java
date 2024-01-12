@@ -1,7 +1,6 @@
 package nl.tudelft.sem.orders.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
@@ -204,7 +203,7 @@ class OrderControllerMockitoTest {
     void orderGetAdmin() throws ApiException {
         Long userID = 1L;
         when(orderFacade.getOrders(1L))
-                .thenReturn(new ArrayList<Order>());
+            .thenReturn(new ArrayList<Order>());
 
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
 
@@ -268,8 +267,8 @@ class OrderControllerMockitoTest {
         request.setRating(11);
 
         assertEquals(HttpStatus.BAD_REQUEST,
-                orderController.orderOrderIDRatePost(1L, 2L, request)
-                        .getStatusCode());
+            orderController.orderOrderIDRatePost(1L, 2L, request)
+                .getStatusCode());
     }
 
     @Test
@@ -279,8 +278,8 @@ class OrderControllerMockitoTest {
         request.setRating(7);
 
         assertEquals(HttpStatus.FORBIDDEN,
-                orderController.orderOrderIDRatePost(1L, 2L, request)
-                        .getStatusCode());
+            orderController.orderOrderIDRatePost(1L, 2L, request)
+                .getStatusCode());
     }
 
     @Test
@@ -289,8 +288,8 @@ class OrderControllerMockitoTest {
         request.setRating(7);
 
         assertEquals(HttpStatus.OK,
-                orderController.orderOrderIDRatePost(1L, 2L, request)
-                        .getStatusCode());
+            orderController.orderOrderIDRatePost(1L, 2L, request)
+                .getStatusCode());
     }
 
     @Test
