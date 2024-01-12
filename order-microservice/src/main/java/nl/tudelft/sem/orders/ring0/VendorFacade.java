@@ -19,6 +19,7 @@ import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.distance.RadiusStrategy;
 import nl.tudelft.sem.orders.ring0.distance.SearchStrategy;
 import nl.tudelft.sem.users.ApiException;
+import nl.tudelft.sem.users.model.Vendor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +36,10 @@ public class VendorFacade implements VendorLogicInterface {
      * Creates a new Vedor facade.
      *
      * @param userMicroservice The user microservice
-     * @param orderDatabase The database output port.
-     * @param dishDatabase The dish database.
-     * @param radiusStrategy The chosen radius strategy.
-     * @param searchStrategy The chosen search strategy.
+     * @param orderDatabase    The database output port.
+     * @param dishDatabase     The dish database.
+     * @param radiusStrategy   The chosen radius strategy.
+     * @param searchStrategy   The chosen search strategy.
      */
     @Autowired
     public VendorFacade(UserMicroservice userMicroservice,
@@ -67,8 +68,9 @@ public class VendorFacade implements VendorLogicInterface {
             }
 
             var vendors = radiusStrategy.performRadiusCheck(userId, location);
+            vendors = searchStrategy.filterOnSearchString(vendors, search);
 
-            return searchStrategy.filterOnSearchString(vendors, search);
+            return vendors.stream().map(Vendor::getId).collect(Collectors.toList());
         } catch (Exception e) {
             throw new MalformedException();
         }
@@ -107,9 +109,9 @@ public class VendorFacade implements VendorLogicInterface {
      * Modifies dish.
      *
      * @param dish Changed dish.
-     * @throws ApiException .
+     * @throws ApiException            .
      * @throws EntityNotFoundException thrown if dish to be changed does not exist
-     * @throws IllegalStateException thrown if invalid dish
+     * @throws IllegalStateException   thrown if invalid dish
      */
     @Override
     public void modifyDish(Dish dish) throws ApiException, EntityNotFoundException, IllegalStateException {
@@ -157,7 +159,7 @@ public class VendorFacade implements VendorLogicInterface {
     /**
      * Gets all the orders at this vendor from the specific customer.
      *
-     * @param userID The vendor's ID.
+     * @param userID     The vendor's ID.
      * @param customerID The customer's ID.
      * @return List of the orders at this vendor by the specific customer.
      */
