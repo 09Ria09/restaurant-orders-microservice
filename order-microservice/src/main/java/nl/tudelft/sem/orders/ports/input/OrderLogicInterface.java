@@ -28,4 +28,6 @@ public interface OrderLogicInterface {
             throws MalformedException, ForbiddenException, ApiException;
 
     Order changeOrder(Long userID, Order order) throws MalformedException, ApiException, ForbiddenException;
+
+    List<Order> getOrder(Long orderID) throws MalformedException;
 }

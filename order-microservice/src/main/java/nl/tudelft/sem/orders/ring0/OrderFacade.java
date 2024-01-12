@@ -360,4 +360,27 @@ public class OrderFacade implements OrderLogicInterface {
             }
         }
     }
+
+    /**
+     * Retrieves order by given Id.
+     *
+     * @param orderID Id of the order to retrieve.
+     * @return order.
+     * @throws MalformedException if invalid orderId or missing Order
+     */
+    public List<Order> getOrder(Long orderID) throws MalformedException {
+        if (orderID == null) {
+            throw new MalformedException();
+        }
+
+        Order order = orderDatabase.getById(orderID);
+
+        if (order == null) {
+            throw new MalformedException();
+        }
+
+        List<Order> result = new ArrayList<>();
+        result.add(order);
+        return result;
+    }
 }

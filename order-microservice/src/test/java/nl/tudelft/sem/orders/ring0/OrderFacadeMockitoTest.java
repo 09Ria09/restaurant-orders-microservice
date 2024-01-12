@@ -917,4 +917,31 @@ public class OrderFacadeMockitoTest {
 
     }
 
+    @Test
+    void testGetOrderInvalidId() {
+        assertThrows(MalformedException.class,
+                () -> orderFacade.getOrder(null));
+    }
+
+    @Test
+    void testGetOrderMissingDish() {
+        when(orderDatabase.getById(1L)).thenReturn(null);
+        assertThrows(MalformedException.class,
+                () -> orderFacade.getOrder(1L));
+    }
+
+    @Test
+    void testGetOrderOk() {
+        Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
+                20F, location, Order.StatusEnum.UNPAID);
+        when(orderDatabase.getById(1L)).thenReturn(order);
+        List<Order> list = new ArrayList<>();
+        list.add(order);
+        assertDoesNotThrow(() -> {
+            assertEquals(orderFacade.getOrder(1L), list);
+        });
+        verify(orderDatabase, times(1)).getById(1L);
+    }
+
 }
