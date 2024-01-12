@@ -120,6 +120,16 @@ public class OrderController implements OrderApi {
     }
 
     @Override
+    public ResponseEntity<List<Order>> orderOrderIDGet(Long orderID) {
+        try {
+            return ResponseEntity.ok(
+                    orderFacade.getOrder(orderID));
+        } catch (MalformedException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @Override
     public ResponseEntity<List<Order>> orderGet(Long userID) {
         // The null check is here instead of in the orderLogic class as
         // I do not want to propagate this problem to another microservice,

@@ -343,4 +343,28 @@ class OrderControllerMockitoTest {
         assertEquals(order, response.getBody());
     }
 
+    @Test
+    public void testOrderOrderIDGetMalformed() throws MalformedException {
+        when(orderFacade.getOrder(1L)).thenThrow(MalformedException.class);
+        assertEquals(HttpStatus.BAD_REQUEST,
+                orderController.orderOrderIDGet(1L)
+                        .getStatusCode());
+    }
+
+    @Test
+    public void testOrderOrderIDGetOk() throws MalformedException {
+        Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
+                20F, location, Order.StatusEnum.UNPAID);
+        List<Order> list = new ArrayList<>();
+        list.add(order);
+
+        when(orderFacade.getOrder(1L)).thenReturn(list);
+
+        ResponseEntity<List<Order>> response = orderController.orderOrderIDGet(1L);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(list, response.getBody());
+    }
+
+
 }
