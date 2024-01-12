@@ -302,4 +302,62 @@ public class OrderFacade implements OrderLogicInterface {
         orderDatabase.save(order);
     }
 
+
+    /**
+     * Update order according to permissions.
+     *
+     * @param userId id of user asking for the update
+     * @param order Order to be updated
+     * @return The updated order
+     * @throws MalformedException thrown if invalid or missing order or userId
+     * @throws ApiException thrown if userMicroservice error
+     * @throws ForbiddenException thrown if user doesn't have the permission to do the requested update.
+     */
+    public Order changeOrder(Long userId, Order order) throws MalformedException, ApiException, ForbiddenException {
+        if (userId == null || order == null) {
+            throw new MalformedException();
+        }
+
+        Order orderRepo = orderDatabase.getById(order.getOrderID());
+        if (orderRepo == null) {
+            throw new MalformedException();
+        }
+        checkModifyForCustomer(userId, order, orderRepo);
+        orderRepo = orderDatabase.getById(order.getOrderID());
+        checkModifyForVendorAndCourier(userId, order, orderRepo);
+        orderDatabase.save(order);
+        return order;
+    }
+
+    private void checkModifyForVendorAndCourier(Long userId, Order order, Order orderRepo)
+            throws ApiException, ForbiddenException {
+        if (userMicroservice.isVendor(userId) || userMicroservice.isCourier(userId)) {
+            orderRepo.setStatus(order.getStatus());
+            orderRepo.setCourierID(order.getCourierID());
+            orderRepo.setPrice(order.getPrice());
+            if (userMicroservice.isCourier(userId)) {
+                orderRepo.setCourierRating(order.getCourierRating());
+            }
+            float price = 0;
+            for (OrderDishesInner d : order.getDishes()) {
+                price = d.getDish().getPrice() * d.getAmount();
+            }
+            if (!orderRepo.equals(order) || order.getPrice() < price) {
+                throw new ForbiddenException();
+            }
+
+        }
+    }
+
+    private void checkModifyForCustomer(Long userId, Order order, Order orderRepo)
+            throws ApiException, ForbiddenException {
+        if (userMicroservice.isCustomer(userId)) {
+            orderRepo.setLocation(order.getLocation());
+            if (!userId.equals(orderRepo.getCustomerID())
+                    || orderRepo.getStatus() != Order.StatusEnum.UNPAID
+                    || !orderRepo.equals(order)) {
+                throw new ForbiddenException();
+            }
+        }
+    }
 }

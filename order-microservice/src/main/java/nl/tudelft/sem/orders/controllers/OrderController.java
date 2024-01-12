@@ -79,6 +79,18 @@ public class OrderController implements OrderApi {
     }
 
     @Override
+    public ResponseEntity<Order> orderPut(Long userID, Order order) {
+        try {
+            return ResponseEntity.ok(
+                    orderFacade.changeOrder(userID, order));
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (MalformedException | ApiException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @Override
     public ResponseEntity<OrderOrderIDDishesPut200Response>
         orderOrderIDDishesPut(
         Long userID, Long orderID,
