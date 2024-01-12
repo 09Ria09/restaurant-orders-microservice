@@ -19,4 +19,6 @@ public interface OrderDatabase {
     List<Order> findAllOrders();
     
     Order save(Order toSave);
+
+    void delete(Order toDelete);
 }

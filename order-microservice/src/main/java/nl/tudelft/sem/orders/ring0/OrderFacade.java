@@ -274,16 +274,16 @@ public class OrderFacade implements OrderLogicInterface {
     /**
      * Adds given rating to the order.
      *
-     * @param userID id of user who rates.
+     * @param userID  id of user who rates.
      * @param orderID id of order to be rated.
-     * @param rating integer between 0 and 10.
+     * @param rating  integer between 0 and 10.
      * @throws MalformedException Invalid rating value or user id or missing/invalid order id/
      * @throws ForbiddenException If trying to change a rating not as a customer
-     *      or admin or of not own order (in case of customer).
-     * @throws ApiException .
+     *                            or admin or of not own order (in case of customer).
+     * @throws ApiException       .
      */
     public void rateOrder(Long userID, Long orderID, Integer rating)
-            throws MalformedException, ForbiddenException, ApiException {
+        throws MalformedException, ForbiddenException, ApiException {
         if (orderID == null || userID == null) {
             throw new MalformedException();
         }
@@ -300,6 +300,26 @@ public class OrderFacade implements OrderLogicInterface {
 
         order.setRating(rating);
         orderDatabase.save(order);
+    }
+
+    @Override
+    public void deleteOrder(Long userID, Long orderID) throws MalformedException, ForbiddenException {
+        Order order = orderDatabase.getById(orderID);
+
+        if (order == null) {
+            throw new MalformedException();
+        }
+
+        try {
+            if (userMicroservice.isAdmin(userID)
+                || (userMicroservice.isCustomer(userID) && order.getCustomerID().equals(userID))) {
+                orderDatabase.delete(order);
+            } else {
+                throw new ForbiddenException();
+            }
+        } catch (ApiException e) {
+            throw new MalformedException();
+        }
     }
 
 }
