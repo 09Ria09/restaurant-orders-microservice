@@ -25,8 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class OrderController implements OrderApi {
-    private final transient UserMicroservice userMicroservice;
-    private final transient LocationService locationService;
     private final transient OrderFacade orderFacade;
 
     /**
@@ -35,12 +33,8 @@ public class OrderController implements OrderApi {
      * @param orderFacade The class providing orders logic.
      */
     @Autowired
-    public OrderController(OrderFacade orderFacade,
-                           UserMicroservice userMicroservice,
-                           LocationService locationService) {
+    public OrderController(OrderFacade orderFacade) {
         this.orderFacade = orderFacade;
-        this.userMicroservice = userMicroservice;
-        this.locationService = locationService;
     }
 
     @Override
@@ -63,18 +57,12 @@ public class OrderController implements OrderApi {
     @Override
     public ResponseEntity<Order> orderPost(Long userID, Long vendorID) {
         try {
-            if (!userMicroservice.isCustomer(userID)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-            if (!locationService.isCloseBy(
-                userMicroservice.getCustomerAddress(userID),
-                userMicroservice.getVendorAddress(vendorID))) {
-                return ResponseEntity.badRequest().build();
-            }
             return ResponseEntity.ok(
                 orderFacade.createOrder(userID, vendorID));
-        } catch (ApiException e) {
+        } catch (ApiException | MalformedException e) {
             return ResponseEntity.badRequest().build();
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
@@ -96,24 +84,16 @@ public class OrderController implements OrderApi {
         Long userID, Long orderID,
         OrderOrderIDDishesPutRequest orderOrderIDDishesPutRequest) {
         try {
-            if (userMicroservice.isCustomer(userID)) {
-                try {
-                    Float newTotalPrice = orderFacade.updateDishes(orderID, userID,
-                        orderOrderIDDishesPutRequest.getDishes());
+            Float newTotalPrice = orderFacade.updateDishes(orderID, userID, orderOrderIDDishesPutRequest.getDishes());
 
-                    OrderOrderIDDishesPut200Response response =
-                        new OrderOrderIDDishesPut200Response();
-                    response.setPrice(newTotalPrice);
+            OrderOrderIDDishesPut200Response response = new OrderOrderIDDishesPut200Response();
+            response.setPrice(newTotalPrice);
 
-                    return new ResponseEntity<>(response, HttpStatus.OK);
-                } catch (IllegalStateException e) {
-                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                } catch (EntityNotFoundException e) {
-                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-                }
-            } else {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (ApiException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }

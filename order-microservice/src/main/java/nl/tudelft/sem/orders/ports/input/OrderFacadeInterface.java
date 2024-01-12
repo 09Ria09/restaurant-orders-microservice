@@ -13,11 +13,11 @@ public interface OrderFacadeInterface {
     void payForOrder(long userId, long orderId, String paymentRef)
         throws MalformedException, ForbiddenException;
 
-    Order createOrder(long customerId, long vendorId) throws MalformedException, ApiException;
+    Order createOrder(long customerId, long vendorId) throws MalformedException, ApiException, ForbiddenException;
 
     Float updateDishes(long orderId, long customerId,
                        @Valid List<@Valid
-                           OrderOrderIDDishesPutRequestDishesInner> dishes) throws MalformedException;
+                           OrderOrderIDDishesPutRequestDishesInner> dishes) throws MalformedException, ApiException;
 
     List<Order> getOrders(Long userID) throws ApiException;
 
