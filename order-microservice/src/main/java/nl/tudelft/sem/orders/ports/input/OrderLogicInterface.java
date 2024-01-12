@@ -26,4 +26,6 @@ public interface OrderLogicInterface {
 
     void rateOrder(Long userID, Long orderID, Integer rating)
             throws MalformedException, ForbiddenException, ApiException;
+
+    Order changeOrder(Long userID, Order order) throws MalformedException, ApiException, ForbiddenException;
 }

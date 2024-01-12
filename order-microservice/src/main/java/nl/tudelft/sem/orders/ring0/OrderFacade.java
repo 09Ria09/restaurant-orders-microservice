@@ -80,7 +80,7 @@ public class OrderFacade implements OrderLogicInterface {
     @Override
     public void payForOrder(long userId, long orderId,
                             String paymentConfirmation)
-        throws MalformedException, ForbiddenException {
+            throws MalformedException, ForbiddenException {
         // create the validation chain
 
         var handler = tokenValidator;
@@ -94,7 +94,7 @@ public class OrderFacade implements OrderLogicInterface {
 
         try {
             handler.verify(
-                new Payment(userId, orderId, paymentConfirmation));
+                    new Payment(userId, orderId, paymentConfirmation));
         } catch (PaymentException e) {
             throw new ForbiddenException();
         } catch (VerificationException e) {
@@ -118,7 +118,7 @@ public class OrderFacade implements OrderLogicInterface {
 
         try {
             deliveryMicroservice.newDelivery(order.getVendorID(),
-                order.getOrderID(), order.getCustomerID());
+                    order.getOrderID(), order.getCustomerID());
         } catch (nl.tudelft.sem.delivery.ApiException e) {
             throw new MalformedException();
         }
@@ -132,7 +132,7 @@ public class OrderFacade implements OrderLogicInterface {
      */
     @Override
     public Order createOrder(long customerId, long vendorId)
-        throws ApiException {
+            throws ApiException {
         Order order = new Order();
         order.setCustomerID(customerId);
         order.setVendorID(vendorId);
@@ -154,29 +154,29 @@ public class OrderFacade implements OrderLogicInterface {
      */
     public Float updateDishes(long orderId, long customerId,
                               @Valid List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes)
-        throws EntityNotFoundException, IllegalStateException {
+            throws EntityNotFoundException, IllegalStateException {
         Order order = orderDatabase.getById(orderId);
         // Check if the order exists and the user
         // owns the order and if the order is unpaid.
         if (order == null
-            || order.getCustomerID() != customerId
-            || order.getStatus() != Order.StatusEnum.UNPAID) {
+                || order.getCustomerID() != customerId
+                || order.getStatus() != Order.StatusEnum.UNPAID) {
             throw new EntityNotFoundException();
         }
 
         // Convert the list of IDs and amounts to a list of Dishes and amounts.
         try {
             OrderDishesInner[] convertedDishes = dishes.stream()
-                .map((dish) -> new OrderDishesInner(
-                    dishDatabase.getById(dish.getId()), dish.getQuantity()))
-                .toArray(OrderDishesInner[]::new);
+                    .map((dish) -> new OrderDishesInner(
+                            dishDatabase.getById(dish.getId()), dish.getQuantity()))
+                    .toArray(OrderDishesInner[]::new);
 
             // Check if the dishes belong to the vendor and calculate the total price.
             float totalPrice = 0;
             for (OrderDishesInner dish : convertedDishes) {
                 if (dish.getDish() == null || dish.getAmount() == null
-                    || !Objects.equals(dish.getDish().getVendorID(),
-                    order.getVendorID())) {
+                        || !Objects.equals(dish.getDish().getVendorID(),
+                        order.getVendorID())) {
                     throw new IllegalStateException();
                 }
                 totalPrice += dish.getDish().getPrice() * dish.getAmount();
@@ -229,7 +229,7 @@ public class OrderFacade implements OrderLogicInterface {
      */
     @Override
     public Order reorder(Long userID, Long orderID)
-        throws MalformedException, NotFoundException {
+            throws MalformedException, NotFoundException {
         Order order = orderDatabase.getById(orderID);
 
         if (order == null || !Objects.equals(order.getCustomerID(), userID)) {
@@ -274,13 +274,13 @@ public class OrderFacade implements OrderLogicInterface {
     /**
      * Adds given rating to the order.
      *
-     * @param userID id of user who rates.
+     * @param userID  id of user who rates.
      * @param orderID id of order to be rated.
-     * @param rating integer between 0 and 10.
+     * @param rating  integer between 0 and 10.
      * @throws MalformedException Invalid rating value or user id or missing/invalid order id/
      * @throws ForbiddenException If trying to change a rating not as a customer
-     *      or admin or of not own order (in case of customer).
-     * @throws ApiException .
+     *                            or admin or of not own order (in case of customer).
+     * @throws ApiException       .
      */
     public void rateOrder(Long userID, Long orderID, Integer rating)
             throws MalformedException, ForbiddenException, ApiException {
@@ -302,4 +302,62 @@ public class OrderFacade implements OrderLogicInterface {
         orderDatabase.save(order);
     }
 
+
+    /**
+     * Update order according to permissions.
+     *
+     * @param userId id of user asking for the update
+     * @param order Order to be updated
+     * @return The updated order
+     * @throws MalformedException thrown if invalid or missing order or userId
+     * @throws ApiException thrown if userMicroservice error
+     * @throws ForbiddenException thrown if user doesn't have the permission to do the requested update.
+     */
+    public Order changeOrder(Long userId, Order order) throws MalformedException, ApiException, ForbiddenException {
+        if (userId == null || order == null) {
+            throw new MalformedException();
+        }
+
+        Order orderRepo = orderDatabase.getById(order.getOrderID());
+        if (orderRepo == null) {
+            throw new MalformedException();
+        }
+        checkModifyForCustomer(userId, order, orderRepo);
+        orderRepo = orderDatabase.getById(order.getOrderID());
+        checkModifyForVendorAndCourier(userId, order, orderRepo);
+        orderDatabase.save(order);
+        return order;
+    }
+
+    private void checkModifyForVendorAndCourier(Long userId, Order order, Order orderRepo)
+            throws ApiException, ForbiddenException {
+        if (userMicroservice.isVendor(userId) || userMicroservice.isCourier(userId)) {
+            orderRepo.setStatus(order.getStatus());
+            orderRepo.setCourierID(order.getCourierID());
+            orderRepo.setPrice(order.getPrice());
+            if (userMicroservice.isCourier(userId)) {
+                orderRepo.setCourierRating(order.getCourierRating());
+            }
+            float price = 0;
+            for (OrderDishesInner d : order.getDishes()) {
+                price = d.getDish().getPrice() * d.getAmount();
+            }
+            if (!orderRepo.equals(order) || order.getPrice() < price) {
+                throw new ForbiddenException();
+            }
+
+        }
+    }
+
+    private void checkModifyForCustomer(Long userId, Order order, Order orderRepo)
+            throws ApiException, ForbiddenException {
+        if (userMicroservice.isCustomer(userId)) {
+            orderRepo.setLocation(order.getLocation());
+            if (!userId.equals(orderRepo.getCustomerID())
+                    || orderRepo.getStatus() != Order.StatusEnum.UNPAID
+                    || !orderRepo.equals(order)) {
+                throw new ForbiddenException();
+            }
+        }
+    }
 }

@@ -293,4 +293,41 @@ class OrderControllerMockitoTest {
                         .getStatusCode());
     }
 
+    @Test
+    public void testOrderPutMalformed() throws ForbiddenException, MalformedException, ApiException {
+        Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
+                20F, location, Order.StatusEnum.UNPAID);
+
+        when(orderFacade.changeOrder(1L, order)).thenThrow(MalformedException.class);
+        assertEquals(HttpStatus.BAD_REQUEST,
+                orderController.orderPut(1L, order)
+                        .getStatusCode());
+    }
+
+    @Test
+    public void testOrderPutForbidden() throws ForbiddenException, MalformedException, ApiException {
+        Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
+                20F, location, Order.StatusEnum.UNPAID);
+
+        when(orderFacade.changeOrder(1L, order)).thenThrow(ForbiddenException.class);
+        assertEquals(HttpStatus.FORBIDDEN,
+                orderController.orderPut(1L, order)
+                        .getStatusCode());
+    }
+
+    @Test
+    public void testOrderPutOk() throws ForbiddenException, MalformedException, ApiException {
+        Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
+                20F, location, Order.StatusEnum.UNPAID);
+
+        when(orderFacade.changeOrder(1L, order)).thenReturn(order);
+
+        ResponseEntity<Order> response = orderController.orderPut(1L, order);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(order, response.getBody());
+    }
+
 }
