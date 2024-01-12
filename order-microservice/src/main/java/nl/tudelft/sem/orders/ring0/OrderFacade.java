@@ -80,7 +80,7 @@ public class OrderFacade implements OrderLogicInterface {
     @Override
     public void payForOrder(long userId, long orderId,
                             String paymentConfirmation)
-            throws MalformedException, ForbiddenException {
+        throws MalformedException, ForbiddenException {
         // create the validation chain
 
         var handler = tokenValidator;
@@ -94,7 +94,7 @@ public class OrderFacade implements OrderLogicInterface {
 
         try {
             handler.verify(
-                    new Payment(userId, orderId, paymentConfirmation));
+                new Payment(userId, orderId, paymentConfirmation));
         } catch (PaymentException e) {
             throw new ForbiddenException();
         } catch (VerificationException e) {
@@ -118,7 +118,7 @@ public class OrderFacade implements OrderLogicInterface {
 
         try {
             deliveryMicroservice.newDelivery(order.getVendorID(),
-                    order.getOrderID(), order.getCustomerID());
+                order.getOrderID(), order.getCustomerID());
         } catch (nl.tudelft.sem.delivery.ApiException e) {
             throw new MalformedException();
         }
@@ -132,7 +132,7 @@ public class OrderFacade implements OrderLogicInterface {
      */
     @Override
     public Order createOrder(long customerId, long vendorId)
-            throws ApiException {
+        throws ApiException {
         Order order = new Order();
         order.setCustomerID(customerId);
         order.setVendorID(vendorId);
@@ -154,29 +154,29 @@ public class OrderFacade implements OrderLogicInterface {
      */
     public Float updateDishes(long orderId, long customerId,
                               @Valid List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes)
-            throws EntityNotFoundException, IllegalStateException {
+        throws EntityNotFoundException, IllegalStateException {
         Order order = orderDatabase.getById(orderId);
         // Check if the order exists and the user
         // owns the order and if the order is unpaid.
         if (order == null
-                || order.getCustomerID() != customerId
-                || order.getStatus() != Order.StatusEnum.UNPAID) {
+            || order.getCustomerID() != customerId
+            || order.getStatus() != Order.StatusEnum.UNPAID) {
             throw new EntityNotFoundException();
         }
 
         // Convert the list of IDs and amounts to a list of Dishes and amounts.
         try {
             OrderDishesInner[] convertedDishes = dishes.stream()
-                    .map((dish) -> new OrderDishesInner(
-                            dishDatabase.getById(dish.getId()), dish.getQuantity()))
-                    .toArray(OrderDishesInner[]::new);
+                .map((dish) -> new OrderDishesInner(
+                    dishDatabase.getById(dish.getId()), dish.getQuantity()))
+                .toArray(OrderDishesInner[]::new);
 
             // Check if the dishes belong to the vendor and calculate the total price.
             float totalPrice = 0;
             for (OrderDishesInner dish : convertedDishes) {
                 if (dish.getDish() == null || dish.getAmount() == null
-                        || !Objects.equals(dish.getDish().getVendorID(),
-                        order.getVendorID())) {
+                    || !Objects.equals(dish.getDish().getVendorID(),
+                    order.getVendorID())) {
                     throw new IllegalStateException();
                 }
                 totalPrice += dish.getDish().getPrice() * dish.getAmount();
@@ -229,7 +229,7 @@ public class OrderFacade implements OrderLogicInterface {
      */
     @Override
     public Order reorder(Long userID, Long orderID)
-            throws MalformedException, NotFoundException {
+        throws MalformedException, NotFoundException {
         Order order = orderDatabase.getById(orderID);
 
         if (order == null || !Objects.equals(order.getCustomerID(), userID)) {
@@ -274,13 +274,13 @@ public class OrderFacade implements OrderLogicInterface {
     /**
      * Adds given rating to the order.
      *
-     * @param userID  id of user who rates.
+     * @param userID id of user who rates.
      * @param orderID id of order to be rated.
-     * @param rating  integer between 0 and 10.
+     * @param rating integer between 0 and 10.
      * @throws MalformedException Invalid rating value or user id or missing/invalid order id/
      * @throws ForbiddenException If trying to change a rating not as a customer
-     *                            or admin or of not own order (in case of customer).
-     * @throws ApiException       .
+     *      or admin or of not own order (in case of customer).
+     * @throws ApiException .
      */
     public void rateOrder(Long userID, Long orderID, Integer rating)
             throws MalformedException, ForbiddenException, ApiException {
