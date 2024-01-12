@@ -293,4 +293,24 @@ class OrderControllerMockitoTest {
                         .getStatusCode());
     }
 
+    @Test
+    void orderDeleteForbidden() throws ForbiddenException, MalformedException {
+        doThrow(ForbiddenException.class).when(orderFacade).deleteOrder(1L, 1L);
+        ResponseEntity<Void> response = orderController.orderOrderIDDelete(1L, 1L);
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
+
+    @Test
+    void orderDeleteMalformed() throws ForbiddenException, MalformedException {
+        doThrow(MalformedException.class).when(orderFacade).deleteOrder(1L, 1L);
+        ResponseEntity<Void> response = orderController.orderOrderIDDelete(1L, 1L);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void orderDeleteOK() {
+        ResponseEntity<Void> response = orderController.orderOrderIDDelete(1L, 1L);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
 }

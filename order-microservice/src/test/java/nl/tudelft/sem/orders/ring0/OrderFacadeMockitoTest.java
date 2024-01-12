@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -651,5 +652,22 @@ public class OrderFacadeMockitoTest {
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isAdmin(2L)).thenReturn(false);
         assertDoesNotThrow(() -> orderFacade.rateOrder(2L, 1L, 7));
+    }
+
+    @Test
+    void testDeleteOrderById() throws ApiException {
+        long userId = 1L;
+        long orderId = 1L;
+
+        when(userMicroservice.isCustomer(userId)).thenReturn(true);
+        when(orderDatabase.getById(orderId)).thenReturn(new Order(1L,
+            1L,
+            2L,
+            new ArrayList<>(),
+            1f,
+            null,
+            Order.StatusEnum.ACCEPTED));
+
+        assertDoesNotThrow(() -> orderFacade.deleteOrder(userId, orderId));
     }
 }

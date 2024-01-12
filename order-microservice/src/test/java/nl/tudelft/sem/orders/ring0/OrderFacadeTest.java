@@ -2,8 +2,12 @@ package nl.tudelft.sem.orders.ring0;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
@@ -109,5 +113,37 @@ class OrderFacadeTest {
         assertThrows(MalformedException.class,
             () -> orderFacade.payForOrder(1L, 2L, "pass"));
         assertEquals(0, orderDatabase.getSaveRequests().size());
+    }
+
+    @Test
+    void testDeleteOrderByIdNoOrder() {
+        long userId = 1L;
+        long orderId = 100L;
+
+        // Test MalformedException when order does not exist
+        assertThrows(MalformedException.class, () -> orderFacade.deleteOrder(userId, orderId));
+    }
+
+    @Test
+    void testDeleteOrderMalformed() {
+        long userId = 100L;
+        long orderId = 1L;
+
+        assertThrows(MalformedException.class, () -> orderFacade.deleteOrder(userId, orderId));
+    }
+
+    @Test
+    void testDeleteOrderNotMatched() {
+        long userId = 3L;
+        long orderId = 1L;
+        orderDatabase.save(new Order(orderId,
+            1L,
+            2L,
+            new ArrayList<>(),
+            1f,
+            null,
+            Order.StatusEnum.ACCEPTED));
+
+        assertThrows(ForbiddenException.class, () -> orderFacade.deleteOrder(userId, orderId));
     }
 }
