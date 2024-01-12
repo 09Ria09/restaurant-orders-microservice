@@ -60,7 +60,7 @@ class VendorLogicTest {
     @Test
     void vendorsInRadiusWithLocation() {
         List<Long> retried = assertDoesNotThrow(() ->
-            vendorFacade.vendorsInRadius(1L, "none", new Location().city("a")));
+            vendorFacade.vendorsInRadius(1L, null, new Location().city("a")));
 
         assertEquals(0L, retried.get(0));
         assertEquals(1, retried.size());
