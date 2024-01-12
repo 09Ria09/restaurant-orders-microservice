@@ -2,8 +2,8 @@ package nl.tudelft.sem.orders.domain.config;
 
 import nl.tudelft.sem.delivery.api.AdminApi;
 import nl.tudelft.sem.delivery.api.DeliveryApi;
-import nl.tudelft.sem.orders.adapters.DishDatabaseAdapter;
-import nl.tudelft.sem.orders.adapters.OrderDatabaseAdapter;
+import nl.tudelft.sem.orders.adapters.database.DishDatabaseAdapter;
+import nl.tudelft.sem.orders.adapters.database.OrderDatabaseAdapter;
 import nl.tudelft.sem.orders.adapters.mocks.MockDeliveryMicroservice;
 import nl.tudelft.sem.orders.adapters.mocks.MockLocationAdapter;
 import nl.tudelft.sem.orders.adapters.mocks.MockPaymentAdapter;

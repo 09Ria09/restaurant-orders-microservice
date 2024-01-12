@@ -6,10 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
+import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
-import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
+import nl.tudelft.sem.orders.ports.input.VendorFacadeInterface;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
@@ -23,12 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VendorFacade implements VendorLogicInterface {
+public class VendorFacade implements VendorFacadeInterface {
     private final transient OrderDatabase orderDatabase;
     private transient UserMicroservice userMicroservice;
     private transient DishDatabase dishDatabase;
     private transient RadiusStrategy radiusStrategy;
     private transient SearchStrategy searchStrategy;
+    private transient VendorAnalytics vendorAnalytics;
 
 
     /**
@@ -45,12 +47,14 @@ public class VendorFacade implements VendorLogicInterface {
                         OrderDatabase orderDatabase,
                         DishDatabase dishDatabase,
                         RadiusStrategy radiusStrategy,
-                        SearchStrategy searchStrategy) {
+                        SearchStrategy searchStrategy,
+                        VendorAnalytics vendorAnalytics) {
         this.userMicroservice = userMicroservice;
         this.dishDatabase = dishDatabase;
         this.searchStrategy = searchStrategy;
         this.radiusStrategy = radiusStrategy;
         this.orderDatabase = orderDatabase;
+        this.vendorAnalytics = vendorAnalytics;
     }
 
     @Override
@@ -200,5 +204,10 @@ public class VendorFacade implements VendorLogicInterface {
         } catch (ApiException ignored) {
             return dishes;
         }
+    }
+
+    @Override
+    public List<Analytic> getVendorAnalysis(Long vendorID) throws MalformedException {
+        return vendorAnalytics.analyseOrders(vendorID);
     }
 }

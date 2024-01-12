@@ -26,6 +26,7 @@ import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.OrderFacade;
 import nl.tudelft.sem.users.ApiException;
+import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -225,6 +226,18 @@ class OrderControllerMockitoTest {
         Long userID = 1L;
 
         when(orderFacade.getOrders(1L)).thenThrow(new ApiException());
+
+        ResponseEntity<List<Order>> expected = ResponseEntity.badRequest().build();
+        ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void orderGetException2() throws ApiException {
+        Long userID = 1L;
+
+        when(orderFacade.getOrders(1L))
+                .thenThrow(new IllegalStateException("blah"));
 
         ResponseEntity<List<Order>> expected = ResponseEntity.badRequest().build();
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);

@@ -3,6 +3,7 @@ package nl.tudelft.sem.orders.controllers;
 import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.api.VendorApi;
+import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
@@ -69,6 +70,26 @@ public class VendorController implements VendorApi {
             return ResponseEntity.ok().build();
         } catch (ForbiddenException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (MalformedException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Gets the analytics for a vendor.
+     *
+     * @param userID The id of the vendor (required)
+     * @return The calculated analytics
+     */
+    public ResponseEntity<List<Analytic>> vendorAnalyticsGet(
+            Long userID
+    ) {
+        if (userID == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            return ResponseEntity.ok(vendorFacade.getVendorAnalysis(userID));
         } catch (MalformedException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }

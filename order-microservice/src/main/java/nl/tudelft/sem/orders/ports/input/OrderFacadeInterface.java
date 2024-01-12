@@ -8,9 +8,8 @@ import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.users.ApiException;
-import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 
-public interface OrderLogicInterface {
+public interface OrderFacadeInterface {
     void payForOrder(long userId, long orderId, String paymentRef)
         throws MalformedException, ForbiddenException;
 

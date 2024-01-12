@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import nl.tudelft.sem.orders.adapters.remote.UserRemoteProxy;
@@ -16,6 +18,7 @@ import nl.tudelft.sem.orders.ring0.distance.LocationMapper;
 import nl.tudelft.sem.users.ApiException;
 import nl.tudelft.sem.users.api.UserApi;
 import nl.tudelft.sem.users.api.VendorApi;
+import nl.tudelft.sem.users.model.Courier;
 import nl.tudelft.sem.users.model.Customer;
 import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import nl.tudelft.sem.users.model.UsersIdGet200Response;
@@ -32,13 +35,17 @@ public class UserProxyTest {
     @InjectMocks
     private UserRemoteProxy userRemoteAdapter;
 
+    private transient UserApi mockUserApi;
+
+    private transient VendorApi mockVendorApi;
+
     /**
      * Sets up the mocks.
      */
     @BeforeEach
     public void setUp() {
-        UserApi mockUserApi = mock(UserApi.class);
-        VendorApi mockVendorApi = mock(VendorApi.class);
+        mockUserApi = mock(UserApi.class);
+        mockVendorApi = mock(VendorApi.class);
         userRemoteAdapter = new UserRemoteProxy(mockUserApi, mockVendorApi, new LocationMapper());
         MockitoAnnotations.openMocks(this);
     }
@@ -158,4 +165,45 @@ public class UserProxyTest {
 
         assertThrows(ApiException.class, () -> userRemoteAdapter.getCustomerAllergies(userId));
     }
+
+    @Test
+    void testDoesUserExist() throws ApiException {
+        when(mockUserApi.usersIdGet(37L)).thenReturn(new UsersIdGet200Response());
+        when(mockUserApi.usersIdGet(38L)).thenThrow(new ApiException());
+
+        assertTrue(userRemoteAdapter.doesUserExist(37L));
+        assertFalse(userRemoteAdapter.doesUserExist(38L));
+    }
+
+    @Test
+    void testGetAllVendors() throws ApiException {
+        when(mockVendorApi.vendorsGet()).thenReturn(new ArrayList<>());
+
+        assertTrue(userRemoteAdapter.getAllVendors().isEmpty());
+    }
+
+    @Test
+    void testIsVendor() throws ApiException {
+        when(mockUserApi.usersGetUserTypeIdGet(22L)).thenReturn(new UsersGetUserTypeIdGet200Response().userType(
+            UsersGetUserTypeIdGet200Response.UserTypeEnum.VENDOR));
+
+        when(mockUserApi.usersGetUserTypeIdGet(23L)).thenReturn(new UsersGetUserTypeIdGet200Response().userType(
+            UsersGetUserTypeIdGet200Response.UserTypeEnum.CUSTOMER));
+
+        when(mockUserApi.usersGetUserTypeIdGet(11L)).thenReturn(new UsersGetUserTypeIdGet200Response().userType(
+            UsersGetUserTypeIdGet200Response.UserTypeEnum.ADMIN));
+
+        when(mockUserApi.usersGetUserTypeIdGet(13L)).thenReturn(new UsersGetUserTypeIdGet200Response().userType(
+            UsersGetUserTypeIdGet200Response.UserTypeEnum.COURIER));
+
+        assertTrue(userRemoteAdapter.isVendor(22L));
+        assertFalse(userRemoteAdapter.isVendor(23L));
+        assertTrue(userRemoteAdapter.isCourier(13L));
+        assertFalse(userRemoteAdapter.isCourier(23L));
+        assertTrue(userRemoteAdapter.isAdmin(11L));
+        assertFalse(userRemoteAdapter.isAdmin(13L));
+        assertTrue(userRemoteAdapter.isCustomer(23L));
+        assertFalse(userRemoteAdapter.isCustomer(13L));
+    }
+
 }

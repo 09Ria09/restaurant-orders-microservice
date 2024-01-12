@@ -130,5 +130,4 @@ class VendorLogicTest {
         assertDoesNotThrow(() -> vendorFacade.deleteDishById(userId, dishId));
         assertNull(dishDatabase.getById(dishId));
     }
-
 }

@@ -10,7 +10,7 @@ import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
-import nl.tudelft.sem.orders.ports.input.OrderLogicInterface;
+import nl.tudelft.sem.orders.ports.input.OrderFacadeInterface;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderFacade implements OrderLogicInterface {
+public class OrderFacade implements OrderFacadeInterface {
     private final transient OrderDatabase orderDatabase;
     private final transient DishDatabase dishDatabase;
     private final transient UserMicroservice userMicroservice;
