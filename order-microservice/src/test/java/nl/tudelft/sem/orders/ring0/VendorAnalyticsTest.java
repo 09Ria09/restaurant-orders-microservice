@@ -1,15 +1,21 @@
 package nl.tudelft.sem.orders.ring0;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import nl.tudelft.sem.delivery.ApiException;
 import nl.tudelft.sem.delivery.model.Delivery;
 import nl.tudelft.sem.delivery.model.DeliveryTimes;
+import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.AnalyticCustomerPreferencesInner;
 import nl.tudelft.sem.orders.model.AnalyticOrderVolumeInner;
 import nl.tudelft.sem.orders.model.Dish;
@@ -17,6 +23,7 @@ import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
+import nl.tudelft.sem.orders.result.MalformedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +38,8 @@ class VendorAnalyticsTest {
     void setUp() {
         deliveryMicroservice = mock(DeliveryMicroservice.class);
         orderDatabase = mock(OrderDatabase.class);
-        vendorAnalytics = new VendorAnalytics(orderDatabase, deliveryMicroservice);
+        vendorAnalytics =
+            new VendorAnalytics(orderDatabase, deliveryMicroservice);
     }
 
     @Test
@@ -138,6 +146,146 @@ class VendorAnalyticsTest {
     }
 
     @Test
+    void getPreferencesNoDishes() {
+        var ords = new ArrayList<Order>();
+
+        ords.add(new Order().customerID(1L));
+
+        assertTrue(vendorAnalytics.getCustomerPreferences(ords).isEmpty());
+    }
+
+    @Test
+    void testWholeFail() throws MalformedException, ApiException {
+        var dis1 = new ArrayList<OrderDishesInner>();
+        var dis2 = new ArrayList<OrderDishesInner>();
+
+        dis1.add(
+            new OrderDishesInner(new Dish().dishID(1L), 4));
+        dis1.add(
+            new OrderDishesInner(new Dish().dishID(21L), 15));
+
+        dis2.add(
+            new OrderDishesInner(new Dish().dishID(37L), 2));
+
+        var dis3 = new ArrayList<OrderDishesInner>();
+
+        var ords = new ArrayList<Order>();
+
+        ords.add(
+            new Order().customerID(1L).dishes(dis1).orderID(3L).vendorID(1L));
+        ords.add(
+            new Order().customerID(3L).dishes(dis2).orderID(122L).vendorID(1L));
+        ords.add(
+            new Order().customerID(1L).dishes(dis3).orderID(13L).vendorID(1L));
+
+        when(orderDatabase.findByVendorID(1L)).thenReturn(ords);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        Date twelve = calendar.getTime();
+        DeliveryTimes twelveTime = new DeliveryTimes();
+        twelveTime.setActualPickupTime(twelve);
+        calendar.set(Calendar.HOUR_OF_DAY, 11);
+        Date eleven = calendar.getTime();
+        DeliveryTimes elevenTime = new DeliveryTimes();
+        elevenTime.setActualPickupTime(eleven);
+        calendar.set(Calendar.HOUR_OF_DAY, 19);
+        Date nineteen = calendar.getTime();
+        DeliveryTimes nineteenTime = new DeliveryTimes();
+        nineteenTime.setActualPickupTime(nineteen);
+        calendar.set(Calendar.HOUR_OF_DAY, 20);
+
+        List<Delivery> deliveries = new ArrayList<>();
+        Delivery del11 = new Delivery();
+        del11.setTimes(elevenTime);
+        deliveries.add(del11);
+        Delivery del12 = new Delivery();
+        del12.setTimes(twelveTime);
+        deliveries.add(del12);
+        Delivery del193 = new Delivery();
+        del193.setTimes(nineteenTime);
+        deliveries.add(del193);
+
+        when(deliveryMicroservice.getDelivery(1L, 3L)).thenReturn(del11);
+        when(deliveryMicroservice.getDelivery(1L, 122L)).thenReturn(del12);
+        when(deliveryMicroservice.getDelivery(1L, 13L)).thenReturn(del193);
+
+        var expected = getExpectedAnalytic();
+
+        assertEquals(List.of(expected), vendorAnalytics.analyseOrders(1L));
+    }
+
+    @Test
+    void testWhole() throws MalformedException, ApiException {
+        var dis1 = new ArrayList<OrderDishesInner>();
+        var dis2 = new ArrayList<OrderDishesInner>();
+
+        dis1.add(
+            new OrderDishesInner(new Dish().dishID(1L), 4));
+        dis1.add(
+            new OrderDishesInner(new Dish().dishID(21L), 15));
+
+        dis2.add(
+            new OrderDishesInner(new Dish().dishID(37L), 2));
+
+        var dis3 = new ArrayList<OrderDishesInner>();
+
+        var ords = new ArrayList<Order>();
+
+        ords.add(
+            new Order().customerID(1L).dishes(dis1).orderID(3L).vendorID(1L));
+        ords.add(
+            new Order().customerID(3L).dishes(dis2).orderID(122L).vendorID(1L));
+        ords.add(
+            new Order().customerID(1L).dishes(dis3).orderID(13L).vendorID(1L));
+
+        when(orderDatabase.findByVendorID(1L)).thenReturn(ords);
+
+        when(deliveryMicroservice.getDelivery(1L, 3L)).thenThrow(new ApiException());
+
+        assertThrows(MalformedException.class, () -> vendorAnalytics.analyseOrders(1L));
+    }
+
+    private static Analytic getExpectedAnalytic() {
+        var cpref = new ArrayList<AnalyticCustomerPreferencesInner>();
+        cpref.add(new AnalyticCustomerPreferencesInner(1L, 21L));
+        cpref.add(new AnalyticCustomerPreferencesInner(3L, 37L));
+
+        var peaks = Arrays.asList(
+            new Integer[] {19, 12, 11, 23, 22, 21, 20, 18, 17, 16, 15, 14, 13,
+                10,
+                9, 8, 7, 6, 5, 4, 3, 2, 1, 0});
+
+        var poplar = Arrays.asList(new Dish[] {
+            new Dish().dishID(21L)
+        });
+
+        var volume = Arrays.asList(new AnalyticOrderVolumeInner[] {
+            new AnalyticOrderVolumeInner().day("Sunday").average(
+                new BigDecimal(0)),
+            new AnalyticOrderVolumeInner().day("Monday").average(
+                new BigDecimal(0)),
+            new AnalyticOrderVolumeInner().day("Tuesday").average(
+                new BigDecimal(0)),
+            new AnalyticOrderVolumeInner().day("Wednesday").average(
+                new BigDecimal(0)),
+            new AnalyticOrderVolumeInner().day("Thursday").average(
+                new BigDecimal(0)),
+            new AnalyticOrderVolumeInner().day("Friday").average(
+                new BigDecimal(3)),
+            new AnalyticOrderVolumeInner().day("Saturday").average(
+                new BigDecimal(0))
+        });
+
+
+        var expected =
+            new Analytic().customerPreferences(cpref).peakOrderingHours(peaks)
+                .popularItems(poplar).orderVolume(volume);
+        return expected;
+    }
+
+
+    @Test
     void getPeakHours() {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 12);
@@ -227,12 +375,17 @@ class VendorAnalyticsTest {
         List<AnalyticOrderVolumeInner> expected = new ArrayList<>();
         expected.add(new AnalyticOrderVolumeInner("Sunday", new BigDecimal(1)));
         expected.add(new AnalyticOrderVolumeInner("Monday", new BigDecimal(0)));
-        expected.add(new AnalyticOrderVolumeInner("Tuesday", new BigDecimal(1)));
-        expected.add(new AnalyticOrderVolumeInner("Wednesday", new BigDecimal(0)));
-        expected.add(new AnalyticOrderVolumeInner("Thursday", new BigDecimal(0)));
+        expected.add(
+            new AnalyticOrderVolumeInner("Tuesday", new BigDecimal(1)));
+        expected.add(
+            new AnalyticOrderVolumeInner("Wednesday", new BigDecimal(0)));
+        expected.add(
+            new AnalyticOrderVolumeInner("Thursday", new BigDecimal(0)));
         expected.add(new AnalyticOrderVolumeInner("Friday", new BigDecimal(0)));
-        expected.add(new AnalyticOrderVolumeInner("Saturday", new BigDecimal(0)));
+        expected.add(
+            new AnalyticOrderVolumeInner("Saturday", new BigDecimal(0)));
 
-        assertEquals(expected, vendorAnalytics.calculateOrderVolume(deliveries));
+        assertEquals(expected,
+            vendorAnalytics.calculateOrderVolume(deliveries));
     }
 }

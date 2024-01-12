@@ -10,7 +10,8 @@ import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
-import nl.tudelft.sem.orders.ports.input.OrderLogicInterface;
+import nl.tudelft.sem.orders.ports.input.OrderFacadeInterface;
+import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
@@ -19,18 +20,29 @@ import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
+import nl.tudelft.sem.orders.result.PaymentException;
+import nl.tudelft.sem.orders.result.VerificationException;
+import nl.tudelft.sem.orders.ring0.payment.DistanceValidator;
+import nl.tudelft.sem.orders.ring0.payment.Payment;
+import nl.tudelft.sem.orders.ring0.payment.StatusValidator;
+import nl.tudelft.sem.orders.ring0.payment.TokenValidator;
+import nl.tudelft.sem.orders.ring0.payment.UserOwnershipValidator;
 import nl.tudelft.sem.users.ApiException;
-import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderLogic implements OrderLogicInterface {
+public class OrderFacade implements OrderFacadeInterface {
     private final transient OrderDatabase orderDatabase;
     private final transient DishDatabase dishDatabase;
     private final transient UserMicroservice userMicroservice;
     private final transient PaymentService paymentService;
     private final transient LocationService locationService;
+    private final transient DistanceValidator distanceValidator;
+    private final transient StatusValidator statusValidator;
+    private final transient TokenValidator tokenValidator;
+    private final transient UserOwnershipValidator userOwnershipValidator;
+    private final transient DeliveryMicroservice deliveryMicroservice;
 
     /**
      * Creates a new order facade.
@@ -40,46 +52,76 @@ public class OrderLogic implements OrderLogicInterface {
      * @param userMicroservice The output port for the user microservice.
      * @param paymentService   The output port for the payment service.
      */
+    //CHECKSTYLE:OFF
     @Autowired
-    public OrderLogic(OrderDatabase orderDatabase,
-                      DishDatabase dishDatabase,
-                      UserMicroservice userMicroservice,
-                      PaymentService paymentService,
-                      LocationService locationService) {
+    public OrderFacade(OrderDatabase orderDatabase,
+                       DishDatabase dishDatabase,
+                       UserMicroservice userMicroservice,
+                       PaymentService paymentService,
+                       LocationService locationService,
+                       UserOwnershipValidator userOwnershipValidator,
+                       DistanceValidator distanceValidator,
+                       TokenValidator tokenValidator,
+                       StatusValidator statusValidator,
+                       DeliveryMicroservice deliveryMicroservice) {
+        //CHECKSTYLE:ON
         this.orderDatabase = orderDatabase;
         this.dishDatabase = dishDatabase;
         this.userMicroservice = userMicroservice;
         this.paymentService = paymentService;
         this.locationService = locationService;
+        this.distanceValidator = distanceValidator;
+        this.statusValidator = statusValidator;
+        this.tokenValidator = tokenValidator;
+        this.userOwnershipValidator = userOwnershipValidator;
+        this.deliveryMicroservice = deliveryMicroservice;
     }
 
     @Override
-    public void payForOrder(long userId, long orderId, String paymentConfirmation)
+    public void payForOrder(long userId, long orderId,
+                            String paymentConfirmation)
         throws MalformedException, ForbiddenException {
-        Order order = orderDatabase.getById(orderId);
+        // create the validation chain
 
-        if (order == null || order.getStatus() != Order.StatusEnum.UNPAID) {
-            throw new MalformedException();
-        }
+        var handler = tokenValidator;
+        handler.setNext(statusValidator);
+        statusValidator.setNext(userOwnershipValidator);
 
-        UsersGetUserTypeIdGet200Response.UserTypeEnum userType;
+        // make sure the distance validator is last since it is most costly
+
+        userOwnershipValidator.setNext(distanceValidator);
+
 
         try {
-            userType = userMicroservice.getUserType(userId);
-        } catch (Exception e) {
+            handler.verify(
+                new Payment(userId, orderId, paymentConfirmation));
+        } catch (PaymentException e) {
+            throw new ForbiddenException();
+        } catch (VerificationException e) {
             throw new MalformedException();
         }
 
-        // userType should never be null now
-        // therefore there is no need to check for that.
+        // now try debiting the amount from the card
 
-        if (order.getCustomerID() != userId || !paymentService.verifyPaymentConfirmation(paymentConfirmation)) {
-            throw new ForbiddenException();
+        Order order = orderDatabase.getById(orderId);
+        if (!paymentService.finalizePayment(paymentConfirmation)) {
+            // just give up
+            throw new MalformedException();
         }
 
-        order.setStatus(Order.StatusEnum.PENDING);
+        // otherwise first set the order to pend
 
+        order.setStatus(Order.StatusEnum.PENDING);
         orderDatabase.save(order);
+
+        // and inform the vendor of the new order
+
+        try {
+            deliveryMicroservice.newDelivery(order.getVendorID(),
+                order.getOrderID(), order.getCustomerID());
+        } catch (nl.tudelft.sem.delivery.ApiException e) {
+            throw new MalformedException();
+        }
     }
 
     /**
@@ -89,15 +131,18 @@ public class OrderLogic implements OrderLogicInterface {
      * @param vendorId   the id of the vendor
      */
     @Override
-    public Order createOrder(long customerId, long vendorId) throws ApiException {
+    public Order createOrder(long customerId, long vendorId)
+        throws ApiException {
         Order order = new Order();
         order.setCustomerID(customerId);
         order.setVendorID(vendorId);
         order.setDishes(new ArrayList<>());
         order.setLocation(userMicroservice.getCustomerAddress(customerId));
+        order.setPrice(0f);
         order.setStatus(Order.StatusEnum.UNPAID);
 
-        return orderDatabase.save(order);
+        orderDatabase.save(order);
+        return order;
     }
 
     /**
@@ -113,21 +158,25 @@ public class OrderLogic implements OrderLogicInterface {
         Order order = orderDatabase.getById(orderId);
         // Check if the order exists and the user
         // owns the order and if the order is unpaid.
-        if (order == null || order.getCustomerID() != customerId || order.getStatus() != Order.StatusEnum.UNPAID) {
+        if (order == null
+            || order.getCustomerID() != customerId
+            || order.getStatus() != Order.StatusEnum.UNPAID) {
             throw new EntityNotFoundException();
         }
 
         // Convert the list of IDs and amounts to a list of Dishes and amounts.
         try {
             OrderDishesInner[] convertedDishes = dishes.stream()
-                .map((dish) -> new OrderDishesInner(dishDatabase.getById(dish.getId()), dish.getQuantity()))
+                .map((dish) -> new OrderDishesInner(
+                    dishDatabase.getById(dish.getId()), dish.getQuantity()))
                 .toArray(OrderDishesInner[]::new);
 
             // Check if the dishes belong to the vendor and calculate the total price.
             float totalPrice = 0;
             for (OrderDishesInner dish : convertedDishes) {
                 if (dish.getDish() == null || dish.getAmount() == null
-                    || !Objects.equals(dish.getDish().getVendorID(), order.getVendorID())) {
+                    || !Objects.equals(dish.getDish().getVendorID(),
+                    order.getVendorID())) {
                     throw new IllegalStateException();
                 }
                 totalPrice += dish.getDish().getPrice() * dish.getAmount();
@@ -145,22 +194,23 @@ public class OrderLogic implements OrderLogicInterface {
     }
 
     @Override
-    public List<Order> getOrders(Long userID, UsersGetUserTypeIdGet200Response.UserTypeEnum userType) {
-        // Sidenote: There is no null check for userID in this method as that is already checked in the controller, so
-        // there is no need to do that here.
-        if (userType == null) {
-            throw new IllegalStateException("The user has a null userType");
+    public List<Order> getOrders(Long userID) throws ApiException {
+        List<Order> foundOrders = null;
+
+        if (userMicroservice.isCustomer(userID)) {
+            foundOrders = orderDatabase.findByCustomerID(userID);
+        } else if (userMicroservice.isVendor(userID)) {
+            foundOrders = orderDatabase.findByVendorID(userID);
+        } else if (userMicroservice.isAdmin(userID)) {
+            foundOrders = orderDatabase.findAllOrders();
+        } else if (userMicroservice.isCourier(userID)) {
+            foundOrders = orderDatabase.findByCourierID(userID);
         }
-        List<Order> foundOrders;
-        switch (userType) {
-            case ADMIN -> foundOrders = orderDatabase.findAllOrders();
-            case VENDOR -> foundOrders = orderDatabase.findByVendorID(userID);
-            case COURIER -> foundOrders = orderDatabase.findByCourierID(userID);
-            default -> foundOrders = orderDatabase.findByCustomerID(userID);
-        }
+
         if (foundOrders == null) {
             throw new IllegalStateException("The database query went wrong");
         }
+
         return foundOrders;
     }
 
@@ -178,7 +228,8 @@ public class OrderLogic implements OrderLogicInterface {
      * @throws NotFoundException  if the vendor does not exist, is not close by, or if any of the dishes do not exist
      */
     @Override
-    public Order reorder(Long userID, Long orderID) throws MalformedException, NotFoundException {
+    public Order reorder(Long userID, Long orderID)
+        throws MalformedException, NotFoundException {
         Order order = orderDatabase.getById(orderID);
 
         if (order == null || !Objects.equals(order.getCustomerID(), userID)) {
@@ -193,10 +244,7 @@ public class OrderLogic implements OrderLogicInterface {
         try {
             userAddress = userMicroservice.getCustomerAddress(userID);
 
-            if (!userMicroservice.isVendor(vendorID) || !locationService.isCloseBy(
-                userAddress,
-                userMicroservice.getVendorAddress(vendorID))
-            ) {
+            if (!userMicroservice.isVendor(vendorID)) {
                 throw new NotFoundException();
             }
         } catch (Exception e) {
@@ -222,4 +270,36 @@ public class OrderLogic implements OrderLogicInterface {
 
         return orderDatabase.save(newOrder);
     }
+
+    /**
+     * Adds given rating to the order.
+     *
+     * @param userID id of user who rates.
+     * @param orderID id of order to be rated.
+     * @param rating integer between 0 and 10.
+     * @throws MalformedException Invalid rating value or user id or missing/invalid order id/
+     * @throws ForbiddenException If trying to change a rating not as a customer
+     *      or admin or of not own order (in case of customer).
+     * @throws ApiException .
+     */
+    public void rateOrder(Long userID, Long orderID, Integer rating)
+            throws MalformedException, ForbiddenException, ApiException {
+        if (orderID == null || userID == null) {
+            throw new MalformedException();
+        }
+
+        Order order = orderDatabase.getById(orderID);
+
+        if (order == null || rating < 0 || rating > 10) {
+            throw new MalformedException();
+        }
+
+        if (!userMicroservice.isAdmin(userID) && !order.getCustomerID().equals(userID)) {
+            throw new ForbiddenException();
+        }
+
+        order.setRating(rating);
+        orderDatabase.save(order);
+    }
+
 }

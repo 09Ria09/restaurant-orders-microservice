@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import nl.tudelft.sem.delivery.ApiException;
 import nl.tudelft.sem.delivery.model.Delivery;
 import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.AnalyticCustomerPreferencesInner;
@@ -17,6 +18,7 @@ import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
+import nl.tudelft.sem.orders.result.MalformedException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -51,11 +53,17 @@ public class VendorAnalytics {
      * @param vendorID ID of the vendor.
      * @return The analytic of the vendor.
      */
-    public List<Analytic> analyseOrders(Long vendorID) {
+    public List<Analytic> analyseOrders(Long vendorID)
+        throws MalformedException {
         List<Order> allOrders = orderDatabase.findByVendorID(vendorID);
         List<Delivery> deliveries = new ArrayList<>();
         for (Order order : allOrders) {
-            deliveries.add(deliveryMicroservice.getDelivery(vendorID, order.getOrderID()));
+            try {
+                deliveries.add(deliveryMicroservice.getDelivery(vendorID,
+                    order.getOrderID()));
+            } catch (ApiException e) {
+                throw new MalformedException();
+            }
         }
 
         Analytic analytic = new Analytic();
@@ -74,43 +82,64 @@ public class VendorAnalytics {
      * @param allOrders The orders
      * @return The most liked dish of each customer
      */
-    public List<AnalyticCustomerPreferencesInner> getCustomerPreferences(List<Order> allOrders) {
-        HashMap<Long, HashMap<Long, Integer>> dishesPerCustomer = new HashMap<>();
+    public List<AnalyticCustomerPreferencesInner> getCustomerPreferences(
+        List<Order> allOrders) {
+        HashMap<Long, HashMap<Long, Integer>> dishesPerCustomer =
+            new HashMap<>();
+
         for (Order o : allOrders) {
             putOrderInHashMap(dishesPerCustomer, o);
         }
-        List<AnalyticCustomerPreferencesInner> customerPreferences = new ArrayList<>();
+
+        List<AnalyticCustomerPreferencesInner> customerPreferences =
+            new ArrayList<>();
+
         for (Long customerID : dishesPerCustomer.keySet()) {
-            HashMap<Long, Integer> customerDishes = dishesPerCustomer.get(customerID);
-            int maxAmount = Collections.max(customerDishes.values());
+            HashMap<Long, Integer> customerDishes =
+                dishesPerCustomer.get(customerID);
+
+            int maxAmount = -1;
+            long dishId = -1;
+
             for (Map.Entry<Long, Integer> dishAmount : customerDishes.entrySet()) {
-                if (dishAmount.getValue() == maxAmount) {
-                    customerPreferences.add(new AnalyticCustomerPreferencesInner(customerID, dishAmount.getKey()));
-                    break;
+                if (dishAmount.getValue() > maxAmount) {
+                    maxAmount = dishAmount.getValue();
+                    dishId = dishAmount.getKey();
                 }
             }
+
+            if (dishId != -1) {
+                customerPreferences.add(
+                    new AnalyticCustomerPreferencesInner(customerID, dishId));
+            }
         }
+
         return customerPreferences;
     }
 
-    private static void putOrderInHashMap(HashMap<Long, HashMap<Long, Integer>> dishesPerCustomer, Order o) {
+    private static void putOrderInHashMap(
+        HashMap<Long, HashMap<Long, Integer>> dishesPerCustomer, Order o) {
         Long customerID = o.getCustomerID();
         List<OrderDishesInner> dishesInners = o.getDishes();
 
         if (!dishesPerCustomer.containsKey(customerID)) {
             dishesPerCustomer.put(customerID, new HashMap<>());
             for (OrderDishesInner dish : dishesInners) {
-                dishesPerCustomer.get(customerID).put(dish.getDish().getDishID(), dish.getAmount());
+                dishesPerCustomer.get(customerID)
+                    .put(dish.getDish().getDishID(), dish.getAmount());
             }
         } else {
 
             for (OrderDishesInner dish : dishesInners) {
                 Long dishID = dish.getDish().getDishID();
                 if (dishesPerCustomer.get(customerID).containsKey(dishID)) {
-                    Integer curAmount = dishesPerCustomer.get(customerID).get(dishID);
-                    dishesPerCustomer.get(customerID).replace(dishID, dish.getAmount() + curAmount);
+                    Integer curAmount =
+                        dishesPerCustomer.get(customerID).get(dishID);
+                    dishesPerCustomer.get(customerID)
+                        .replace(dishID, dish.getAmount() + curAmount);
                 } else {
-                    dishesPerCustomer.get(customerID).put(dish.getDish().getDishID(), dish.getAmount());
+                    dishesPerCustomer.get(customerID)
+                        .put(dish.getDish().getDishID(), dish.getAmount());
                 }
             }
         }
@@ -124,8 +153,8 @@ public class VendorAnalytics {
      */
     public List<Dish> getPopularDishes(List<Order> allOrders) {
         List<OrderDishesInner> dishesInners = allOrders.stream()
-                .flatMap(x -> x.getDishes().stream())
-                .collect(Collectors.toList());
+            .flatMap(x -> x.getDishes().stream())
+            .collect(Collectors.toList());
 
         HashMap<Dish, Integer> dishAmounts = new HashMap<>();
 
@@ -187,7 +216,8 @@ public class VendorAnalytics {
      * @param deliveries Deliveries made
      * @return Volume of orders
      */
-    public List<AnalyticOrderVolumeInner> calculateOrderVolume(List<Delivery> deliveries) {
+    public List<AnalyticOrderVolumeInner> calculateOrderVolume(
+        List<Delivery> deliveries) {
         List<AnalyticOrderVolumeInner> orderVolumes = new ArrayList<>();
         int[] days = new int[7];
 
@@ -198,7 +228,8 @@ public class VendorAnalytics {
             days[d.getTimes().getActualPickupTime().getDay()]++;
         }
         for (int i = 0; i < 7; i++) {
-            orderVolumes.add(new AnalyticOrderVolumeInner(intToDay(i), new BigDecimal(days[i])));
+            orderVolumes.add(new AnalyticOrderVolumeInner(intToDay(i),
+                new BigDecimal(days[i])));
         }
         return orderVolumes;
     }

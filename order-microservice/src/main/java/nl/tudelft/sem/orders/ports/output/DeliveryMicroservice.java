@@ -11,5 +11,9 @@ public interface DeliveryMicroservice {
 
     Integer getAdminRadius(long userId) throws ApiException;
 
-    Delivery getDelivery(long userID, long orderID);
+    Delivery getDelivery(long userId, long orderId) throws ApiException;
+
+    long getDeliveryRadius(long vendorId, long userId) throws ApiException;
+
+    void newDelivery(long vendorId, long orderId, long userId) throws ApiException;
 }

@@ -1,4 +1,4 @@
-package nl.tudelft.sem.orders.adapters;
+package nl.tudelft.sem.orders.adapters.database;
 
 import java.util.List;
 import nl.tudelft.sem.orders.domain.OrderRepository;
@@ -23,6 +23,11 @@ public class OrderDatabaseAdapter implements OrderDatabase {
     }
 
     @Override
+    public List<Order> findByVendorIDAndCustomerID(long vendorID, long customerID) {
+        return orderRepository.findByVendorIDAndCustomerID(vendorID, customerID);
+    }
+
+    @Override
     public List<Order> findByVendorID(long vendorID) {
         return orderRepository.findByVendorID(vendorID);
     }
@@ -41,4 +46,6 @@ public class OrderDatabaseAdapter implements OrderDatabase {
     public List<Order> findAllOrders() {
         return orderRepository.findAll();
     }
+
+
 }

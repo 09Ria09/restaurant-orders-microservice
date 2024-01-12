@@ -36,7 +36,7 @@ class VendorControllerTest {
             vendorController.vendorRadiusPost(1L, "none",
                 new Location().city("a")).getBody();
 
-        assertEquals(100L, retried.get(0));
+        assertEquals(0L, retried.get(0));
         assertEquals(1, retried.size());
     }
 }

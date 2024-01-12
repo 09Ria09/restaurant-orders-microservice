@@ -1,5 +1,6 @@
-package nl.tudelft.sem.orders.adapters;
+package nl.tudelft.sem.orders.adapters.database;
 
+import java.util.List;
 import nl.tudelft.sem.orders.domain.DishRepository;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
@@ -22,6 +23,11 @@ public class DishDatabaseAdapter implements DishDatabase {
     @Override
     public void delete(Dish dish) {
         dishRepository.delete(dish);
+    }
+
+    @Override
+    public List<Dish> findDishesByVendorID(Long vendorId) {
+        return dishRepository.findDishesByVendorID(vendorId);
     }
 
 }
