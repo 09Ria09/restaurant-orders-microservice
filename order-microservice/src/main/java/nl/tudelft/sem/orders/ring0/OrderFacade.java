@@ -11,22 +11,15 @@ import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
 import nl.tudelft.sem.orders.ports.input.OrderFacadeInterface;
-import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
-import nl.tudelft.sem.orders.ports.output.PaymentService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
-import nl.tudelft.sem.orders.result.PaymentException;
-import nl.tudelft.sem.orders.result.VerificationException;
-import nl.tudelft.sem.orders.ring0.payment.DistanceValidator;
-import nl.tudelft.sem.orders.ring0.payment.Payment;
-import nl.tudelft.sem.orders.ring0.payment.StatusValidator;
-import nl.tudelft.sem.orders.ring0.payment.TokenValidator;
-import nl.tudelft.sem.orders.ring0.payment.UserOwnershipValidator;
+import nl.tudelft.sem.orders.ring0.methods.OrderModification;
+import nl.tudelft.sem.orders.ring0.payment.PaymentProcess;
 import nl.tudelft.sem.users.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,13 +29,9 @@ public class OrderFacade implements OrderFacadeInterface {
     private final transient OrderDatabase orderDatabase;
     private final transient DishDatabase dishDatabase;
     private final transient UserMicroservice userMicroservice;
-    private final transient PaymentService paymentService;
     private final transient LocationService locationService;
-    private final transient DistanceValidator distanceValidator;
-    private final transient StatusValidator statusValidator;
-    private final transient TokenValidator tokenValidator;
-    private final transient UserOwnershipValidator userOwnershipValidator;
-    private final transient DeliveryMicroservice deliveryMicroservice;
+    private final transient PaymentProcess paymentProcess;
+    private final transient OrderModification orderModification;
 
     /**
      * Creates a new order facade.
@@ -50,70 +39,28 @@ public class OrderFacade implements OrderFacadeInterface {
      * @param orderDatabase    The database output port.
      * @param dishDatabase     The dish database.
      * @param userMicroservice The output port for the user microservice.
-     * @param paymentService   The output port for the payment service.
      */
     //CHECKSTYLE:OFF
     @Autowired
-    public OrderFacade(OrderDatabase orderDatabase, DishDatabase dishDatabase, UserMicroservice userMicroservice,
-                       PaymentService paymentService, LocationService locationService,
-                       UserOwnershipValidator userOwnershipValidator, DistanceValidator distanceValidator,
-                       TokenValidator tokenValidator, StatusValidator statusValidator,
-                       DeliveryMicroservice deliveryMicroservice) {
+    public OrderFacade(OrderDatabase orderDatabase,
+                       DishDatabase dishDatabase,
+                       UserMicroservice userMicroservice,
+                       LocationService locationService,
+                       PaymentProcess paymentProcess,
+                       OrderModification orderModification) {
         //CHECKSTYLE:ON
         this.orderDatabase = orderDatabase;
         this.dishDatabase = dishDatabase;
         this.userMicroservice = userMicroservice;
-        this.paymentService = paymentService;
         this.locationService = locationService;
-        this.distanceValidator = distanceValidator;
-        this.statusValidator = statusValidator;
-        this.tokenValidator = tokenValidator;
-        this.userOwnershipValidator = userOwnershipValidator;
-        this.deliveryMicroservice = deliveryMicroservice;
+        this.paymentProcess = paymentProcess;
+        this.orderModification = orderModification;
     }
 
     @Override
     public void payForOrder(long userId, long orderId, String paymentConfirmation)
         throws MalformedException, ForbiddenException {
-        // create the validation chain
-
-        var handler = tokenValidator;
-        handler.setNext(statusValidator);
-        statusValidator.setNext(userOwnershipValidator);
-
-        // make sure the distance validator is last since it is most costly
-
-        userOwnershipValidator.setNext(distanceValidator);
-
-
-        try {
-            handler.verify(new Payment(userId, orderId, paymentConfirmation));
-        } catch (PaymentException e) {
-            throw new ForbiddenException();
-        } catch (VerificationException e) {
-            throw new MalformedException();
-        }
-
-        // now try debiting the amount from the card
-
-        Order order = orderDatabase.getById(orderId);
-        if (!paymentService.finalizePayment(paymentConfirmation)) {
-            // just give up
-            throw new MalformedException();
-        }
-
-        // otherwise first set the order to pend
-
-        order.setStatus(Order.StatusEnum.PENDING);
-        orderDatabase.save(order);
-
-        // and inform the vendor of the new order
-
-        try {
-            deliveryMicroservice.newDelivery(order.getVendorID(), order.getOrderID(), order.getCustomerID());
-        } catch (nl.tudelft.sem.delivery.ApiException e) {
-            throw new MalformedException();
-        }
+        paymentProcess.payForOrder(userId, orderId, paymentConfirmation);
     }
 
     /**
@@ -155,44 +102,7 @@ public class OrderFacade implements OrderFacadeInterface {
     public Float updateDishes(long orderId, long customerId,
                               @Valid List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes)
         throws EntityNotFoundException, IllegalStateException, ApiException {
-        Order order = orderDatabase.getById(orderId);
-        if (!userMicroservice.isCustomer(customerId)) {
-            throw new ApiException();
-        }
-
-        // Check if the order exists and the user
-        // owns the order and if the order is unpaid.
-        if (order == null || order.getCustomerID() != customerId
-            || order.getStatus() != Order.StatusEnum.UNPAID) {
-            throw new EntityNotFoundException();
-        }
-
-        // Convert the list of IDs and amounts to a list of Dishes and amounts.
-        try {
-            OrderDishesInner[] convertedDishes = dishes.stream()
-                .map((dish) -> new OrderDishesInner(dishDatabase.getById(dish.getId()), dish.getQuantity()))
-                .toArray(OrderDishesInner[]::new);
-
-            // Check if the dishes belong to the vendor and calculate the total price.
-            float totalPrice = 0;
-            for (OrderDishesInner dish : convertedDishes) {
-                if (dish.getDish() == null
-                    || dish.getAmount() == null
-                    || !Objects.equals(dish.getDish().getVendorID(), order.getVendorID())) {
-                    throw new IllegalStateException();
-                }
-                totalPrice += dish.getDish().getPrice() * dish.getAmount();
-            }
-
-            // Update the dishes.
-            order.setDishes(List.of(convertedDishes));
-            orderDatabase.save(order);
-
-            // Return the price.
-            return totalPrice;
-        } catch (EntityNotFoundException e) {
-            throw new IllegalStateException(e);
-        }
+        return orderModification.updateDishesProcess(orderId, customerId, dishes);
     }
 
     @Override
@@ -342,51 +252,7 @@ public class OrderFacade implements OrderFacadeInterface {
      * @throws ForbiddenException thrown if user doesn't have the permission to do the requested update.
      */
     public Order changeOrder(Long userId, Order order) throws MalformedException, ApiException, ForbiddenException {
-        if (userId == null || order == null) {
-            throw new MalformedException();
-        }
-
-        Order orderRepo = orderDatabase.getById(order.getOrderID());
-        if (orderRepo == null) {
-            throw new MalformedException();
-        }
-        checkModifyForCustomer(userId, order, orderRepo);
-        orderRepo = orderDatabase.getById(order.getOrderID());
-        checkModifyForVendorAndCourier(userId, order, orderRepo);
-        orderDatabase.save(order);
-        return order;
-    }
-
-    private void checkModifyForVendorAndCourier(Long userId, Order order, Order orderRepo)
-            throws ApiException, ForbiddenException {
-        if (userMicroservice.isVendor(userId) || userMicroservice.isCourier(userId)) {
-            orderRepo.setStatus(order.getStatus());
-            orderRepo.setCourierID(order.getCourierID());
-            orderRepo.setPrice(order.getPrice());
-            if (userMicroservice.isCourier(userId)) {
-                orderRepo.setCourierRating(order.getCourierRating());
-            }
-            float price = 0;
-            for (OrderDishesInner d : order.getDishes()) {
-                price = d.getDish().getPrice() * d.getAmount();
-            }
-            if (!orderRepo.equals(order) || order.getPrice() < price) {
-                throw new ForbiddenException();
-            }
-
-        }
-    }
-
-    private void checkModifyForCustomer(Long userId, Order order, Order orderRepo)
-            throws ApiException, ForbiddenException {
-        if (userMicroservice.isCustomer(userId)) {
-            orderRepo.setLocation(order.getLocation());
-            if (!userId.equals(orderRepo.getCustomerID())
-                    || orderRepo.getStatus() != Order.StatusEnum.UNPAID
-                    || !orderRepo.equals(order)) {
-                throw new ForbiddenException();
-            }
-        }
+        return orderModification.updateOrderProcess(userId, order);
     }
 
     /**

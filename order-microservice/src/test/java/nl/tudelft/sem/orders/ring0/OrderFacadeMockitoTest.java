@@ -20,7 +20,6 @@ import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
-import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
@@ -28,11 +27,8 @@ import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
-import nl.tudelft.sem.orders.ring0.payment.DistanceValidator;
-import nl.tudelft.sem.orders.ring0.payment.StatusValidator;
-import nl.tudelft.sem.orders.ring0.payment.TokenValidator;
-import nl.tudelft.sem.orders.ring0.payment.UserOwnershipValidator;
-import nl.tudelft.sem.orders.test.mocks.MockPaymentService;
+import nl.tudelft.sem.orders.ring0.methods.OrderModification;
+import nl.tudelft.sem.orders.ring0.payment.PaymentProcess;
 import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +41,7 @@ public class OrderFacadeMockitoTest {
     private UserMicroservice userMicroservice;
     private OrderFacade orderFacade;
     private LocationService locationService;
+    private OrderModification orderModification;
 
     @BeforeEach
     void setUp() throws ApiException {
@@ -53,20 +50,18 @@ public class OrderFacadeMockitoTest {
         userMicroservice = mock(UserMicroservice.class);
         locationService = mock(LocationService.class);
 
+
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(userMicroservice.isCustomer(anyLong())).thenReturn(true);
+        orderModification = new OrderModification(orderDatabase, dishDatabase, userMicroservice);
 
         orderFacade = new OrderFacade(
             orderDatabase,
             dishDatabase,
             userMicroservice,
-            new MockPaymentService(),
             locationService,
-            mock(UserOwnershipValidator.class),
-            mock(DistanceValidator.class),
-            mock(TokenValidator.class),
-            mock(StatusValidator.class),
-            mock(DeliveryMicroservice.class)
+            mock(PaymentProcess.class),
+            orderModification
         );
     }
 
