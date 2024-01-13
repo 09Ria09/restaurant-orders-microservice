@@ -12,7 +12,9 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.Dish;
+import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
@@ -62,6 +64,22 @@ class VendorLogicMockitoTest {
     }
 
     @Test
+    void testAddDish() throws ApiException {
+        var ings = new ArrayList<String>();
+        ings.add("abc");
+        Dish d = new Dish().dishID(3L).name("asd").vendorID(2L).description("test").ingredients(ings).price(1f);
+
+        when(userMicroservice.isVendor(2L)).thenReturn(true);
+
+        var ret = assertDoesNotThrow(() -> vendorFacade.addDish(d));
+
+        var d2 = new Dish().name("asd").vendorID(2L).description("test").ingredients(ings).price(1f);
+        verify(dishDatabase, times(1)).save(d2);
+
+        assertEquals(ret.get(0), d2);
+    }
+
+    @Test
     void vendorsInRadius() throws ApiException {
         when(userMicroservice.isCustomer(2L)).thenReturn(true);
 
@@ -94,7 +112,8 @@ class VendorLogicMockitoTest {
         List<Dish> result = vendorFacade.getDishesRemoveUserAllergies(vendorId, userId);
 
         assertEquals(2, result.size());
-        assertEquals(goodDish, dishes.get(0));
+        assertEquals(badDish, result.get(0));
+        assertEquals(nullDish, result.get(1));
     }
 
     @Test
@@ -170,9 +189,13 @@ class VendorLogicMockitoTest {
 
     @Test
     void vendorAnalytics() throws MalformedException {
-        when(vendorAnalytics.analyseOrders(2115L)).thenReturn(new ArrayList<>());
+        var ret = new ArrayList<Analytic>();
 
-        assertTrue(vendorFacade.getVendorAnalysis(2115L).isEmpty());
+        ret.add(new Analytic());
+
+        when(vendorAnalytics.analyseOrders(2115L)).thenReturn(ret);
+
+        assertEquals(ret, vendorFacade.getVendorAnalysis(2115L));
 
         verify(vendorAnalytics, times(1)).analyseOrders(2115L);
     }
