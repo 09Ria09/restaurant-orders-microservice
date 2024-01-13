@@ -21,6 +21,7 @@ import nl.tudelft.sem.delivery.api.VendorApi;
 import nl.tudelft.sem.delivery.model.CreateDeliveryRequest;
 import nl.tudelft.sem.delivery.model.Delivery;
 import nl.tudelft.sem.delivery.model.GetCurrentDefaultRadius200Response;
+import nl.tudelft.sem.delivery.model.GetDeliveryRadiuses200ResponseInner;
 import nl.tudelft.sem.delivery.model.GetVendorDeliveryRadius200Response;
 import nl.tudelft.sem.orders.adapters.remote.DeliveryRemoteProxy;
 import nl.tudelft.sem.orders.adapters.remote.UserRemoteProxy;
@@ -60,10 +61,17 @@ public class DeliveryProxyTest {
 
     @Test
     void testGetRadii() throws ApiException {
-        when(mockVendorApi.getDeliveryRadiuses(1L)).thenReturn(
-            new ArrayList<>());
+        var ret = new ArrayList<GetDeliveryRadiuses200ResponseInner>();
 
-        assertTrue(deliveryRemoteProxy.getRadii(1L).isEmpty());
+        ret.add(new GetDeliveryRadiuses200ResponseInner().radius(1).vendorID(2L));
+
+        when(mockVendorApi.getDeliveryRadiuses(1L)).thenReturn(ret);
+
+        var got = deliveryRemoteProxy.getRadii(1L);
+
+        assertEquals(1, got.get(0).getRadius());
+        assertEquals(2L, got.get(0).getVendorID());
+        assertEquals(1, got.size());
     }
 
     @Test

@@ -64,7 +64,12 @@ class VendorAnalyticsTest {
         dishList1.add(dishes2);
         dishList2.add(dishes2);
         OrderDishesInner dishes4 = new OrderDishesInner(dish3, 3);
+
+        OrderDishesInner dishes7 = new OrderDishesInner(dish1, 3);
+
         dishList2.add(dishes4);
+
+        dishList2.add(dishes7);
         List<OrderDishesInner> dishList3 = new ArrayList<>();
         OrderDishesInner dishes3 = new OrderDishesInner(dish3, 2);
         dishList3.add(dishes3);
@@ -97,7 +102,7 @@ class VendorAnalyticsTest {
 
         List<AnalyticCustomerPreferencesInner> expected = new ArrayList<>();
         expected.add(new AnalyticCustomerPreferencesInner(1L, 2L));
-        expected.add(new AnalyticCustomerPreferencesInner(2L, 3L));
+        expected.add(new AnalyticCustomerPreferencesInner(2L, 1L));
         expected.add(new AnalyticCustomerPreferencesInner(3L, 3L));
 
         assertEquals(expected, vendorAnalytics.getCustomerPreferences(input));

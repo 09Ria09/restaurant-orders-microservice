@@ -2,7 +2,6 @@
 .gradle
 build/
 gradle-app.setting
-#!gradle/wrapper/gradle-wrapper.jar
 **/build/
 .gradletasknamecache
 
@@ -35,3 +34,5 @@ gradle-app.setting
 
 ### MacOS ###
 *.DS_Store
+
+!gradle/wrapper/gradle-wrapper.jar

@@ -37,7 +37,7 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
             throw new ApiException();
         }
 
-        return 5;
+        return 0;
     }
 
     @Override

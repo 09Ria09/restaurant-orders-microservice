@@ -18,7 +18,6 @@ public class LocationMapper {
         location.setCity(preLocation.getCity());
         location.setCountry(preLocation.getCountry());
         location.setAdditionalRemarks(preLocation.getAdditionalRemarks());
-        location.setPostalCode(preLocation.getStreetNumber());
         location.setAddress(preLocation.getStreet() + ' ' + preLocation.getStreetNumber());
 
         return location;

@@ -136,7 +136,6 @@ public class OrderFacade implements OrderFacadeInterface {
         Order order = new Order();
         order.setCustomerID(customerId);
         order.setVendorID(vendorId);
-        order.setDishes(new ArrayList<>());
         order.setLocation(userMicroservice.getCustomerAddress(customerId));
         order.setPrice(0f);
         order.setStatus(Order.StatusEnum.UNPAID);

@@ -177,9 +177,22 @@ public class UserProxyTest {
 
     @Test
     void testGetAllVendors() throws ApiException {
-        when(mockVendorApi.vendorsGet()).thenReturn(new ArrayList<>());
+        var vv = new ArrayList<Vendor>();
+        vv.add(new Vendor().name("test"));
 
-        assertTrue(userRemoteAdapter.getAllVendors().isEmpty());
+        when(mockVendorApi.vendorsGet()).thenReturn(vv);
+
+        assertEquals(new Vendor().name("test"), userRemoteAdapter.getAllVendors().get(0));
+    }
+
+    @Test
+    void testGetUserById() throws ApiException {
+        var dis = new UsersIdGet200Response();
+        dis.setActualInstance(new Customer().name("test"));
+
+        when(mockUserApi.usersIdGet(13L)).thenReturn(dis);
+
+        assertEquals(new Customer().name("test"), userRemoteAdapter.getUserById(13L).getActualInstance());
     }
 
     @Test
