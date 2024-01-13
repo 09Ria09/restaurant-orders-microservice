@@ -21,7 +21,6 @@ import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.methods.OrderModification;
 import nl.tudelft.sem.orders.ring0.payment.PaymentProcess;
 import nl.tudelft.sem.users.ApiException;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
