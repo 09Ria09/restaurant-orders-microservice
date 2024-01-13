@@ -851,22 +851,23 @@ public class OrderFacadeMockitoTest {
     void testChangeOrderVendorOk() throws ApiException {
         Location location = new Location();
         Dish dish = new Dish(1L,
-                2L,
-                "name",
-                "description",
-                new ArrayList<>(),
-                8.0f);
+            2L,
+            "name",
+            "description",
+            new ArrayList<>(),
+            8.0f);
         OrderDishesInner dishInner = new OrderDishesInner(dish, 2);
         ArrayList<OrderDishesInner> dishList = new ArrayList<>();
         dishList.add(dishInner);
 
         Order order = new Order(1L, 2L, 3L, dishList,
-                16F, location, Order.StatusEnum.ACCEPTED);
+            16F, location, Order.StatusEnum.ACCEPTED);
         order.setCourierID(99L);
         Order orderRepo = new Order(1L, 2L, 3L, dishList,
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         orderRepo.setCourierID(44L);
 
+        when(userMicroservice.isCustomer(3L)).thenReturn(false);
         when(userMicroservice.isVendor(3L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
@@ -880,12 +881,13 @@ public class OrderFacadeMockitoTest {
     void testChangeOrderCourierChangeCourierRating() throws ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         order.setCourierRating(8);
         Order orderRepo = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         orderRepo.setCourierRating(10);
 
+        when(userMicroservice.isCustomer(4L)).thenReturn(false);
         when(userMicroservice.isCourier(4L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
@@ -899,29 +901,30 @@ public class OrderFacadeMockitoTest {
     void testChangeOrderCourierOk() throws ApiException {
         Location location = new Location();
         Dish dish = new Dish(1L,
-                2L,
-                "name",
-                "description",
-                new ArrayList<>(),
-                8.0f);
+            2L,
+            "name",
+            "description",
+            new ArrayList<>(),
+            8.0f);
         OrderDishesInner dishInner = new OrderDishesInner(dish, 2);
         ArrayList<OrderDishesInner> dishList = new ArrayList<>();
         dishList.add(dishInner);
 
         Order order = new Order(1L, 2L, 3L, dishList,
-                16F, location, Order.StatusEnum.ACCEPTED);
+            16F, location, Order.StatusEnum.ACCEPTED);
         order.setCourierID(99L);
         order.setCourierRating(10);
         Order orderRepo = new Order(1L, 2L, 3L, dishList,
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         orderRepo.setCourierID(44L);
         orderRepo.setCourierRating(8);
 
+        when(userMicroservice.isCustomer(4L)).thenReturn(false);
         when(userMicroservice.isCourier(4L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
         assertDoesNotThrow(() -> {
-            assertEquals(orderFacade.changeOrder(5L, order), order);
+            assertEquals(orderFacade.changeOrder(4L, order), order);
         });
         verify(orderDatabase, times(1)).save(order);
     }
@@ -930,28 +933,29 @@ public class OrderFacadeMockitoTest {
     void testChangeOrderAdminOk() throws ApiException {
 
         Dish dish = new Dish(1L,
-                2L,
-                "name",
-                "description",
-                new ArrayList<>(),
-                8.0f);
+            2L,
+            "name",
+            "description",
+            new ArrayList<>(),
+            8.0f);
         OrderDishesInner dishInner = new OrderDishesInner(dish, 2);
         ArrayList<OrderDishesInner> dishList = new ArrayList<>();
         dishList.add(dishInner);
 
         Location location = new Location();
         Order order = new Order(11L, 22L, 33L, new ArrayList<>(),
-                10F, new Location(":(", null, null, null),
-                Order.StatusEnum.ACCEPTED);
+            10F, new Location(":(", null, null, null),
+            Order.StatusEnum.ACCEPTED);
         order.setCourierID(99L);
         order.setCourierRating(10);
         order.setSpecialRequirements("newReq");
 
         Order orderRepo = new Order(1L, 2L, 3L, dishList,
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         orderRepo.setCourierID(44L);
         order.setCourierRating(8);
 
+        when(userMicroservice.isCustomer(5L)).thenReturn(false);
         when(userMicroservice.isAdmin(5L)).thenReturn(true);
         when(orderDatabase.getById(11L)).thenReturn(orderRepo);
 
