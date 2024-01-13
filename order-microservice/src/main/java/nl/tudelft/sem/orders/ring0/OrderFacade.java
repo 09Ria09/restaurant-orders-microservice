@@ -18,8 +18,10 @@ import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
+import nl.tudelft.sem.orders.ring0.methods.OrderModification;
 import nl.tudelft.sem.orders.ring0.payment.PaymentProcess;
 import nl.tudelft.sem.users.ApiException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,7 @@ public class OrderFacade implements OrderFacadeInterface {
     private final transient UserMicroservice userMicroservice;
     private final transient LocationService locationService;
     private final transient PaymentProcess paymentProcess;
+    private final transient OrderModification orderModification;
 
     /**
      * Creates a new order facade.
@@ -44,13 +47,15 @@ public class OrderFacade implements OrderFacadeInterface {
                        DishDatabase dishDatabase,
                        UserMicroservice userMicroservice,
                        LocationService locationService,
-                       PaymentProcess paymentProcess) {
+                       PaymentProcess paymentProcess,
+                       OrderModification orderModification) {
         //CHECKSTYLE:ON
         this.orderDatabase = orderDatabase;
         this.dishDatabase = dishDatabase;
         this.userMicroservice = userMicroservice;
         this.locationService = locationService;
         this.paymentProcess = paymentProcess;
+        this.orderModification = orderModification;
     }
 
     @Override
@@ -98,44 +103,7 @@ public class OrderFacade implements OrderFacadeInterface {
     public Float updateDishes(long orderId, long customerId,
                               @Valid List<@Valid OrderOrderIDDishesPutRequestDishesInner> dishes)
         throws EntityNotFoundException, IllegalStateException, ApiException {
-        Order order = orderDatabase.getById(orderId);
-        if (!userMicroservice.isCustomer(customerId)) {
-            throw new ApiException();
-        }
-
-        // Check if the order exists and the user
-        // owns the order and if the order is unpaid.
-        if (order == null || order.getCustomerID() != customerId
-            || order.getStatus() != Order.StatusEnum.UNPAID) {
-            throw new EntityNotFoundException();
-        }
-
-        // Convert the list of IDs and amounts to a list of Dishes and amounts.
-        try {
-            OrderDishesInner[] convertedDishes = dishes.stream()
-                .map((dish) -> new OrderDishesInner(dishDatabase.getById(dish.getId()), dish.getQuantity()))
-                .toArray(OrderDishesInner[]::new);
-
-            // Check if the dishes belong to the vendor and calculate the total price.
-            float totalPrice = 0;
-            for (OrderDishesInner dish : convertedDishes) {
-                if (dish.getDish() == null
-                    || dish.getAmount() == null
-                    || !Objects.equals(dish.getDish().getVendorID(), order.getVendorID())) {
-                    throw new IllegalStateException();
-                }
-                totalPrice += dish.getDish().getPrice() * dish.getAmount();
-            }
-
-            // Update the dishes.
-            order.setDishes(List.of(convertedDishes));
-            orderDatabase.save(order);
-
-            // Return the price.
-            return totalPrice;
-        } catch (EntityNotFoundException e) {
-            throw new IllegalStateException(e);
-        }
+        return orderModification.updateDishesProcess(orderId, customerId, dishes);
     }
 
     @Override
@@ -246,6 +214,33 @@ public class OrderFacade implements OrderFacadeInterface {
         orderDatabase.save(order);
     }
 
+    /**
+     * Deletes an order based on the user's permissions.
+     *
+     * @param userID The ID of the user requesting the deletion.
+     * @param orderID The ID of the order to be deleted.
+     * @throws MalformedException If the order or user ID is invalid or missing.
+     * @throws ForbiddenException If the user does not have permission to perform the requested deletion.
+     */
+    @Override
+    public void deleteOrder(Long userID, Long orderID) throws MalformedException, ForbiddenException {
+        Order order = orderDatabase.getById(orderID);
+
+        if (order == null) {
+            throw new MalformedException();
+        }
+
+        try {
+            if (userMicroservice.isAdmin(userID)
+                || (userMicroservice.isCustomer(userID) && order.getCustomerID().equals(userID))) {
+                orderDatabase.delete(order);
+            } else {
+                throw new ForbiddenException();
+            }
+        } catch (ApiException e) {
+            throw new MalformedException();
+        }
+    }
 
     /**
      * Update order according to permissions.
@@ -258,51 +253,7 @@ public class OrderFacade implements OrderFacadeInterface {
      * @throws ForbiddenException thrown if user doesn't have the permission to do the requested update.
      */
     public Order changeOrder(Long userId, Order order) throws MalformedException, ApiException, ForbiddenException {
-        if (userId == null || order == null) {
-            throw new MalformedException();
-        }
-
-        Order orderRepo = orderDatabase.getById(order.getOrderID());
-        if (orderRepo == null) {
-            throw new MalformedException();
-        }
-        checkModifyForCustomer(userId, order, orderRepo);
-        orderRepo = orderDatabase.getById(order.getOrderID());
-        checkModifyForVendorAndCourier(userId, order, orderRepo);
-        orderDatabase.save(order);
-        return order;
-    }
-
-    private void checkModifyForVendorAndCourier(Long userId, Order order, Order orderRepo)
-            throws ApiException, ForbiddenException {
-        if (userMicroservice.isVendor(userId) || userMicroservice.isCourier(userId)) {
-            orderRepo.setStatus(order.getStatus());
-            orderRepo.setCourierID(order.getCourierID());
-            orderRepo.setPrice(order.getPrice());
-            if (userMicroservice.isCourier(userId)) {
-                orderRepo.setCourierRating(order.getCourierRating());
-            }
-            float price = 0;
-            for (OrderDishesInner d : order.getDishes()) {
-                price = d.getDish().getPrice() * d.getAmount();
-            }
-            if (!orderRepo.equals(order) || order.getPrice() < price) {
-                throw new ForbiddenException();
-            }
-
-        }
-    }
-
-    private void checkModifyForCustomer(Long userId, Order order, Order orderRepo)
-            throws ApiException, ForbiddenException {
-        if (userMicroservice.isCustomer(userId)) {
-            orderRepo.setLocation(order.getLocation());
-            if (!userId.equals(orderRepo.getCustomerID())
-                    || orderRepo.getStatus() != Order.StatusEnum.UNPAID
-                    || !orderRepo.equals(order)) {
-                throw new ForbiddenException();
-            }
-        }
+        return orderModification.updateOrderProcess(userId, order);
     }
 
     /**
@@ -327,4 +278,5 @@ public class OrderFacade implements OrderFacadeInterface {
         result.add(order);
         return result;
     }
+
 }

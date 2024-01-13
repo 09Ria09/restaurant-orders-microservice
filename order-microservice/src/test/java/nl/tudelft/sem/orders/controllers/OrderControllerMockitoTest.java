@@ -20,7 +20,6 @@ import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.OrderFacade;
 import nl.tudelft.sem.users.ApiException;
-import nl.tudelft.sem.users.model.UsersGetUserTypeIdGet200Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -78,7 +77,7 @@ class OrderControllerMockitoTest {
         Long userID = 1L;
 
         when(orderFacade.getOrders(1L))
-                .thenThrow(new IllegalStateException("blah"));
+            .thenThrow(new IllegalStateException("blah"));
 
         ResponseEntity<List<Order>> expected = ResponseEntity.badRequest().build();
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
@@ -221,34 +220,54 @@ class OrderControllerMockitoTest {
     }
 
     @Test
+    void orderDeleteForbidden() throws ForbiddenException, MalformedException {
+        doThrow(ForbiddenException.class).when(orderFacade).deleteOrder(1L, 1L);
+        ResponseEntity<Void> response = orderController.orderOrderIDDelete(1L, 1L);
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
+
+    @Test
+    void orderDeleteMalformed() throws ForbiddenException, MalformedException {
+        doThrow(MalformedException.class).when(orderFacade).deleteOrder(1L, 1L);
+        ResponseEntity<Void> response = orderController.orderOrderIDDelete(1L, 1L);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void orderDeleteOK() {
+        ResponseEntity<Void> response = orderController.orderOrderIDDelete(1L, 1L);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
     public void testOrderPutMalformed() throws ForbiddenException, MalformedException, ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
 
         when(orderFacade.changeOrder(1L, order)).thenThrow(MalformedException.class);
         assertEquals(HttpStatus.BAD_REQUEST,
-                orderController.orderPut(1L, order)
-                        .getStatusCode());
+            orderController.orderPut(1L, order)
+                .getStatusCode());
     }
 
     @Test
     public void testOrderPutForbidden() throws ForbiddenException, MalformedException, ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
 
         when(orderFacade.changeOrder(1L, order)).thenThrow(ForbiddenException.class);
         assertEquals(HttpStatus.FORBIDDEN,
-                orderController.orderPut(1L, order)
-                        .getStatusCode());
+            orderController.orderPut(1L, order)
+                .getStatusCode());
     }
 
     @Test
     public void testOrderPutOk() throws ForbiddenException, MalformedException, ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
 
         when(orderFacade.changeOrder(1L, order)).thenReturn(order);
 
@@ -261,15 +280,15 @@ class OrderControllerMockitoTest {
     public void testOrderOrderIDGetMalformed() throws MalformedException {
         when(orderFacade.getOrder(1L)).thenThrow(MalformedException.class);
         assertEquals(HttpStatus.BAD_REQUEST,
-                orderController.orderOrderIDGet(1L)
-                        .getStatusCode());
+            orderController.orderOrderIDGet(1L)
+                .getStatusCode());
     }
 
     @Test
     public void testOrderOrderIDGetOk() throws MalformedException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         List<Order> list = new ArrayList<>();
         list.add(order);
 
@@ -279,6 +298,5 @@ class OrderControllerMockitoTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(list, response.getBody());
     }
-
 
 }

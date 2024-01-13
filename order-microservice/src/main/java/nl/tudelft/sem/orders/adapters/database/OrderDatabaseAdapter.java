@@ -47,5 +47,8 @@ public class OrderDatabaseAdapter implements OrderDatabase {
         return orderRepository.findAll();
     }
 
-
+    @Override
+    public void delete(Order toDelete) {
+        orderRepository.delete(toDelete);
+    }
 }

@@ -22,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 
-
 @RestController
 public class OrderController implements OrderApi {
     private final transient OrderFacade orderFacade;
@@ -70,7 +69,7 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> orderPut(Long userID, Order order) {
         try {
             return ResponseEntity.ok(
-                    orderFacade.changeOrder(userID, order));
+                orderFacade.changeOrder(userID, order));
         } catch (ForbiddenException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (MalformedException | ApiException e) {
@@ -103,7 +102,7 @@ public class OrderController implements OrderApi {
     public ResponseEntity<List<Order>> orderOrderIDGet(Long orderID) {
         try {
             return ResponseEntity.ok(
-                    orderFacade.getOrder(orderID));
+                orderFacade.getOrder(orderID));
         } catch (MalformedException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -121,7 +120,7 @@ public class OrderController implements OrderApi {
 
         List<Order> retrievedOrders;
         try {
-            retrievedOrders  = orderFacade.getOrders(userID);
+            retrievedOrders = orderFacade.getOrders(userID);
         } catch (IllegalStateException ise) {
             return ResponseEntity.badRequest().build();
         } catch (ApiException api) {
@@ -130,7 +129,7 @@ public class OrderController implements OrderApi {
 
         return ResponseEntity.ok(retrievedOrders);
     }
-    
+
     @Override
     public ResponseEntity<Order> orderOrderIDReorderPost(Long userID, Long orderID) {
         try {
@@ -144,17 +143,29 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Void> orderOrderIDRatePost(
-            Long userID,
-            Long orderID,
-            OrderOrderIDRatePostRequest orderOrderIDRatePostRequest
+        Long userID,
+        Long orderID,
+        OrderOrderIDRatePostRequest orderOrderIDRatePostRequest
     ) {
         try {
             orderFacade.rateOrder(userID, orderID,
-                    orderOrderIDRatePostRequest.getRating());
+                orderOrderIDRatePostRequest.getRating());
             return ResponseEntity.ok().build();
         } catch (ForbiddenException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (MalformedException | ApiException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<Void> orderOrderIDDelete(Long userID, Long orderID) {
+        try {
+            orderFacade.deleteOrder(userID, orderID);
+            return ResponseEntity.ok().build();
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (MalformedException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }

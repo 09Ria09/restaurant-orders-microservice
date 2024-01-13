@@ -24,7 +24,9 @@ public interface OrderFacadeInterface {
     Order reorder(Long userID, Long orderID) throws MalformedException, NotFoundException;
 
     void rateOrder(Long userID, Long orderID, Integer rating)
-            throws MalformedException, ForbiddenException, ApiException;
+        throws MalformedException, ForbiddenException, ApiException;
+
+    void deleteOrder(Long userID, Long orderID) throws MalformedException, ForbiddenException;
 
     Order changeOrder(Long userID, Order order) throws MalformedException, ApiException, ForbiddenException;
 

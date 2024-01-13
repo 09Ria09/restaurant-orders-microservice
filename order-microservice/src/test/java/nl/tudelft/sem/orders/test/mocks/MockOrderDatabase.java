@@ -61,6 +61,11 @@ public class MockOrderDatabase implements OrderDatabase {
         return List.of(mocks);
     }
 
+    @Override
+    public void delete(Order toDelete) {
+        saveRequests.remove(toDelete);
+    }
+
     /**
      * Clean the state of this mock object.
      */
