@@ -217,6 +217,23 @@ pitest {
 	junit5PluginVersion = '0.12'
 
 	targetClasses = ['nl.tudelft.sem.orders.*']  //by default "${project.group}.*"
+	excludedClasses = [
+					// auto generated code
+					'nl.tudelft.sem.delivery.*',
+					// auto generated code
+					'nl.tudelft.sem.users.*',
+					// auto generated code
+					'nl.tudelft.sem.orders.api.*',
+					// auto generated code
+					'nl.tudelft.sem.orders.model.*',
+					// mocks which frequently change
+					'nl.tudelft.sem.orders.adapters.mocks.*',
+					// testing the main fuction doesn't make sense
+					'nl.tudelft.sem.orders.Application',
+					// testing the hibernate databse doesn't make sense since
+					// its a external service
+					'nl.tudelft.sem.orders.adapters.database.*' ]
+
 	pitestVersion = '1.5.1' //not needed when a default PIT version should be used
 	threads = 4
 	outputFormats = ['XML', 'HTML']
