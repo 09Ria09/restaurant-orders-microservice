@@ -28,10 +28,7 @@ import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
-import nl.tudelft.sem.orders.ring0.payment.DistanceValidator;
-import nl.tudelft.sem.orders.ring0.payment.StatusValidator;
-import nl.tudelft.sem.orders.ring0.payment.TokenValidator;
-import nl.tudelft.sem.orders.ring0.payment.UserOwnershipValidator;
+import nl.tudelft.sem.orders.ring0.payment.*;
 import nl.tudelft.sem.orders.test.mocks.MockPaymentService;
 import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,13 +57,7 @@ public class OrderFacadeMockitoTest {
             orderDatabase,
             dishDatabase,
             userMicroservice,
-            new MockPaymentService(),
-            locationService,
-            mock(UserOwnershipValidator.class),
-            mock(DistanceValidator.class),
-            mock(TokenValidator.class),
-            mock(StatusValidator.class),
-            mock(DeliveryMicroservice.class)
+            locationService,mock(PaymentProcess.class)
         );
     }
 
@@ -867,6 +858,7 @@ public class OrderFacadeMockitoTest {
                 20F, location, Order.StatusEnum.UNPAID);
         orderRepo.setCourierID(44L);
 
+        when(userMicroservice.isCustomer(3L)).thenReturn(false);
         when(userMicroservice.isVendor(3L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
@@ -886,6 +878,7 @@ public class OrderFacadeMockitoTest {
                 20F, location, Order.StatusEnum.UNPAID);
         orderRepo.setCourierRating(10);
 
+        when(userMicroservice.isCustomer(4L)).thenReturn(false);
         when(userMicroservice.isCourier(4L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
@@ -917,11 +910,12 @@ public class OrderFacadeMockitoTest {
         orderRepo.setCourierID(44L);
         orderRepo.setCourierRating(8);
 
+        when(userMicroservice.isCustomer(4L)).thenReturn(false);
         when(userMicroservice.isCourier(4L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
         assertDoesNotThrow(() -> {
-            assertEquals(orderFacade.changeOrder(5L, order), order);
+            assertEquals(orderFacade.changeOrder(4L, order), order);
         });
         verify(orderDatabase, times(1)).save(order);
     }
@@ -952,6 +946,7 @@ public class OrderFacadeMockitoTest {
         orderRepo.setCourierID(44L);
         order.setCourierRating(8);
 
+        when(userMicroservice.isCustomer(5L)).thenReturn(false);
         when(userMicroservice.isAdmin(5L)).thenReturn(true);
         when(orderDatabase.getById(11L)).thenReturn(orderRepo);
 

@@ -22,11 +22,7 @@ import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.result.PaymentException;
 import nl.tudelft.sem.orders.result.VerificationException;
-import nl.tudelft.sem.orders.ring0.payment.DistanceValidator;
-import nl.tudelft.sem.orders.ring0.payment.Payment;
-import nl.tudelft.sem.orders.ring0.payment.StatusValidator;
-import nl.tudelft.sem.orders.ring0.payment.TokenValidator;
-import nl.tudelft.sem.orders.ring0.payment.UserOwnershipValidator;
+import nl.tudelft.sem.orders.ring0.payment.*;
 import nl.tudelft.sem.users.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,13 +32,8 @@ public class OrderFacade implements OrderFacadeInterface {
     private final transient OrderDatabase orderDatabase;
     private final transient DishDatabase dishDatabase;
     private final transient UserMicroservice userMicroservice;
-    private final transient PaymentService paymentService;
     private final transient LocationService locationService;
-    private final transient DistanceValidator distanceValidator;
-    private final transient StatusValidator statusValidator;
-    private final transient TokenValidator tokenValidator;
-    private final transient UserOwnershipValidator userOwnershipValidator;
-    private final transient DeliveryMicroservice deliveryMicroservice;
+    private final transient PaymentProcess paymentProcess;
 
     /**
      * Creates a new order facade.
@@ -50,70 +41,26 @@ public class OrderFacade implements OrderFacadeInterface {
      * @param orderDatabase    The database output port.
      * @param dishDatabase     The dish database.
      * @param userMicroservice The output port for the user microservice.
-     * @param paymentService   The output port for the payment service.
      */
     //CHECKSTYLE:OFF
     @Autowired
-    public OrderFacade(OrderDatabase orderDatabase, DishDatabase dishDatabase, UserMicroservice userMicroservice,
-                       PaymentService paymentService, LocationService locationService,
-                       UserOwnershipValidator userOwnershipValidator, DistanceValidator distanceValidator,
-                       TokenValidator tokenValidator, StatusValidator statusValidator,
-                       DeliveryMicroservice deliveryMicroservice) {
+    public OrderFacade(OrderDatabase orderDatabase,
+                       DishDatabase dishDatabase,
+                       UserMicroservice userMicroservice,
+                       LocationService locationService,
+                       PaymentProcess paymentProcess) {
         //CHECKSTYLE:ON
         this.orderDatabase = orderDatabase;
         this.dishDatabase = dishDatabase;
         this.userMicroservice = userMicroservice;
-        this.paymentService = paymentService;
         this.locationService = locationService;
-        this.distanceValidator = distanceValidator;
-        this.statusValidator = statusValidator;
-        this.tokenValidator = tokenValidator;
-        this.userOwnershipValidator = userOwnershipValidator;
-        this.deliveryMicroservice = deliveryMicroservice;
+        this.paymentProcess = paymentProcess;
     }
 
     @Override
     public void payForOrder(long userId, long orderId, String paymentConfirmation)
         throws MalformedException, ForbiddenException {
-        // create the validation chain
-
-        var handler = tokenValidator;
-        handler.setNext(statusValidator);
-        statusValidator.setNext(userOwnershipValidator);
-
-        // make sure the distance validator is last since it is most costly
-
-        userOwnershipValidator.setNext(distanceValidator);
-
-
-        try {
-            handler.verify(new Payment(userId, orderId, paymentConfirmation));
-        } catch (PaymentException e) {
-            throw new ForbiddenException();
-        } catch (VerificationException e) {
-            throw new MalformedException();
-        }
-
-        // now try debiting the amount from the card
-
-        Order order = orderDatabase.getById(orderId);
-        if (!paymentService.finalizePayment(paymentConfirmation)) {
-            // just give up
-            throw new MalformedException();
-        }
-
-        // otherwise first set the order to pend
-
-        order.setStatus(Order.StatusEnum.PENDING);
-        orderDatabase.save(order);
-
-        // and inform the vendor of the new order
-
-        try {
-            deliveryMicroservice.newDelivery(order.getVendorID(), order.getOrderID(), order.getCustomerID());
-        } catch (nl.tudelft.sem.delivery.ApiException e) {
-            throw new MalformedException();
-        }
+        paymentProcess.payForOrder(userId, orderId, paymentConfirmation);
     }
 
     /**

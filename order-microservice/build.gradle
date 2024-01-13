@@ -217,6 +217,9 @@ pitest {
 	junit5PluginVersion = '0.12'
 
 	targetClasses = ['nl.tudelft.sem.orders.*']  //by default "${project.group}.*"
+	excludedClasses = ['nl.tudelft.sem.orders.adapters.remote.*', 'nl.tudelft.sem.orders.model.*',
+					   'nl.tudelft.sem.orders.adapters.mocks.*', 'nl.tudelft.sem.orders.api.*',
+					   'nl.tudelft.sem.orders.domain.config.*']
 	pitestVersion = '1.5.1' //not needed when a default PIT version should be used
 	threads = 4
 	outputFormats = ['XML', 'HTML']
