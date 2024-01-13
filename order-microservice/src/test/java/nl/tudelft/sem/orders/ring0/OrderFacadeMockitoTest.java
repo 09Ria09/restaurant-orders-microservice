@@ -633,23 +633,23 @@ public class OrderFacadeMockitoTest {
     @Test
     void testRateOrderInvalidUserID() {
         assertThrows(MalformedException.class,
-                () -> orderFacade.rateOrder(null, 2L, 7));
+            () -> orderFacade.rateOrder(null, 2L, 7));
     }
 
     @Test
     void testRateOrderInvalidOrderID() {
         assertThrows(MalformedException.class,
-                () -> orderFacade.rateOrder(1L, null, 7));
+            () -> orderFacade.rateOrder(1L, null, 7));
     }
 
     @Test
     void testRateOrderNoOrder() {
         final Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(), 0F,
-                        location, Order.StatusEnum.ACCEPTED);
+            location, Order.StatusEnum.ACCEPTED);
         when(orderDatabase.getById(1L)).thenReturn(null);
         assertThrows(MalformedException.class,
-                () -> orderFacade.rateOrder(1L, 1L, 7));
+            () -> orderFacade.rateOrder(1L, 1L, 7));
 
     }
 
@@ -657,12 +657,12 @@ public class OrderFacadeMockitoTest {
     void testRateOrderWrongRating() {
         final Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(), 0F,
-                location, Order.StatusEnum.ACCEPTED);
+            location, Order.StatusEnum.ACCEPTED);
         when(orderDatabase.getById(1L)).thenReturn(order);
         assertThrows(MalformedException.class,
-                () -> orderFacade.rateOrder(2L, 1L, 11));
+            () -> orderFacade.rateOrder(2L, 1L, 11));
         assertThrows(MalformedException.class,
-                () -> orderFacade.rateOrder(2L, 1L, -2));
+            () -> orderFacade.rateOrder(2L, 1L, -2));
 
     }
 
@@ -670,11 +670,11 @@ public class OrderFacadeMockitoTest {
     void testRateOrderDifferentCustomer() throws ApiException {
         final Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(), 0F,
-                location, Order.StatusEnum.ACCEPTED);
+            location, Order.StatusEnum.ACCEPTED);
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isAdmin(2L)).thenReturn(false);
         assertThrows(ForbiddenException.class,
-                () -> orderFacade.rateOrder(999L, 1L, 7));
+            () -> orderFacade.rateOrder(999L, 1L, 7));
 
     }
 
@@ -682,7 +682,7 @@ public class OrderFacadeMockitoTest {
     void testRateOrderAdmin() throws ApiException {
         final Location location = new Location();
         Order order = new Order(1L, 99999L, 3L, new ArrayList<>(), 0F,
-                location, Order.StatusEnum.ACCEPTED);
+            location, Order.StatusEnum.ACCEPTED);
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isAdmin(2L)).thenReturn(true);
         assertDoesNotThrow(() -> orderFacade.rateOrder(2L, 1L, 7));
@@ -692,12 +692,28 @@ public class OrderFacadeMockitoTest {
     void testRateOrderAllGood() throws ApiException {
         final Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(), 0F,
-                location, Order.StatusEnum.ACCEPTED);
+            location, Order.StatusEnum.ACCEPTED);
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isAdmin(2L)).thenReturn(false);
         assertDoesNotThrow(() -> orderFacade.rateOrder(2L, 1L, 7));
     }
 
+    @Test
+    void testDeleteOrderById() throws ApiException {
+        long userId = 1L;
+        long orderId = 1L;
+
+        when(userMicroservice.isCustomer(userId)).thenReturn(true);
+        when(orderDatabase.getById(orderId)).thenReturn(new Order(1L,
+            1L,
+            2L,
+            new ArrayList<>(),
+            1f,
+            null,
+            Order.StatusEnum.ACCEPTED));
+
+        assertDoesNotThrow(() -> orderFacade.deleteOrder(userId, orderId));
+    }
 
     @Test
     void testChangeOrderInvalidUserOrOrder() {

@@ -303,6 +303,33 @@ public class OrderFacade implements OrderFacadeInterface {
         orderDatabase.save(order);
     }
 
+    /**
+     * Deletes an order based on the user's permissions.
+     *
+     * @param userID The ID of the user requesting the deletion.
+     * @param orderID The ID of the order to be deleted.
+     * @throws MalformedException If the order or user ID is invalid or missing.
+     * @throws ForbiddenException If the user does not have permission to perform the requested deletion.
+     */
+    @Override
+    public void deleteOrder(Long userID, Long orderID) throws MalformedException, ForbiddenException {
+        Order order = orderDatabase.getById(orderID);
+
+        if (order == null) {
+            throw new MalformedException();
+        }
+
+        try {
+            if (userMicroservice.isAdmin(userID)
+                || (userMicroservice.isCustomer(userID) && order.getCustomerID().equals(userID))) {
+                orderDatabase.delete(order);
+            } else {
+                throw new ForbiddenException();
+            }
+        } catch (ApiException e) {
+            throw new MalformedException();
+        }
+    }
 
     /**
      * Update order according to permissions.
@@ -384,4 +411,5 @@ public class OrderFacade implements OrderFacadeInterface {
         result.add(order);
         return result;
     }
+
 }
