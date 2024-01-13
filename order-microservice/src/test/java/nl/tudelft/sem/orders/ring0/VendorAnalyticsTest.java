@@ -181,8 +181,7 @@ class VendorAnalyticsTest {
         when(orderDatabase.findByVendorID(1L)).thenReturn(ords);
 
         Calendar calendar = Calendar.getInstance();
-        // Had to explicitly set the date.
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY); // Had to explicitly set the day.
         calendar.set(Calendar.HOUR_OF_DAY, 12);
         Date twelve = calendar.getTime();
         DeliveryTimes twelveTime = new DeliveryTimes();

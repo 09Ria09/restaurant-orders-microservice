@@ -2,7 +2,9 @@ package nl.tudelft.sem.orders.ring0.payment;
 
 import nl.tudelft.sem.delivery.ApiException;
 import nl.tudelft.sem.orders.model.Order;
-import nl.tudelft.sem.orders.ports.output.*;
+import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
+import nl.tudelft.sem.orders.ports.output.OrderDatabase;
+import nl.tudelft.sem.orders.ports.output.PaymentService;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.PaymentException;
@@ -20,6 +22,17 @@ public class PaymentProcess {
     private final transient UserOwnershipValidator userOwnershipValidator;
     private final transient DeliveryMicroservice deliveryMicroservice;
 
+    /**
+     * Constructor for a PaymentProcess class.
+     *
+     * @param orderDatabase The outgoing port for database of orders
+     * @param paymentService The paymentService
+     * @param distanceValidator The distance Validator
+     * @param statusValidator The status validator
+     * @param tokenValidator The token validator
+     * @param userOwnershipValidator The userOwnershipValidator
+     * @param deliveryMicroservice The outgoing port for the delivery Microservice
+     */
     public PaymentProcess(OrderDatabase orderDatabase,
                           PaymentService paymentService,
                           DistanceValidator distanceValidator,
@@ -36,7 +49,17 @@ public class PaymentProcess {
         this.deliveryMicroservice = deliveryMicroservice;
     }
 
-    public void payForOrder(long userID, long orderID, String paymentConfirmation) throws MalformedException, ForbiddenException {
+    /**
+     * The refactored method from the VendorFacade.
+     *
+     * @param userID The ID of the user that is trying to pay
+     * @param orderID The order that is being paid
+     * @param paymentConfirmation Confirmation of transactional success
+     * @throws MalformedException Thrown if something went wrong during the payment.
+     * @throws ForbiddenException Thrown if the payment token was invalid.
+     */
+    public void payForOrder(long userID, long orderID, String paymentConfirmation)
+            throws MalformedException, ForbiddenException {
         // create the validation chain
 
         var handler = tokenValidator;
