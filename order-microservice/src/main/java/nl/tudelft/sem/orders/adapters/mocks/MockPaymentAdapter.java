@@ -7,4 +7,9 @@ public class MockPaymentAdapter implements PaymentService {
     public boolean verifyPaymentConfirmation(String token) {
         return true;
     }
+
+    @Override
+    public boolean finalizePayment(String token) {
+        return true;
+    }
 }

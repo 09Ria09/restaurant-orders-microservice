@@ -1,0 +1,35 @@
+@startuml
+
+title The two strategy patterns
+
+interface RadiusStrategy {
+  +List<long> performRadiusCheck(userId: long, loc: Location)
+}
+
+interface SearchStrategy {
+  +List<long> filterOnSearchString(vendors: List<long>, search: String)
+}
+
+class GeoDistanceStrategy {
+  +List<long> performRadiusCheck(..)
+}
+class FuzzyFindStrategy {
+  +List<long> filterOnSearchString(..)
+}
+class SimpleWordMatchStrategy {
+  +List<long> filterOnSearchString(..)
+}
+
+GeoDistanceStrategy <|.. RadiusStrategy
+FuzzyFindStrategy <|.. SearchStrategy
+SimpleWordMatchStrategy <|.. SearchStrategy
+
+class VendorFacade {
+  - search: SearchStrategy
+  - radius: RadiusStrategy
+}
+
+VendorFacade o-up- RadiusStrategy
+VendorFacade o-up- SearchStrategy
+
+@enduml

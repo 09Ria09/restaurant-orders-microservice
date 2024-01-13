@@ -45,7 +45,7 @@ paths:
           description: The id of the user
           required: true
           schema:
-            type: integer
+            $ref: '#/components/schemas/IdType'
       responses:
         '200':
           description: In case the user exists this returns the list of orders as explained in the description.
@@ -492,6 +492,30 @@ paths:
                   $ref: '#/components/schemas/Order'
         '400':
           description: User id is not a valid vendorID or customerID is not a valid customerID
+  /dish/{dishID}:
+    get:
+      tags:
+        - dish
+      summary: Returns a dish based on its id
+      description: Returns a dish with the specified id.
+      parameters:
+        - name: dishID
+          in: path
+          description: The id of the requested dish
+          required: true
+          schema:
+            $ref: '#/components/schemas/IdType'
+      responses:
+        '200':
+          description: Returns the requested dish.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+        '400':
+          description: Invalid or missing `dishID`.
           
 components:
   schemas:
@@ -499,6 +523,11 @@ components:
       type: object
       x-class-extra-annotation: "@javax.persistence.Embeddable"
       description: A location with an address
+      required:
+        - country
+        - city
+        - address
+        - postalCode
       properties:
         country:
           type: string
@@ -527,12 +556,13 @@ components:
         - customerID
         - vendorID
         - dishes
+        - price
         - location
         - status
       properties:
         orderID:
           type: integer
-          x-field-extra-annotation: "@javax.persistence.Id"
+          x-field-extra-annotation: "@javax.persistence.Id\n  @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)"
           format: int64
           example: 2115
         customerID:
@@ -556,6 +586,10 @@ components:
               amount:
                 type: integer
                 example: 2
+        price:
+          type: number
+          format: float
+          description: The total price of all dishes in the order.
         location:
           $ref: '#/components/schemas/Location'
         specialRequirements:
@@ -595,7 +629,7 @@ components:
       properties:
         dishID:
           type: integer
-          x-field-extra-annotation: "@javax.persistence.Id"
+          x-field-extra-annotation: "@javax.persistence.Id\n  @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)"
           format: int64
           example: 2115
         vendorID:
