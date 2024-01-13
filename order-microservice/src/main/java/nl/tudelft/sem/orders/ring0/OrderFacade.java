@@ -10,7 +10,7 @@ import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
-import nl.tudelft.sem.orders.ports.input.OrderLogicInterface;
+import nl.tudelft.sem.orders.ports.input.OrderFacadeInterface;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderFacade implements OrderLogicInterface {
+public class OrderFacade implements OrderFacadeInterface {
     private final transient OrderDatabase orderDatabase;
     private final transient DishDatabase dishDatabase;
     private final transient UserMicroservice userMicroservice;
@@ -302,6 +302,14 @@ public class OrderFacade implements OrderLogicInterface {
         orderDatabase.save(order);
     }
 
+    /**
+     * Deletes an order based on the user's permissions.
+     *
+     * @param userID The ID of the user requesting the deletion.
+     * @param orderID The ID of the order to be deleted.
+     * @throws MalformedException If the order or user ID is invalid or missing.
+     * @throws ForbiddenException If the user does not have permission to perform the requested deletion.
+     */
     @Override
     public void deleteOrder(Long userID, Long orderID) throws MalformedException, ForbiddenException {
         Order order = orderDatabase.getById(orderID);
@@ -320,6 +328,87 @@ public class OrderFacade implements OrderLogicInterface {
         } catch (ApiException e) {
             throw new MalformedException();
         }
+    }
+
+    /**
+     * Update order according to permissions.
+     *
+     * @param userId id of user asking for the update
+     * @param order Order to be updated
+     * @return The updated order
+     * @throws MalformedException thrown if invalid or missing order or userId
+     * @throws ApiException thrown if userMicroservice error
+     * @throws ForbiddenException thrown if user doesn't have the permission to do the requested update.
+     */
+    public Order changeOrder(Long userId, Order order) throws MalformedException, ApiException, ForbiddenException {
+        if (userId == null || order == null) {
+            throw new MalformedException();
+        }
+
+        Order orderRepo = orderDatabase.getById(order.getOrderID());
+        if (orderRepo == null) {
+            throw new MalformedException();
+        }
+        checkModifyForCustomer(userId, order, orderRepo);
+        orderRepo = orderDatabase.getById(order.getOrderID());
+        checkModifyForVendorAndCourier(userId, order, orderRepo);
+        orderDatabase.save(order);
+        return order;
+    }
+
+    private void checkModifyForVendorAndCourier(Long userId, Order order, Order orderRepo)
+            throws ApiException, ForbiddenException {
+        if (userMicroservice.isVendor(userId) || userMicroservice.isCourier(userId)) {
+            orderRepo.setStatus(order.getStatus());
+            orderRepo.setCourierID(order.getCourierID());
+            orderRepo.setPrice(order.getPrice());
+            if (userMicroservice.isCourier(userId)) {
+                orderRepo.setCourierRating(order.getCourierRating());
+            }
+            float price = 0;
+            for (OrderDishesInner d : order.getDishes()) {
+                price = d.getDish().getPrice() * d.getAmount();
+            }
+            if (!orderRepo.equals(order) || order.getPrice() < price) {
+                throw new ForbiddenException();
+            }
+
+        }
+    }
+
+    private void checkModifyForCustomer(Long userId, Order order, Order orderRepo)
+            throws ApiException, ForbiddenException {
+        if (userMicroservice.isCustomer(userId)) {
+            orderRepo.setLocation(order.getLocation());
+            if (!userId.equals(orderRepo.getCustomerID())
+                    || orderRepo.getStatus() != Order.StatusEnum.UNPAID
+                    || !orderRepo.equals(order)) {
+                throw new ForbiddenException();
+            }
+        }
+    }
+
+    /**
+     * Retrieves order by given Id.
+     *
+     * @param orderID Id of the order to retrieve.
+     * @return order.
+     * @throws MalformedException if invalid orderId or missing Order
+     */
+    public List<Order> getOrder(Long orderID) throws MalformedException {
+        if (orderID == null) {
+            throw new MalformedException();
+        }
+
+        Order order = orderDatabase.getById(orderID);
+
+        if (order == null) {
+            throw new MalformedException();
+        }
+
+        List<Order> result = new ArrayList<>();
+        result.add(order);
+        return result;
     }
 
 }

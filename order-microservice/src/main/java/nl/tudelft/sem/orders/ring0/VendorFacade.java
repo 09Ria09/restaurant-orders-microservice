@@ -6,10 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
+import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
-import nl.tudelft.sem.orders.ports.input.VendorLogicInterface;
+import nl.tudelft.sem.orders.ports.input.VendorFacadeInterface;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
@@ -19,38 +20,42 @@ import nl.tudelft.sem.orders.result.NotFoundException;
 import nl.tudelft.sem.orders.ring0.distance.RadiusStrategy;
 import nl.tudelft.sem.orders.ring0.distance.SearchStrategy;
 import nl.tudelft.sem.users.ApiException;
+import nl.tudelft.sem.users.model.Vendor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VendorFacade implements VendorLogicInterface {
+public class VendorFacade implements VendorFacadeInterface {
     private final transient OrderDatabase orderDatabase;
     private transient UserMicroservice userMicroservice;
     private transient DishDatabase dishDatabase;
     private transient RadiusStrategy radiusStrategy;
     private transient SearchStrategy searchStrategy;
+    private transient VendorAnalytics vendorAnalytics;
 
 
     /**
      * Creates a new Vedor facade.
      *
      * @param userMicroservice The user microservice
-     * @param orderDatabase The database output port.
-     * @param dishDatabase The dish database.
-     * @param radiusStrategy The chosen radius strategy.
-     * @param searchStrategy The chosen search strategy.
+     * @param orderDatabase    The database output port.
+     * @param dishDatabase     The dish database.
+     * @param radiusStrategy   The chosen radius strategy.
+     * @param searchStrategy   The chosen search strategy.
      */
     @Autowired
     public VendorFacade(UserMicroservice userMicroservice,
                         OrderDatabase orderDatabase,
                         DishDatabase dishDatabase,
                         RadiusStrategy radiusStrategy,
-                        SearchStrategy searchStrategy) {
+                        SearchStrategy searchStrategy,
+                        VendorAnalytics vendorAnalytics) {
         this.userMicroservice = userMicroservice;
         this.dishDatabase = dishDatabase;
         this.searchStrategy = searchStrategy;
         this.radiusStrategy = radiusStrategy;
         this.orderDatabase = orderDatabase;
+        this.vendorAnalytics = vendorAnalytics;
     }
 
     @Override
@@ -67,8 +72,9 @@ public class VendorFacade implements VendorLogicInterface {
             }
 
             var vendors = radiusStrategy.performRadiusCheck(userId, location);
+            vendors = searchStrategy.filterOnSearchString(vendors, search);
 
-            return searchStrategy.filterOnSearchString(vendors, search);
+            return vendors.stream().map(Vendor::getId).collect(Collectors.toList());
         } catch (Exception e) {
             throw new MalformedException();
         }
@@ -107,9 +113,9 @@ public class VendorFacade implements VendorLogicInterface {
      * Modifies dish.
      *
      * @param dish Changed dish.
-     * @throws ApiException .
+     * @throws ApiException            .
      * @throws EntityNotFoundException thrown if dish to be changed does not exist
-     * @throws IllegalStateException thrown if invalid dish
+     * @throws IllegalStateException   thrown if invalid dish
      */
     @Override
     public void modifyDish(Dish dish) throws ApiException, EntityNotFoundException, IllegalStateException {
@@ -157,7 +163,7 @@ public class VendorFacade implements VendorLogicInterface {
     /**
      * Gets all the orders at this vendor from the specific customer.
      *
-     * @param userID The vendor's ID.
+     * @param userID     The vendor's ID.
      * @param customerID The customer's ID.
      * @return List of the orders at this vendor by the specific customer.
      */
@@ -200,5 +206,10 @@ public class VendorFacade implements VendorLogicInterface {
         } catch (ApiException ignored) {
             return dishes;
         }
+    }
+
+    @Override
+    public List<Analytic> getVendorAnalysis(Long vendorID) throws MalformedException {
+        return vendorAnalytics.analyseOrders(vendorID);
     }
 }

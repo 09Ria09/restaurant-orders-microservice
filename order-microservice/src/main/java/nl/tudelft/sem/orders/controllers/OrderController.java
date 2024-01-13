@@ -78,7 +78,8 @@ public class OrderController implements OrderApi {
     }
 
     @Override
-    public ResponseEntity<OrderOrderIDDishesPut200Response> orderOrderIDDishesPut(
+    public ResponseEntity<OrderOrderIDDishesPut200Response>
+    orderOrderIDDishesPut(
         Long userID, Long orderID,
         OrderOrderIDDishesPutRequest orderOrderIDDishesPutRequest) {
         try {
@@ -102,6 +103,16 @@ public class OrderController implements OrderApi {
             }
         } catch (ApiException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    @Override
+    public ResponseEntity<List<Order>> orderOrderIDGet(Long orderID) {
+        try {
+            return ResponseEntity.ok(
+                orderFacade.getOrder(orderID));
+        } catch (MalformedException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 

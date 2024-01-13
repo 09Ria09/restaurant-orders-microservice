@@ -1,13 +1,14 @@
 package nl.tudelft.sem.orders.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.swagger.annotations.Api;
 import java.util.ArrayList;
 import java.util.List;
+import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
@@ -18,6 +19,7 @@ import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
+import nl.tudelft.sem.orders.ring0.VendorAnalytics;
 import nl.tudelft.sem.orders.ring0.VendorFacade;
 import nl.tudelft.sem.orders.ring0.distance.RadiusStrategy;
 import nl.tudelft.sem.orders.ring0.distance.SearchStrategy;
@@ -51,7 +53,8 @@ class VendorControllerMockitoTest {
         vendorFacade = mock(VendorFacade.class);
 
         vendorFacadeNOTmocked = new VendorFacade(userMicroservice, orderDatabase, dishDatabase,
-            mock(RadiusStrategy.class), mock(SearchStrategy.class)
+            mock(RadiusStrategy.class), mock(SearchStrategy.class), mock(
+            VendorAnalytics.class)
         );
 
         vendorController = new VendorController(vendorFacade);
@@ -144,6 +147,35 @@ class VendorControllerMockitoTest {
     void vendorDishDishIDDeleteOK() {
         ResponseEntity<Void> response = vendorController.vendorDishDishIDDelete(1L, 1L);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void vendorAnalyticsNull() {
+        ResponseEntity<List<Analytic>> expected = ResponseEntity.badRequest().build();
+        assertEquals(expected, vendorController.vendorAnalyticsGet(null));
+    }
+
+    @Test
+    void vendorAnalyticsOK() throws MalformedException {
+        Analytic x = new Analytic();
+        x.setOrderVolume(new ArrayList<>());
+        x.setCustomerPreferences(new ArrayList<>());
+        List<Analytic> expected = new ArrayList<>();
+        expected.add(x);
+        doReturn(expected).when(vendorFacade).getVendorAnalysis(1L);
+
+        assertEquals(ResponseEntity.ok(expected), vendorController.vendorAnalyticsGet(1L));
+    }
+
+    @Test
+    void vendorAnalyticsFail() throws MalformedException {
+        Analytic x = new Analytic();
+        x.setOrderVolume(new ArrayList<>());
+        x.setCustomerPreferences(new ArrayList<>());
+
+        doThrow(new MalformedException()).when(vendorFacade).getVendorAnalysis(1L);
+
+        assertEquals(HttpStatus.BAD_REQUEST, vendorController.vendorAnalyticsGet(1L).getStatusCode());
     }
 
     @Test

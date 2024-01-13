@@ -3,6 +3,7 @@ package nl.tudelft.sem.orders.test.mocks;
 import java.util.ArrayList;
 import java.util.List;
 import nl.tudelft.sem.delivery.ApiException;
+import nl.tudelft.sem.delivery.model.Delivery;
 import nl.tudelft.sem.delivery.model.GetDeliveryRadiuses200ResponseInner;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 
@@ -40,6 +41,13 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
     }
 
     @Override
+    public Delivery getDelivery(long userID, long orderID) {
+        return null;
+    }
+
+    /**
+     * Get the global delivery radius.
+     */
     public long getDeliveryRadius(long vendorId, long userId)
         throws ApiException {
         if (failRadius) {
@@ -55,8 +63,6 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
         if (failNew) {
             throw new ApiException();
         }
-
-        return;
     }
 
     public boolean isFailRadius() {

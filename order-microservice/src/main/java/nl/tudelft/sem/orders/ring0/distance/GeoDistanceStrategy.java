@@ -3,12 +3,14 @@ package nl.tudelft.sem.orders.ring0.distance;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import nl.tudelft.sem.orders.domain.GeoLocation;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.MalformedException;
+import nl.tudelft.sem.users.model.Vendor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,15 +25,15 @@ public class GeoDistanceStrategy implements RadiusStrategy {
      * Create a new GeoDistance strategy.
      *
      * @param deliveryMicroservice The delivery microservice.
-     * @param userMicroservice The user microservice.
-     * @param locationService The location service.
-     * @param locationMapper The location mapper.
+     * @param userMicroservice     The user microservice.
+     * @param locationService      The location service.
+     * @param locationMapper       The location mapper.
      */
     @Autowired
     public GeoDistanceStrategy(DeliveryMicroservice deliveryMicroservice,
-                        UserMicroservice userMicroservice,
-                        LocationService locationService,
-                        LocationMapper locationMapper) {
+                               UserMicroservice userMicroservice,
+                               LocationService locationService,
+                               LocationMapper locationMapper) {
         this.deliveryMicroservice = deliveryMicroservice;
         this.userMicroservice = userMicroservice;
         this.locationService = locationService;
@@ -47,7 +49,7 @@ public class GeoDistanceStrategy implements RadiusStrategy {
      * @throws MalformedException Thrown if the user doesn't exist or some other error with microservices arises.
      */
     @Override
-    public List<Long> performRadiusCheck(Long userId, Location loc)
+    public List<Vendor> performRadiusCheck(Long userId, Location loc)
         throws MalformedException {
         try {
             var distances = deliveryMicroservice.getRadii(userId);
@@ -83,7 +85,9 @@ public class GeoDistanceStrategy implements RadiusStrategy {
                 }
             }
 
-            return result;
+            return allVendors.stream()
+                .filter(vendor -> result.contains(vendor.getId()))
+                .collect(Collectors.toList());
         } catch (Exception e) {
             throw new MalformedException();
         }

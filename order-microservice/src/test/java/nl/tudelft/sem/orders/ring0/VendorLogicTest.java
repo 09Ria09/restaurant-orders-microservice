@@ -4,24 +4,20 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import nl.tudelft.sem.orders.model.Location;
-import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.test.TestConfig;
 import nl.tudelft.sem.orders.test.mocks.MockDeliveryMicroservice;
 import nl.tudelft.sem.orders.test.mocks.MockDishDatabase;
-import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.ResponseEntity;
 
 @SpringBootTest
 @Import(TestConfig.class)
@@ -60,7 +56,7 @@ class VendorLogicTest {
     @Test
     void vendorsInRadiusWithLocation() {
         List<Long> retried = assertDoesNotThrow(() ->
-            vendorFacade.vendorsInRadius(1L, "none", new Location().city("a")));
+            vendorFacade.vendorsInRadius(1L, null, new Location().city("a")));
 
         assertEquals(0L, retried.get(0));
         assertEquals(1, retried.size());
@@ -130,5 +126,4 @@ class VendorLogicTest {
         assertDoesNotThrow(() -> vendorFacade.deleteDishById(userId, dishId));
         assertNull(dishDatabase.getById(dishId));
     }
-
 }

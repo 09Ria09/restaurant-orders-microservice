@@ -6,6 +6,7 @@ import nl.tudelft.sem.delivery.api.AdminApi;
 import nl.tudelft.sem.delivery.api.DeliveryApi;
 import nl.tudelft.sem.delivery.api.VendorApi;
 import nl.tudelft.sem.delivery.model.CreateDeliveryRequest;
+import nl.tudelft.sem.delivery.model.Delivery;
 import nl.tudelft.sem.delivery.model.GetDeliveryRadiuses200ResponseInner;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,15 @@ public class DeliveryRemoteProxy implements DeliveryMicroservice {
     private transient AdminApi adminApi;
     private transient DeliveryApi deliveryApi;
 
+    /**
+     * Creates a new delivery remote proxy.
+     *
+     * @param deliveryApi The vendor api.
+     * @param adminApi The admin api.
+     * @param api The delivery api.
+     */
     @Autowired
-    DeliveryRemoteProxy(VendorApi deliveryApi, AdminApi adminApi,
+    public DeliveryRemoteProxy(VendorApi deliveryApi, AdminApi adminApi,
                         DeliveryApi api) {
         this.vendorApi = deliveryApi;
         this.adminApi = adminApi;
@@ -43,6 +51,12 @@ public class DeliveryRemoteProxy implements DeliveryMicroservice {
         throws ApiException {
         return vendorApi.getVendorDeliveryRadius(userId, vendorId).getRadius();
     }
+
+    @Override
+    public Delivery getDelivery(long userId, long orderId) throws ApiException {
+        return deliveryApi.getDeliveryFromOrder(userId, orderId);
+    }
+
 
     @Override
     public void newDelivery(long vendorId, long orderId, long userId)

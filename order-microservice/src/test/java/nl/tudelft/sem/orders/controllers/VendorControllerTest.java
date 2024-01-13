@@ -33,7 +33,7 @@ class VendorControllerTest {
     @Test
     void vendorRadiusPostOk() {
         List<Long> retried =
-            vendorController.vendorRadiusPost(1L, "none",
+            vendorController.vendorRadiusPost(1L, null,
                 new Location().city("a")).getBody();
 
         assertEquals(0L, retried.get(0));

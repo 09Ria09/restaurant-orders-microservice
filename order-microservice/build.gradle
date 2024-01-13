@@ -121,11 +121,23 @@ jacocoTestReport {
 
 	afterEvaluate {
 		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: ['nl/tudelft/sem/delivery**',
-                                        'nl/tudelft/sem/users**',
-                                        'nl/tudelft/sem/orders/api**',
-                                        'nl/tudelft/sem/orders/model**',
-                                        'nl/tudelft/sem/orders/adapters/mocks**'])
+			fileTree(dir: it, exclude: [
+					// auto generated code
+					'nl/tudelft/sem/delivery**',
+					// auto generated code
+					'nl/tudelft/sem/users**',
+					// auto generated code
+					'nl/tudelft/sem/orders/api**',
+					// auto generated code
+					'nl/tudelft/sem/orders/model**',
+					// mocks which frequently change
+					'nl/tudelft/sem/orders/adapters/mocks**',
+					// testing the main fuction doesn't make sense
+					'nl/tudelft/sem/orders/Application**',
+					// testing the hibernate databse doesn't make sense since
+					// its a external service
+					'nl/tudelft/sem/orders/adapters/database/**'
+			])
 		}))
 	}
 }

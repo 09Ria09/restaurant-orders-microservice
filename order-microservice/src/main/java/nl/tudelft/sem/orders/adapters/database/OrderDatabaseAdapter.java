@@ -1,4 +1,4 @@
-package nl.tudelft.sem.orders.adapters;
+package nl.tudelft.sem.orders.adapters.database;
 
 import java.util.List;
 import nl.tudelft.sem.orders.domain.OrderRepository;
