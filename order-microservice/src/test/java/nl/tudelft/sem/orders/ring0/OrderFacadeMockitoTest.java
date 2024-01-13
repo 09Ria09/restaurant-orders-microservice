@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -20,7 +21,6 @@ import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
-import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 import nl.tudelft.sem.orders.ports.output.DishDatabase;
 import nl.tudelft.sem.orders.ports.output.LocationService;
 import nl.tudelft.sem.orders.ports.output.OrderDatabase;
@@ -28,11 +28,8 @@ import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
-import nl.tudelft.sem.orders.ring0.payment.DistanceValidator;
-import nl.tudelft.sem.orders.ring0.payment.StatusValidator;
-import nl.tudelft.sem.orders.ring0.payment.TokenValidator;
-import nl.tudelft.sem.orders.ring0.payment.UserOwnershipValidator;
-import nl.tudelft.sem.orders.test.mocks.MockPaymentService;
+import nl.tudelft.sem.orders.ring0.methods.OrderModification;
+import nl.tudelft.sem.orders.ring0.payment.PaymentProcess;
 import nl.tudelft.sem.users.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +42,7 @@ public class OrderFacadeMockitoTest {
     private UserMicroservice userMicroservice;
     private OrderFacade orderFacade;
     private LocationService locationService;
+    private OrderModification orderModification;
 
     @BeforeEach
     void setUp() throws ApiException {
@@ -53,25 +51,24 @@ public class OrderFacadeMockitoTest {
         userMicroservice = mock(UserMicroservice.class);
         locationService = mock(LocationService.class);
 
+
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(userMicroservice.isCustomer(anyLong())).thenReturn(true);
+        orderModification = new OrderModification(orderDatabase, dishDatabase, userMicroservice);
 
         orderFacade = new OrderFacade(
             orderDatabase,
             dishDatabase,
             userMicroservice,
-            new MockPaymentService(),
             locationService,
-            mock(UserOwnershipValidator.class),
-            mock(DistanceValidator.class),
-            mock(TokenValidator.class),
-            mock(StatusValidator.class),
-            mock(DeliveryMicroservice.class)
+            mock(PaymentProcess.class),
+            orderModification
         );
     }
 
     @Test
-    void createOrder() throws ApiException, ForbiddenException, MalformedException {
+    void createOrder()
+        throws ApiException, ForbiddenException, MalformedException {
         final long customerId = 1L;
         final long vendorId = 2L;
         final Location location = new Location();
@@ -96,6 +93,7 @@ public class OrderFacadeMockitoTest {
         assertEquals(vendorId, result.getVendorID());
         assertEquals(Order.StatusEnum.UNPAID, result.getStatus());
         assertEquals(location, result.getLocation());
+        assertTrue(result.getDishes().isEmpty());
         verify(orderDatabase, times(1)).save(orderNoId);
     }
 
@@ -106,7 +104,8 @@ public class OrderFacadeMockitoTest {
 
         when(locationService.isCloseBy(any(), any())).thenReturn(false);
 
-        assertThrows(MalformedException.class, () -> orderFacade.createOrder(customerId, vendorId));
+        assertThrows(MalformedException.class,
+            () -> orderFacade.createOrder(customerId, vendorId));
 
         verify(orderDatabase, times(0)).save(any());
     }
@@ -119,7 +118,8 @@ public class OrderFacadeMockitoTest {
 
         when(userMicroservice.isCustomer(anyLong())).thenReturn(false);
 
-        assertThrows(ForbiddenException.class, () -> orderFacade.createOrder(customerId, vendorId));
+        assertThrows(ForbiddenException.class,
+            () -> orderFacade.createOrder(customerId, vendorId));
 
         verify(orderDatabase, times(0)).save(any());
     }
@@ -527,19 +527,25 @@ public class OrderFacadeMockitoTest {
 
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(2L)).thenReturn(true);
+        when(userMicroservice.getCustomerAddress(1L)).thenReturn(
+            new Location().city("a"));
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(dish);
-        when(orderDatabase.save(any(Order.class))).thenReturn(new Order(2L,
+        when(orderDatabase.save(new Order().customerID(1L).vendorID(2L)
+            .dishes(new ArrayList<>(List.of(dishInner)))
+            .location(new Location().city("a")).status(
+                Order.StatusEnum.UNPAID))).thenReturn(new Order(2L,
             1L,
             2L,
             new ArrayList<>(List.of(dishInner)),
             1f,
-            null,
+            new Location().city("a"),
             Order.StatusEnum.UNPAID));
 
         Order newOrder = orderFacade.reorder(1L, 1L);
         assertEquals(order.getCustomerID(), newOrder.getCustomerID());
         assertEquals(order.getVendorID(), newOrder.getVendorID());
+        assertEquals(new Location().city("a"), newOrder.getLocation());
         assertEquals(Order.StatusEnum.UNPAID, newOrder.getStatus());
     }
 
@@ -663,6 +669,14 @@ public class OrderFacadeMockitoTest {
             () -> orderFacade.rateOrder(2L, 1L, 11));
         assertThrows(MalformedException.class,
             () -> orderFacade.rateOrder(2L, 1L, -2));
+        assertDoesNotThrow(
+            () -> orderFacade.rateOrder(2L, 1L, 10));
+
+        verify(orderDatabase, times(1)).save(order.rating(10));
+
+        assertDoesNotThrow(
+            () -> orderFacade.rateOrder(2L, 1L, 0));
+
 
     }
 
@@ -696,6 +710,10 @@ public class OrderFacadeMockitoTest {
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isAdmin(2L)).thenReturn(false);
         assertDoesNotThrow(() -> orderFacade.rateOrder(2L, 1L, 7));
+        Order order2 = new Order(1L, 2L, 3L, new ArrayList<>(), 0F,
+            location, Order.StatusEnum.ACCEPTED);
+        order2.setRating(7);
+        verify(orderDatabase, times(1)).save(order2);
     }
 
     @Test
@@ -703,40 +721,44 @@ public class OrderFacadeMockitoTest {
         long userId = 1L;
         long orderId = 1L;
 
-        when(userMicroservice.isCustomer(userId)).thenReturn(true);
-        when(orderDatabase.getById(orderId)).thenReturn(new Order(1L,
+        var ord = new Order(1L,
             1L,
             2L,
             new ArrayList<>(),
             1f,
             null,
-            Order.StatusEnum.ACCEPTED));
+            Order.StatusEnum.ACCEPTED);
+
+        when(userMicroservice.isCustomer(userId)).thenReturn(true);
+        when(orderDatabase.getById(orderId)).thenReturn(ord);
 
         assertDoesNotThrow(() -> orderFacade.deleteOrder(userId, orderId));
+
+        verify(orderDatabase, times(1)).delete(ord);
     }
 
     @Test
     void testChangeOrderInvalidUserOrOrder() {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
 
         assertThrows(MalformedException.class,
-                () -> orderFacade.changeOrder(null, order));
+            () -> orderFacade.changeOrder(null, order));
         assertThrows(MalformedException.class,
-                () -> orderFacade.changeOrder(1L, null));
+            () -> orderFacade.changeOrder(1L, null));
     }
 
     @Test
     void testChangeOrderNoOrderFound() {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
 
         when(orderDatabase.getById(1L)).thenReturn(null);
 
         assertThrows(MalformedException.class,
-                () -> orderFacade.changeOrder(1L, order));
+            () -> orderFacade.changeOrder(1L, order));
 
     }
 
@@ -744,55 +766,56 @@ public class OrderFacadeMockitoTest {
     void testChangeOrderCustomerPaidOrder() throws ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         Order orderRepo = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.ACCEPTED);
+            20F, location, Order.StatusEnum.ACCEPTED);
 
         when(userMicroservice.isCustomer(2L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
         assertThrows(ForbiddenException.class,
-                () -> orderFacade.changeOrder(2L, order));
+            () -> orderFacade.changeOrder(2L, order));
     }
 
     @Test
     void testChangeOrderCustomerNotOwnOrder() throws ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         Order orderRepo = new Order(1L, 999L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
 
         when(userMicroservice.isCustomer(2L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
         assertThrows(ForbiddenException.class,
-                () -> orderFacade.changeOrder(2L, order));
+            () -> orderFacade.changeOrder(2L, order));
     }
 
     @Test
     void testChangeOrderCustomerUnauthorizedChange() throws ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         Order orderRepo = new Order(1L, 2L, 3L, new ArrayList<>(),
-                200000F, location, Order.StatusEnum.UNPAID);
+            200000F, location, Order.StatusEnum.UNPAID);
 
         when(userMicroservice.isCustomer(2L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
         assertThrows(ForbiddenException.class,
-                () -> orderFacade.changeOrder(2L, order));
+            () -> orderFacade.changeOrder(2L, order));
     }
 
     @Test
     void testChangeOrderCustomerOk() throws ApiException {
         Location location = new Location();
-        Location locationChanged = new Location("NL", "Delft", "Kanalweg", "9023PL");
+        Location locationChanged =
+            new Location("NL", "Delft", "Kanalweg", "9023PL");
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, locationChanged, Order.StatusEnum.UNPAID);
+            20F, locationChanged, Order.StatusEnum.UNPAID);
         Order orderRepo = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
 
         when(userMicroservice.isCustomer(2L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
@@ -806,61 +829,68 @@ public class OrderFacadeMockitoTest {
     @Test
     void testChangeOrderVendorUnauthorizedChange() throws ApiException {
         Location location = new Location();
-        Location locationChanged = new Location("NL", "Delft", "Kanalweg", "9023PL");
+        Location locationChanged =
+            new Location("NL", "Delft", "Kanalweg", "9023PL");
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, locationChanged, Order.StatusEnum.UNPAID);
+            20F, locationChanged, Order.StatusEnum.UNPAID);
         order.setCourierRating(8);
         Order orderRepo = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         orderRepo.setCourierRating(10);
 
         when(userMicroservice.isVendor(3L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
         assertThrows(ForbiddenException.class,
-                () -> orderFacade.changeOrder(3L, order));
+            () -> orderFacade.changeOrder(3L, order));
     }
 
     @Test
-    void testChangeOrderVendorUnauthorizedCourierRatingChange() throws ApiException {
+    void testChangeOrderVendorUnauthorizedCourierRatingChange()
+        throws ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         order.setCourierRating(8);
         Order orderRepo = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         orderRepo.setCourierRating(10);
 
         when(userMicroservice.isVendor(3L)).thenReturn(true);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
         assertThrows(ForbiddenException.class,
-                () -> orderFacade.changeOrder(3L, order));
+            () -> orderFacade.changeOrder(3L, order));
     }
 
     @Test
     void testChangeOrderVendorWrongFee() throws ApiException {
         Location location = new Location();
         Dish dish = new Dish(1L,
-                2L,
-                "name",
-                "description",
-                new ArrayList<>(),
-                8.0f);
+            2L,
+            "name",
+            "description",
+            new ArrayList<>(),
+            8.0f);
         OrderDishesInner dishInner = new OrderDishesInner(dish, 2);
         ArrayList<OrderDishesInner> dishList = new ArrayList<>();
         dishList.add(dishInner);
 
-        Order order = new Order(1L, 2L, 3L, dishList,
-                15.9F, location, Order.StatusEnum.UNPAID);
         Order orderRepo = new Order(1L, 2L, 3L, dishList,
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
 
         when(userMicroservice.isVendor(3L)).thenReturn(true);
+        when(userMicroservice.isCustomer(3L)).thenReturn(false);
         when(orderDatabase.getById(1L)).thenReturn(orderRepo);
 
+        Order order = new Order(1L, 2L, 3L, dishList,
+            15.9F, location, Order.StatusEnum.UNPAID);
+        Order order2 = new Order(1L, 2L, 3L, dishList,
+            16F, location, Order.StatusEnum.UNPAID);
+
         assertThrows(ForbiddenException.class,
-                () -> orderFacade.changeOrder(3L, order));
+            () -> orderFacade.changeOrder(3L, order));
+        assertDoesNotThrow(() -> orderFacade.changeOrder(3L, order2));
     }
 
     @Test
@@ -985,21 +1015,21 @@ public class OrderFacadeMockitoTest {
     @Test
     void testGetOrderInvalidId() {
         assertThrows(MalformedException.class,
-                () -> orderFacade.getOrder(null));
+            () -> orderFacade.getOrder(null));
     }
 
     @Test
     void testGetOrderMissingDish() {
         when(orderDatabase.getById(1L)).thenReturn(null);
         assertThrows(MalformedException.class,
-                () -> orderFacade.getOrder(1L));
+            () -> orderFacade.getOrder(1L));
     }
 
     @Test
     void testGetOrderOk() {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
-                20F, location, Order.StatusEnum.UNPAID);
+            20F, location, Order.StatusEnum.UNPAID);
         when(orderDatabase.getById(1L)).thenReturn(order);
         List<Order> list = new ArrayList<>();
         list.add(order);

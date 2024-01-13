@@ -1,7 +1,6 @@
 package nl.tudelft.sem.orders.controllers;
 
 import java.util.List;
-import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.api.VendorApi;
 import nl.tudelft.sem.orders.model.Analytic;
 import nl.tudelft.sem.orders.model.Dish;
@@ -44,7 +43,9 @@ public class VendorController implements VendorApi {
         try {
             return ResponseEntity.ok(
                     vendorFacade.addDish(dish));
-        } catch (ApiException | IllegalStateException e) {
+        } catch (ApiException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -56,9 +57,11 @@ public class VendorController implements VendorApi {
         try {
             vendorFacade.modifyDish(dish);
             return ResponseEntity.ok().build();
-        } catch (IllegalStateException | ApiException e) {
+        } catch (ApiException e) {
             return ResponseEntity.badRequest().build();
-        } catch (EntityNotFoundException e) {
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }

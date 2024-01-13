@@ -1,15 +1,12 @@
 package nl.tudelft.sem.orders.controllers;
 
 import java.util.List;
-import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.orders.api.OrderApi;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPut200Response;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequest;
 import nl.tudelft.sem.orders.model.OrderOrderIDPayPostRequest;
 import nl.tudelft.sem.orders.model.OrderOrderIDRatePostRequest;
-import nl.tudelft.sem.orders.ports.output.LocationService;
-import nl.tudelft.sem.orders.ports.output.UserMicroservice;
 import nl.tudelft.sem.orders.result.ForbiddenException;
 import nl.tudelft.sem.orders.result.MalformedException;
 import nl.tudelft.sem.orders.result.NotFoundException;
@@ -58,7 +55,9 @@ public class OrderController implements OrderApi {
         try {
             return ResponseEntity.ok(
                 orderFacade.createOrder(userID, vendorID));
-        } catch (ApiException | MalformedException e) {
+        } catch (MalformedException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (ApiException e) {
             return ResponseEntity.badRequest().build();
         } catch (ForbiddenException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -72,7 +71,9 @@ public class OrderController implements OrderApi {
                 orderFacade.changeOrder(userID, order));
         } catch (ForbiddenException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (MalformedException | ApiException e) {
+        } catch (MalformedException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (ApiException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
@@ -91,10 +92,10 @@ public class OrderController implements OrderApi {
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalStateException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (ApiException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
@@ -121,9 +122,7 @@ public class OrderController implements OrderApi {
         List<Order> retrievedOrders;
         try {
             retrievedOrders = orderFacade.getOrders(userID);
-        } catch (IllegalStateException ise) {
-            return ResponseEntity.badRequest().build();
-        } catch (ApiException api) {
+        } catch (Exception ise) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -153,7 +152,9 @@ public class OrderController implements OrderApi {
             return ResponseEntity.ok().build();
         } catch (ForbiddenException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (MalformedException | ApiException e) {
+        } catch (ApiException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (MalformedException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }

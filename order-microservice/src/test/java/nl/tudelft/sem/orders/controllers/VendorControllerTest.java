@@ -14,7 +14,7 @@ import org.springframework.http.HttpStatus;
 
 @SpringBootTest
 @Import(TestConfig.class)
-class VendorControllerTest {
+public class VendorControllerTest {
     @Autowired
     private VendorController vendorController;
 

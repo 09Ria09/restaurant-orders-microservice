@@ -79,6 +79,8 @@ public class GeoDistanceStrategy implements RadiusStrategy {
                 GeoLocation vendorGeoLocation =
                     locationService.getGeoLocation(vendorLocation);
 
+                var dis = userGeoLocation.distanceTo(vendorGeoLocation);
+
                 if (userGeoLocation.distanceTo(vendorGeoLocation)
                     <= pair.getValue()) {
                     result.add(pair.getKey());

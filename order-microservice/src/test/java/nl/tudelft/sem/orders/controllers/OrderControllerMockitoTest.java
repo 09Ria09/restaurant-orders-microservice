@@ -26,7 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 
-class OrderControllerMockitoTest {
+public class OrderControllerMockitoTest {
     private OrderFacade orderFacade;
     private OrderController orderController;
 
@@ -46,11 +46,14 @@ class OrderControllerMockitoTest {
     @Test
     void orderGetAdmin() throws ApiException {
         Long userID = 1L;
-        when(orderFacade.getOrders(1L)).thenReturn(new ArrayList<Order>());
+        var ord = new ArrayList<Order>();
+        ord.add(new Order().orderID(13L));
+        when(orderFacade.getOrders(1L)).thenReturn(ord);
 
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
 
         verify(orderFacade).getOrders(1L);
+        assertEquals(actual.getBody().get(0).getOrderID(), 13L);
     }
 
     @Test
@@ -58,7 +61,8 @@ class OrderControllerMockitoTest {
         Long userID = 1L;
         when(orderFacade.getOrders(1L)).thenThrow(new IllegalStateException());
 
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.orderGet(userID).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,
+            orderController.orderGet(userID).getStatusCode());
     }
 
     @Test
@@ -67,7 +71,8 @@ class OrderControllerMockitoTest {
 
         when(orderFacade.getOrders(1L)).thenThrow(new ApiException());
 
-        ResponseEntity<List<Order>> expected = ResponseEntity.badRequest().build();
+        ResponseEntity<List<Order>> expected =
+            ResponseEntity.badRequest().build();
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
         assertEquals(expected, actual);
     }
@@ -79,7 +84,8 @@ class OrderControllerMockitoTest {
         when(orderFacade.getOrders(1L))
             .thenThrow(new IllegalStateException("blah"));
 
-        ResponseEntity<List<Order>> expected = ResponseEntity.badRequest().build();
+        ResponseEntity<List<Order>> expected =
+            ResponseEntity.badRequest().build();
         ResponseEntity<List<Order>> actual = orderController.orderGet(userID);
         assertEquals(expected, actual);
     }
@@ -91,67 +97,98 @@ class OrderControllerMockitoTest {
             nl.tudelft.sem.orders.model.Order.StatusEnum.PENDING).courierID(3L);
 
         when(orderFacade.reorder(anyLong(), anyLong())).thenReturn(order);
-        ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
+
+        ResponseEntity<Order> response =
+            orderController.orderOrderIDReorderPost(1L, 1L);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(order, response.getBody());
     }
 
     @Test
     public void testOrderOrderIDReorderPostNotFound() throws Exception {
-        when(orderFacade.reorder(anyLong(), anyLong())).thenThrow(NotFoundException.class);
-        ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
+        when(orderFacade.reorder(anyLong(), anyLong())).thenThrow(
+            NotFoundException.class);
+        ResponseEntity<Order> response =
+            orderController.orderOrderIDReorderPost(1L, 1L);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     public void testOrderOrderIDReorderPostMalformed() throws Exception {
-        when(orderFacade.reorder(anyLong(), anyLong())).thenThrow(MalformedException.class);
-        ResponseEntity<Order> response = orderController.orderOrderIDReorderPost(1L, 1L);
+        when(orderFacade.reorder(anyLong(), anyLong())).thenThrow(
+            MalformedException.class);
+        ResponseEntity<Order> response =
+            orderController.orderOrderIDReorderPost(1L, 1L);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
 
     @Test
-    public void testOrderPostSuccess() throws ApiException, MalformedException, ForbiddenException {
+    public void testOrderPostSuccess()
+        throws ApiException, MalformedException, ForbiddenException {
         long userID = 1L;
         long vendorID = 2L;
 
         when(orderFacade.createOrder(userID, vendorID)).thenReturn(new Order());
-        ResponseEntity<Order> response = orderController.orderPost(userID, vendorID);
+        ResponseEntity<Order> response =
+            orderController.orderPost(userID, vendorID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(new Order(), response.getBody());
     }
 
     @Test
-    public void testOrderPostBadRequest() throws ApiException, MalformedException, ForbiddenException {
+    public void testOrderPostBadRequest()
+        throws ApiException, MalformedException, ForbiddenException {
         long userID = 1L;
         long vendorID = 2L;
 
-        when(orderFacade.createOrder(userID, vendorID)).thenThrow(new ApiException());
-        ResponseEntity<Order> response = orderController.orderPost(userID, vendorID);
+        when(orderFacade.createOrder(userID, vendorID)).thenThrow(
+            new ApiException());
+        ResponseEntity<Order> response =
+            orderController.orderPost(userID, vendorID);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
-    public void testOrderPostForbidden() throws ApiException, MalformedException, ForbiddenException {
+    public void testOrderPostForbidden()
+        throws ApiException, MalformedException, ForbiddenException {
         long userID = 1L;
         long vendorID = 2L;
 
-        when(orderFacade.createOrder(userID, vendorID)).thenThrow(new ForbiddenException());
-        ResponseEntity<Order> response = orderController.orderPost(userID, vendorID);
+        when(orderFacade.createOrder(userID, vendorID)).thenThrow(
+            new ForbiddenException());
+        ResponseEntity<Order> response =
+            orderController.orderPost(userID, vendorID);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
-    public void testOrderOrderIDDishesPutSuccess() throws IllegalStateException, EntityNotFoundException, ApiException {
+    public void testOrderPostMalformed()
+        throws ApiException, MalformedException, ForbiddenException {
+        long userID = 1L;
+        long vendorID = 2L;
+
+        when(orderFacade.createOrder(userID, vendorID)).thenThrow(
+            new MalformedException());
+        ResponseEntity<Order> response =
+            orderController.orderPost(userID, vendorID);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void testOrderOrderIDDishesPutSuccess()
+        throws IllegalStateException, EntityNotFoundException, ApiException {
         long userID = 1L;
         long orderID = 2L;
 
-        OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
-        when(orderFacade.updateDishes(orderID, userID, request.getDishes())).thenReturn(10.0F);
+        OrderOrderIDDishesPutRequest request =
+            new OrderOrderIDDishesPutRequest();
+        when(orderFacade.updateDishes(orderID, userID,
+            request.getDishes())).thenReturn(10.0F);
         ResponseEntity<OrderOrderIDDishesPut200Response> response =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(10F, response.getBody().getPrice());
     }
 
     @Test
@@ -160,8 +197,10 @@ class OrderControllerMockitoTest {
         long userID = 1L;
         long orderID = 2L;
 
-        OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
-        when(orderFacade.updateDishes(orderID, userID, request.getDishes())).thenThrow(new IllegalStateException());
+        OrderOrderIDDishesPutRequest request =
+            new OrderOrderIDDishesPutRequest();
+        when(orderFacade.updateDishes(orderID, userID,
+            request.getDishes())).thenThrow(new IllegalStateException());
         ResponseEntity<OrderOrderIDDishesPut200Response> response =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -172,9 +211,11 @@ class OrderControllerMockitoTest {
         throws IllegalStateException, EntityNotFoundException, ApiException {
         long userID = 1L;
         long orderID = 2L;
-        OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
+        OrderOrderIDDishesPutRequest request =
+            new OrderOrderIDDishesPutRequest();
 
-        when(orderFacade.updateDishes(orderID, userID, request.getDishes())).thenThrow(new EntityNotFoundException());
+        when(orderFacade.updateDishes(orderID, userID,
+            request.getDishes())).thenThrow(new EntityNotFoundException());
         ResponseEntity<OrderOrderIDDishesPut200Response> response =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -185,30 +226,52 @@ class OrderControllerMockitoTest {
         throws IllegalStateException, EntityNotFoundException, ApiException {
         long userID = 1L;
         long orderID = 2L;
-        OrderOrderIDDishesPutRequest request = new OrderOrderIDDishesPutRequest();
+        OrderOrderIDDishesPutRequest request =
+            new OrderOrderIDDishesPutRequest();
 
-        when(orderFacade.updateDishes(orderID, userID, request.getDishes())).thenThrow(new ApiException());
+        when(orderFacade.updateDishes(orderID, userID,
+            request.getDishes())).thenThrow(new ApiException());
         ResponseEntity<OrderOrderIDDishesPut200Response> response =
             orderController.orderOrderIDDishesPut(userID, orderID, request);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
-    public void testOrderOrderIDRatePostBadRequest() throws ForbiddenException, MalformedException, ApiException {
-        doThrow(MalformedException.class).when(orderFacade).rateOrder(1L, 2L, 11);
+    public void testOrderOrderIDRatePostBadRequest()
+        throws ForbiddenException, MalformedException, ApiException {
+        doThrow(MalformedException.class).when(orderFacade)
+            .rateOrder(1L, 2L, 11);
         OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
         request.setRating(11);
 
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.orderOrderIDRatePost(1L, 2L, request).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,
+            orderController.orderOrderIDRatePost(1L, 2L, request)
+                .getStatusCode());
     }
 
     @Test
-    public void testOrderOrderIDRatePostForbidden() throws ForbiddenException, MalformedException, ApiException {
-        doThrow(ForbiddenException.class).when(orderFacade).rateOrder(1L, 2L, 7);
+    public void testOrderOrderIDRatePostForbidden()
+        throws ForbiddenException, MalformedException, ApiException {
+        doThrow(ForbiddenException.class).when(orderFacade)
+            .rateOrder(1L, 2L, 7);
         OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
         request.setRating(7);
 
-        assertEquals(HttpStatus.FORBIDDEN, orderController.orderOrderIDRatePost(1L, 2L, request).getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN,
+            orderController.orderOrderIDRatePost(1L, 2L, request)
+                .getStatusCode());
+    }
+
+    @Test
+    public void testOrderOrderIDRatePostApi()
+        throws ForbiddenException, MalformedException, ApiException {
+        doThrow(ApiException.class).when(orderFacade).rateOrder(1L, 2L, 7);
+        OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
+        request.setRating(7);
+
+        assertEquals(HttpStatus.BAD_REQUEST,
+            orderController.orderOrderIDRatePost(1L, 2L, request)
+                .getStatusCode());
     }
 
     @Test
@@ -216,55 +279,78 @@ class OrderControllerMockitoTest {
         OrderOrderIDRatePostRequest request = new OrderOrderIDRatePostRequest();
         request.setRating(7);
 
-        assertEquals(HttpStatus.OK, orderController.orderOrderIDRatePost(1L, 2L, request).getStatusCode());
+        assertEquals(HttpStatus.OK,
+            orderController.orderOrderIDRatePost(1L, 2L, request)
+                .getStatusCode());
     }
 
     @Test
     void orderDeleteForbidden() throws ForbiddenException, MalformedException {
         doThrow(ForbiddenException.class).when(orderFacade).deleteOrder(1L, 1L);
-        ResponseEntity<Void> response = orderController.orderOrderIDDelete(1L, 1L);
+        ResponseEntity<Void> response =
+            orderController.orderOrderIDDelete(1L, 1L);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
     void orderDeleteMalformed() throws ForbiddenException, MalformedException {
         doThrow(MalformedException.class).when(orderFacade).deleteOrder(1L, 1L);
-        ResponseEntity<Void> response = orderController.orderOrderIDDelete(1L, 1L);
+        ResponseEntity<Void> response =
+            orderController.orderOrderIDDelete(1L, 1L);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     void orderDeleteOK() {
-        ResponseEntity<Void> response = orderController.orderOrderIDDelete(1L, 1L);
+        ResponseEntity<Void> response =
+            orderController.orderOrderIDDelete(1L, 1L);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    public void testOrderPutMalformed() throws ForbiddenException, MalformedException, ApiException {
+    public void testOrderPutMalformed()
+        throws ForbiddenException, MalformedException, ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
             20F, location, Order.StatusEnum.UNPAID);
 
-        when(orderFacade.changeOrder(1L, order)).thenThrow(MalformedException.class);
+        when(orderFacade.changeOrder(1L, order)).thenThrow(
+            MalformedException.class);
         assertEquals(HttpStatus.BAD_REQUEST,
             orderController.orderPut(1L, order)
                 .getStatusCode());
     }
 
     @Test
-    public void testOrderPutForbidden() throws ForbiddenException, MalformedException, ApiException {
+    public void testOrderPutApi()
+        throws ForbiddenException, MalformedException, ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
             20F, location, Order.StatusEnum.UNPAID);
 
-        when(orderFacade.changeOrder(1L, order)).thenThrow(ForbiddenException.class);
+        when(orderFacade.changeOrder(1L, order)).thenThrow(ApiException.class);
+        assertEquals(HttpStatus.BAD_REQUEST,
+            orderController.orderPut(1L, order)
+                .getStatusCode());
+    }
+
+    @Test
+    public void testOrderPutForbidden()
+        throws ForbiddenException, MalformedException, ApiException {
+        Location location = new Location();
+        Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
+            20F, location, Order.StatusEnum.UNPAID);
+
+        when(orderFacade.changeOrder(1L, order)).thenThrow(
+            ForbiddenException.class);
         assertEquals(HttpStatus.FORBIDDEN,
             orderController.orderPut(1L, order)
                 .getStatusCode());
     }
 
     @Test
-    public void testOrderPutOk() throws ForbiddenException, MalformedException, ApiException {
+    public void testOrderPutOk()
+        throws ForbiddenException, MalformedException, ApiException {
         Location location = new Location();
         Order order = new Order(1L, 2L, 3L, new ArrayList<>(),
             20F, location, Order.StatusEnum.UNPAID);
@@ -294,7 +380,8 @@ class OrderControllerMockitoTest {
 
         when(orderFacade.getOrder(1L)).thenReturn(list);
 
-        ResponseEntity<List<Order>> response = orderController.orderOrderIDGet(1L);
+        ResponseEntity<List<Order>> response =
+            orderController.orderOrderIDGet(1L);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(list, response.getBody());
     }

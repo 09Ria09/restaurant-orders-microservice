@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ import org.springframework.http.ResponseEntity;
 
 
 
-class VendorControllerMockitoTest {
+public class VendorControllerMockitoTest {
 
     private UserMicroservice userMicroservice;
     private VendorFacade vendorFacade;
@@ -43,6 +45,9 @@ class VendorControllerMockitoTest {
     private LocationService locationService;
     private DishDatabase dishDatabase;
 
+    /**
+     * Setup.
+     */
     @BeforeEach
     public void setUp() {
         userMicroservice = mock(UserMicroservice.class);
@@ -73,6 +78,28 @@ class VendorControllerMockitoTest {
                 List.of("potatofirsthalf", "potatosecondhalf"), 5.5F);
         assertEquals(HttpStatus.BAD_REQUEST,
                 vendorController2.vendorDishPost(d2).getStatusCode());
+    }
+
+    @Test
+    void vendorDishPostApi() throws ApiException {
+        Dish d2 = new Dish(1L, null, "potato", "good",
+            List.of("potatofirsthalf", "potatosecondhalf"), 5.5F);
+
+        when(vendorFacade.addDish(d2)).thenThrow(new ApiException());
+
+        assertEquals(HttpStatus.BAD_REQUEST,
+            vendorController.vendorDishPost(d2).getStatusCode());
+    }
+
+    @Test
+    void vendorDishPutApi() throws ApiException {
+        Dish d2 = new Dish(1L, null, "potato", "good",
+            List.of("potatofirsthalf", "potatosecondhalf"), 5.5F);
+
+        doThrow(new ApiException()).when(vendorFacade).modifyDish(d2);
+
+        assertEquals(HttpStatus.BAD_REQUEST,
+            vendorController.vendorDishPut(d2).getStatusCode());
     }
 
     @Test
@@ -127,6 +154,7 @@ class VendorControllerMockitoTest {
         assertEquals(HttpStatus.OK,
                 vendorController2.vendorDishPut(d)
                         .getStatusCode());
+        verify(dishDatabase, times(1)).save(d);
     }
 
     @Test
