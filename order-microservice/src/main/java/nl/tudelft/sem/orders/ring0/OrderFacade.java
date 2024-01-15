@@ -213,7 +213,7 @@ public class OrderFacade implements OrderFacadeInterface {
     }
 
     /**
-     * Deletes an order based on the user's permissions.
+     * Deletes an order based on the user's permissions and the order's status.
      *
      * @param userID The ID of the user requesting the deletion.
      * @param orderID The ID of the order to be deleted.
@@ -229,8 +229,11 @@ public class OrderFacade implements OrderFacadeInterface {
         }
 
         try {
-            if (userMicroservice.isAdmin(userID)
-                || (userMicroservice.isCustomer(userID) && order.getCustomerID().equals(userID))) {
+            if (userMicroservice.isAdmin(userID) || (
+                    userMicroservice.isCustomer(userID)
+                    && order.getCustomerID().equals(userID))
+                    && order.getStatus() == Order.StatusEnum.UNPAID
+            ) {
                 orderDatabase.delete(order);
             } else {
                 throw new ForbiddenException();
