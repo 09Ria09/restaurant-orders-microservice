@@ -1,0 +1,15 @@
+@startuml
+
+class VendorController
+interface DishDatabase
+class DishDatabaseAdapter
+interface VendorFacadeInterface
+class VendorFacade
+
+VendorFacadeInterface <|.. VendorFacade
+DishDatabase <|.. DishDatabaseAdapter
+
+VendorController o-up- VendorFacadeInterface
+VendorFacade o-up- DishDatabase
+
+@enduml

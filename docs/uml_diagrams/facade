@@ -17,6 +17,11 @@ class OrderFacade {
  +Order reorder(..)
 }
 
+class PaymentProcess{
++void payForOrder(..)
+}
+
+interface BaseValidator
 interface UserMicroservice
 interface DishDatabase
 interface OrderDatabase
@@ -24,32 +29,40 @@ interface RadiusStrategy
 interface SearchStrategy
 interface PaymentService
 interface LocationService
-interface BaseValidator
 class DistanceValidator
 class StatusValidator
 class TokenValidator
 class UserOwnershipValidator
+class OrderModification
 interface DeliveryMicroservice
 
-DistanceValidator <|.. BaseValidator
-StatusValidator <|.. BaseValidator
-TokenValidator <|.. BaseValidator
-UserOwnershipValidator <|.. BaseValidator
+DistanceValidator ..|> BaseValidator
+StatusValidator ..|> BaseValidator
+TokenValidator ..|> BaseValidator
+UserOwnershipValidator ..|> BaseValidator
 
 VendorFacade o-up- RadiusStrategy
 VendorFacade o-up- UserMicroservice
 VendorFacade o-up- DishDatabase
 VendorFacade o-up- SearchStrategy
 
+OrderModification o-up- UserMicroservice
+OrderModification o-up- DishDatabase
+OrderModification o-up- OrderDatabase
+
+PaymentProcess o-up- StatusValidator
+PaymentProcess o-up- DistanceValidator
+PaymentProcess o-up- TokenValidator
+PaymentProcess o-up- UserOwnershipValidator
+PaymentProcess o-up- PaymentService
 OrderFacade o-up- OrderDatabase
 OrderFacade o-up- DishDatabase
 OrderFacade o-up- UserMicroservice
-OrderFacade o-up- PaymentService
 OrderFacade o-up- LocationService
-OrderFacade o-up- StatusValidator
-OrderFacade o-up- DistanceValidator
-OrderFacade o-up- TokenValidator
-OrderFacade o-up- UserOwnershipValidator
+
 OrderFacade o-up- DeliveryMicroservice
+OrderFacade o-up- PaymentProcess
+
+OrderFacade o-up- OrderModification
 
 @enduml
