@@ -13,7 +13,6 @@ public class MockLocationAdapter implements LocationService {
 
     @Override
     public boolean isCloseBy(Location a, Location b) {
-        Random random = new Random();
-        return random.nextBoolean();
+        return true;
     }
 }
