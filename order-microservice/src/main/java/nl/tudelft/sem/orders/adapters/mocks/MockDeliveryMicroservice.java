@@ -11,7 +11,10 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
     @Override
     public List<GetDeliveryRadiuses200ResponseInner> getRadii(long userId)
         throws ApiException {
-        return new ArrayList<>();
+        GetDeliveryRadiuses200ResponseInner radius = new GetDeliveryRadiuses200ResponseInner();
+        radius.setVendorID(2L);
+        radius.setRadius(5);
+        return new ArrayList<>(List.of(radius));
     }
 
     @Override
