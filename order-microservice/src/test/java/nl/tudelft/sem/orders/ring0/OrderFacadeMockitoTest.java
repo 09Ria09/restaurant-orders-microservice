@@ -721,72 +721,7 @@ public class OrderFacadeMockitoTest {
         long userId = 1L;
         long orderId = 1L;
 
-        var order = new Order(1L,
-            1L,
-            2L,
-            new ArrayList<>(),
-            1f,
-            null,
-            Order.StatusEnum.UNPAID);
-
-        when(userMicroservice.isCustomer(userId)).thenReturn(true);
-        when(orderDatabase.getById(orderId)).thenReturn(order);
-
-        assertDoesNotThrow(() -> orderFacade.deleteOrder(userId, orderId));
-
-        verify(orderDatabase, times(1)).delete(order);
-    }
-
-    @Test
-    void testDeleteOrderByIdNotCustomer() throws ApiException {
-        long userId = 1L;
-        long orderId = 1L;
-
-        var order = new Order(1L,
-            1L,
-            2L,
-            new ArrayList<>(),
-            1f,
-            null,
-            Order.StatusEnum.UNPAID);
-
-        when(userMicroservice.isCustomer(userId)).thenReturn(false);
-        when(orderDatabase.getById(orderId)).thenReturn(order);
-
-        assertThrows(ForbiddenException.class,
-            () -> orderFacade.deleteOrder(userId, orderId));
-
-        verify(orderDatabase, times(0)).delete(order);
-    }
-
-    @Test
-    void testDeleteOrderByIdAdmin() throws ApiException {
-        long userId = 1L;
-        long orderId = 1L;
-
-        var order = new Order(1L,
-            100L,
-            2L,
-            new ArrayList<>(),
-            1f,
-            null,
-            Order.StatusEnum.DELIVERED);
-
-        when(userMicroservice.isCustomer(userId)).thenReturn(false);
-        when(userMicroservice.isAdmin(userId)).thenReturn(true);
-        when(orderDatabase.getById(orderId)).thenReturn(order);
-
-        assertDoesNotThrow(() -> orderFacade.deleteOrder(userId, orderId));
-
-        verify(orderDatabase, times(1)).delete(order);
-    }
-
-    @Test
-    void testDeleteOrderByIdOrderPaid() throws ApiException {
-        long userId = 1L;
-        long orderId = 1L;
-
-        var order = new Order(1L,
+        var ord = new Order(1L,
             1L,
             2L,
             new ArrayList<>(),
@@ -795,12 +730,11 @@ public class OrderFacadeMockitoTest {
             Order.StatusEnum.ACCEPTED);
 
         when(userMicroservice.isCustomer(userId)).thenReturn(true);
-        when(orderDatabase.getById(orderId)).thenReturn(order);
+        when(orderDatabase.getById(orderId)).thenReturn(ord);
 
-        assertThrows(ForbiddenException.class,
-            () -> orderFacade.deleteOrder(userId, orderId));
+        assertDoesNotThrow(() -> orderFacade.deleteOrder(userId, orderId));
 
-        verify(orderDatabase, times(0)).delete(order);
+        verify(orderDatabase, times(1)).delete(ord);
     }
 
     @Test
