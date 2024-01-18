@@ -28,7 +28,7 @@ plugins {
 	// PITest
 	id 'info.solidsoft.pitest' version '1.5.2'
 
-	id 'org.openapi.generator' version '7.0.1'
+	id 'org.openapi.generator' version '7.2.0'
 }
 
 group = 'nl.tudelft.sem.orders'
