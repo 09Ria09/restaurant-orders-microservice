@@ -1,0 +1,1033 @@
+openapi: 3.0.3
+info:
+  title: Users Microservice
+  description: Users Microservice is responsible for creating, editing, deleting different types of users
+  version: 1.0.0
+
+tags:
+  - name: Customer
+    description: endpoints for the Customer entity
+  - name: Admin
+    description: Every endpoint related to admin job
+  - name: Courier
+    description: Everything about Couriers
+  - name: User
+    description: Every endpoint related to the User entity
+
+paths:
+  # all endpoints for admin
+  /admins:
+    post:
+      tags:
+        - Admin
+      summary: Add a new admin account
+      description: Creates an Admin
+      parameters:
+        - name: requesterId
+          in: query
+          description: The id of the account trying to access this endpoint.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Creates an Admin
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '401':
+          description: Unauthorized user
+        '405':
+          description: Invalid input
+    get:
+      tags:
+        - Admin
+      summary: Get all the admins
+      description: Get all the admins and returns the list of all user entities that are admins
+      parameters:
+        - name: requesterId
+          in: query
+          description: The id of the account trying to access this endpoint.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Admin'
+        '400':
+          description: Invalid status value
+        '401':
+          description: Unauthorized user
+  /admins/{userId}:
+    put:
+      tags:
+        - Admin
+      summary: Update an existing admin
+      description: Update an existing admin by Id
+      parameters:
+        - name: userId
+          in: path
+          description: ID of admin that needs to be updated
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: requesterId
+          in: query
+          description: The id of the account trying to access this endpoint.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Update an admin by Id
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin'
+        required: true
+      responses:
+        '200':
+          description: Admin updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '400':
+          description: Updating was not successful, admin entity stays the same
+        '401':
+          description: Unauthorized user
+        '404':
+          description: No admin with such Id
+  /admins/approve/courier/{userId}:
+    put:
+      tags:
+        - Admin
+      summary: Approves courier account that has “not approved” status by Id
+      description: Approves courier account that has “not approved” status by Id. Approved courier is no longer with pending status
+      parameters:
+        - name: userId
+          in: path
+          description: ID of courier that has to be approved
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: requesterId
+          in: query
+          description: The id of the account trying to access this endpoint.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Courier approved, no longer have pending status
+        '400':
+          description: Approving was not successful
+        '401':
+          description: Unauthorized user
+        '404':
+          description: No pending status courier with such Id
+  /admins/approve/vendor/{userId}:
+    put:
+      tags:
+        - Admin
+      summary: Approves vendor account that has “not approved” status by Id
+      description: Approves vendor account that has “not approved” status by Id. Approved vendor is no longer with pending status
+      parameters:
+        - name: userId
+          in: path
+          description: ID of vendor that has to be approved
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: requesterId
+          in: query
+          description: The id of the account trying to access this endpoint.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: vendor approved, no longer have pending status
+        '400':
+          description: Approving was not successful
+        '401':
+          description: Unauthorized user
+        '404':
+          description: No pending status vendor with such Id
+
+  # All the endpoints for User
+  /users:
+    get:
+      tags:
+        - User
+      summary: Gets all the User entities
+      description: This endpoint is used to retrieve all the User Entities from the database
+      responses:
+        '200':
+          description: The creation of an User Entity was successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request / data provided had was wrong
+
+  /users/getUserType/{id}:
+    get:
+      tags:
+        - User
+      summary: Get the User type by ID
+      description: This endpoint returns a type of a single User Entity with the matching ID
+      parameters:
+        - name: id
+          in: path
+          description: ID of the User to be checked
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userType:
+                    type: string
+                    enum: [Courier, Vendor, Admin, Customer]
+        '400':
+          description: Invalid ID supplied
+        '401':
+          description: Unauthorized
+        '404':
+          description: User with ID not found
+
+  /users/{id}:
+    get:
+      tags:
+        - User
+      summary: Find the User by ID
+      description: This endpoint returns a single User Entity with the matching ID, it returns one of the types of users (Admin, Vendor, Customer, Courier).
+      parameters:
+        - name: id
+          in: path
+          description: ID of the User to be returned
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Admin'
+                  - $ref: '#/components/schemas/Courier'
+                  - $ref: '#/components/schemas/Vendor'
+                  - $ref: '#/components/schemas/Customer'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: User with ID not found
+
+    delete:
+      tags:
+        - User
+      summary: Deletes an User by ID
+      description: This endpoint is used to delete an User with the given ID
+      parameters:
+        - name: id
+          in: path
+          description: ID of the User to be deleted
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: requesterId
+          in: query
+          description: The id of the account trying to access this endpoint.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Deletion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid ID supplied
+        '401':
+          description: Unauthorized user, admins can delete any other user. Apart from that user can delete his own instance.
+        '404':
+          description: User with ID not found
+
+  #All endpoints for Couriers
+  /couriers:
+    get:
+      tags:
+        - Courier
+      summary: Gets all Couriers
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Courier'
+        '401':
+          description: Unauthorized
+
+    post:
+      tags:
+        - Courier
+      summary: Posts a Courier
+      description: Creates a Courier pending for an approval
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                surname:
+                  type: string
+                  minLength: 1
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 4
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Courier'
+        '400':
+          description: Invalid data supplied
+        '401':
+          description: Unauthorized
+  /couriers/{id}:
+    put:
+      tags:
+        - Courier
+      parameters:
+        - name: id
+          in: path
+          description: ID of courier that is to be updated
+          required: true
+          schema:
+            type: integer
+            format: int64
+      summary: Updates an existing Courier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Courier'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Courier'
+        '400':
+          description: Invalid data supplied
+        '401':
+          description: Unauthorized
+        '404':
+          description: Courier not found
+  /couriers/getCompletedOrders/{id}:
+    get:
+      tags:
+        - Courier
+      summary: Gets completed orders of a Courier
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Courier to get completed orders of
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Courier'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Courier not found
+
+  /couriers/addRating/{id}:
+    put:
+      tags:
+        - Courier
+      summary: Adds a rating to a Courier
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Courier to add a rating to
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                  format: int64
+      responses:
+        '200':
+          description: Successful operation
+          #possibly with some content
+        '400':
+          description: Invalid data supplied
+        '401':
+          description: Unauthorized
+        '404':
+          description: Courier not found
+  /couriers/addEarnedMoney/{id}:
+    put:
+      tags:
+        - Courier
+      summary: Adds earned money to a Courier
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Courier to add earned money to
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                earnedMoney:
+                  type: number
+      responses:
+        '200':
+          description: Successful operation
+          #possibly with some content
+        '400':
+          description: Invalid data supplied
+        '401':
+          description: Unauthorized
+        '404':
+          description: Courier not found
+  /couriers/addOrder/{id}:
+    put:
+      tags:
+        - Courier
+      summary: Adds earned money to a Courier
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Courier to add an order to
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderId:
+                  type: integer
+                  format: int64
+      responses:
+        '200':
+          description: Successful operation
+          #possibly with some content
+        '400':
+          description: Invalid data supplied
+        '401':
+          description: Unauthorized
+        '404':
+          description: Courier not found
+
+  /couriers/unverified:
+    get:
+      tags:
+        - Courier
+      summary: Get all unverified Couriers
+      description: Retrieve all Couriers that are currently unverified.
+      responses:
+        '200':
+          description: OK, success code
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Courier"
+
+  /couriers/verified:
+    get:
+      tags:
+        - Courier
+      summary: Get all verified couriers
+      description: Retrieve all couriers that are currently verified.
+      responses:
+        '200':
+          description: OK, success code
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Courier"
+
+  # all endpoints for vendors
+  /vendors:
+    post:
+      tags:
+        - Vendor
+      summary: Create a new vendor
+      description: this endpoint is used to create a new vendor in the database
+      responses:
+        '201':
+          description: The creation was successful
+        '400':
+          description: Bad request / data provided had was wrong
+
+    # I talked to the people of group c and they confirmed that they forgot to add a return body.
+    get:
+      tags:
+        - Vendor
+      summary: Get all vendors in the database
+      responses:
+        '200':
+          description: A JSON array with the data of the vendors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vendor"
+
+  /vendors/{id}:
+    put:
+      tags:
+        - Vendor
+      summary: Update a vendor by ID
+      description: Update the properties of a specific vendor based on the provided ID. New properties should be in the request body.
+      parameters:
+        - name: id
+          in: path
+          description: The ID of the vendor to update.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Updated properties of the vendor
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Vendor"
+      responses:
+        '200':
+          description: OK, success code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vendor"
+        '404':
+          description: Vendor not found
+          content:
+            application/json:
+              example:
+                error: Vendor not found
+                message: The specified ID was not found.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                error: Bad request
+                message: Bad information in the request body.
+
+  /vendors/unverified:
+    get:
+      tags:
+        - Vendor
+      summary: Get all unverified vendors
+      description: Retrieve all vendors that are currently unverified.
+      responses:
+        '200':
+          description: OK, success code
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vendor"
+
+  /vendors/verified:
+    get:
+      tags:
+        - Vendor
+      summary: Get all verified vendors
+      description: Retrieve all vendors that are currently verified.
+      responses:
+        '200':
+          description: OK, success code
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vendor"
+
+  # all endpoints for customers
+  /customers:
+    get:
+      summary: Get all customers
+      tags:
+        - Customer
+      description: Takes in the rights of the account that tries to access this endpoint. Returns an Array of Customers
+      responses:
+        '200':
+          description: The array of Customers was successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+        '401':
+          description: User unauthorized to request this data. Is returned in case the endpoint is accessed with customer rights or unexpected request body
+        '500':
+          description: The server encountered an unexpected condition that prevented it from fulfilling the request.
+
+
+    post:
+      summary: Create Customer
+      tags:
+        - Customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                surname:
+                  type: string
+                  minLength: 1
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 4
+      responses:
+        '201':
+          description: The Customer was successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Bad request - returned if the payload does not match the requirements
+        '500':
+          description: The server encountered an unexpected condition that prevented it from fulfilling the request.
+  /customers/{userId}:
+    put:
+      summary: Update a Customer with the new customer object
+      description: The customer is updated according to the id in the Customer object
+      tags:
+        - Customer
+      parameters:
+        - name: userId
+          in: path
+          description: The ID of the customer to update.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: requesterId
+          in: query
+          description: The id of the account trying to access this endpoint.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                updatedCustomer:
+                  $ref: '#/components/schemas/Customer'
+      responses:
+        '200':
+          description: The Customer was successfully updated
+        '400':
+          description: Bad request - some fields of the updatedCustomer do not match the requirements
+        '401':
+          description: User unauthorized to update Customer. Only Admin and the Customer himself can do so
+        '404':
+          description: Returned when customer with this id was not found
+        '500':
+          description: The server encountered an unexpected condition that prevented it from fulfilling the request.
+
+
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - password
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+          example: Jon
+        surname:
+          type: string
+          example: Doe
+        email:
+          type: string
+          format: email
+          example: johndoe@example.com
+
+    Vendor:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - password
+        - location
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+          example: Jon
+        surname:
+          type: string
+          example: Doe
+        email:
+          type: string
+          format: email
+          example: johndoe@example.com
+        openingHour:
+          type: string
+          format: date-time
+          example: 2017-07-21T17:32:28Z
+        closingHour:
+          type: string
+          format: date-time
+          example: '2017-07-21T17:32:28Z'
+        location:
+          $ref: '#/components/schemas/Location'
+        verified:
+          type: boolean
+        pastOrders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+          description: Vendors will have a list with the past orders they completed
+
+    Admin:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - password
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+          example: Jon
+        surname:
+          type: string
+          example: Doe
+        email:
+          type: string
+          format: email
+          example: johndoe@example.com
+
+    Courier:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - password
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+          example: Jon
+        surname:
+          type: string
+          example: Doe
+        email:
+          type: string
+          format: email
+          example: johndoe@example.com
+        rating:
+          type: number
+          format: double
+          example: 4.5
+        verified:
+          type: boolean
+          example: false
+        pastOrders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+          description: A history of orders they have completed
+        paymentMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentMethod'
+          description: This will be mocked payment methods, but the functionality to store them is present
+
+
+    Customer:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - password
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+          example: Jon
+        surname:
+          type: string
+          example: Doe
+        email:
+          type: string
+          format: email
+          example: johndoe@example.com
+        allergens:
+          type: array
+          items:
+            type: string
+          example: [ soy, lactose, egg ]
+        address:
+          $ref: '#/components/schemas/Location'
+          description: This is the house or default address of the costumer
+        paymentMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentMethod'
+          description: This will be mocked payment methods, but the functionality to store them is present
+        pastOrders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+          description: A list with all the past orders from a costumer
+        savedOrders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+          description: A list with the orders the user has saved
+        favoriteDishes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dish'
+          description: List of the Customers favorite Dishes
+        favoriteRestaurants:
+          type: array
+          items:
+            type: string
+          example: ["McDonald, KFC"]
+          description: List of the Customers favorite Restaurants
+
+    Location:
+      type: object
+      required:
+        - country
+        - city
+        - street
+        - streetNumber
+      properties:
+        country:
+          type: string
+          example: Netherlands
+        city:
+          type: string
+          example: Delft
+        street:
+          type: string
+          example: Melkeweg
+        streetNumber:
+          type: string
+          example: 13A
+        additionalRemarks:
+          type: string
+          description: It can be useful for people whose address is not easy to find to be able to add some extra clarifications
+
+    Order:
+      type: object
+      required:
+        - orderId
+        - customerId
+        - vendorId
+        - courierId
+        - price
+        - deliveryFee
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          example: 5
+        customer:
+          $ref: '#/components/schemas/Customer'
+          description: Keeps track of the customer that made the order
+        vendor:
+          $ref: '#/components/schemas/Vendor'
+          description: Keeps track of the vendor that made the order
+        courier:
+          $ref: '#/components/schemas/Courier'
+          description: Keeps track of the courier that made the order
+        price:
+          type: number
+          format: double
+          example: 15.50
+          description: The price of the order
+        deliveryFee:
+          type: number
+          format: double
+          example: 3.75
+          description: This is the amount that the courier will be payed
+
+    PaymentMethod:
+      type: object
+      description: This will be a mocked object
+
+
+    Dish:
+      type: object
+      required:
+        - dishID
+        - vendorID
+        - name
+        - description
+        - ingredients
+        - price
+      properties:
+        dishID:
+          type: integer
+          format: int64
+          example: 5
+        vendorID:
+          type: integer
+          format: int64
+          example: 5
+        name:
+          type: string
+          description: The name of the dish.
+          example: Salad
+        description:
+          type: string
+          description: A short description of the dish.
+          example: Classic Cesar Salad
+        ingredients:
+          type: array
+          items:
+            type: string
+            description: List of ingredients for the dish.
+            example: [ "lettuce", "cheese" ]
+        price:
+          type: number
+          format: float
+          description: The price of the dish.
+          example: 5.0
+        picture:
+          type: string
+          format: uri
+          description: The URL of the picture of the dish. This field is optional.
+        allergens:
+          type: array
+          items:
+            type: string
+            description: Information about allergens for the dish ingredients. This field is optional.

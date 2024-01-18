@@ -1,27 +1,54 @@
-# Lab Template
+# The Order Microservice
 
-This template contains two microservices:
-- authentication-microservice
-- example-microservice
+This is the implementation of the order microservice of team 13a.
 
-The `authentication-microservice` is responsible for registering new users and authenticating current ones. After successful authentication, this microservice will provide a JWT token which can be used to bypass the security on the `example-microservice`. This token contains the *NetID* of the user that authenticated. If your scenario includes different roles, these will have to be added to the authentication-microservice and to the JWT token. To do this, you will have to:
-- Add a concept of roles to the `AppUser`
-- Add the roles to the `UserDetails` in `JwtUserDetailsService`
-- Add the roles as claims to the JWT token in `JwtTokenGenerator`
+Our API specification is contained in the `documentation` repo.
 
-The `example-microservice` is just an example and needs to be modified to suit the domain you are modeling based on your scenario.
+This requires at least Java version 15 to run.
 
-The `domain` and `application` packages contain the code for the domain layer and application layer. The code for the framework layer is the root package as *Spring* has some limitations on were certain files are located in terms of autowiring.
+## Building the application
 
-## Running the microservices
+Building the application can be done by invoking `./gradlew build`.
 
-You can run the two microservices individually by starting the Spring applications. Then, you can use *Postman* to perform the different requests:
+## Testing the application
 
-Register:
-![image](instructions/register.png)
+To run all tests one can invoke `./gradlew test`.
 
-Authenticate:
-![image](instructions/authenticate.png)
+Furhtermore to run mutation tests one can invoke `./gradlew pitest`
 
-Hello:
-![image](instructions/hello.png)
+The reports will be generated to the `build/reports` folder.
+
+## Running the application
+
+By default running `./gradlew bootRun` will start up the application with mocks instead of external services on port `8082`. The port can be changed in `order-microservice/src/main/resources/application.properties` while the other microservices can be connected by chaning the configuration in `./order-microservice/src/main/java/nl/tudelft/sem/orders/domain/config/MicroConfig.java` 
+
+From:
+
+```java
+    @Bean
+    public UserMicroservice userMicroservice() {
+        return new MockUserMicroservice();
+    }
+
+    @Bean
+    public DeliveryMicroservice deliveryMicroservice() {
+        return new MockDeliveryMicroservice();
+    }
+```
+
+To:
+
+```java
+    @Bean
+    public UserMicroservice userMicroservice() {
+        return new UserRemoteProxy(context.getBean(UserApi.class), context.getBean(
+            VendorApi.class), context.getBean(LocationMapper.class));
+    }
+
+    @Bean
+    public DeliveryMicroservice deliveryMicroservice() {
+        return new DeliveryRemoteProxy(context.getBean(
+            nl.tudelft.sem.delivery.api.VendorApi.class), context.getBean(AdminApi.class), context.getBean(
+            DeliveryApi.class));
+    }
+```

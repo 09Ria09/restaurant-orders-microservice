@@ -1,0 +1,1115 @@
+openapi: 3.0.3 # fixed Illegal character in opaque part at index 2 error
+info:
+  title: YumYum Delivery Microservice
+  description: Delivery Microservice for YumYum
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8081/v1'
+tags:
+  - name: Delivery
+  - name: Vendor
+  - name: Courier
+  - name: Admin
+
+paths:
+  /delivery:
+    get:
+      tags:
+        - Delivery
+      summary: Get delivery
+      description: Get delivery by order id
+      operationId: getDeliveryFromOrder
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+        - name: orderId
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 30112399
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+                example:
+                  deliveryId: 0978
+                  orderId: 30112399
+                  vendorId: 158
+                  courierId: 1816
+                  rating: 8
+                  vendorLocation:
+                    longitude: 52.02
+                    latitude: 4.37
+                  times:
+                    estimatedPickupTime: 2023-11-30T14:41:26.902Z
+                    estimatedDeliveryTime: 2023-11-30T15:01:57.902Z
+                    actualPickupTime: 2023-11-30T14:44:00.902Z
+                    actualDeliveryTime: 2023-11-30T15:05:36.902Z
+                    delays:
+                      description: Heavy Traffic
+                      minutesLost: 4
+                      requiresCustomerService: false
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+    post:
+      tags:
+        - Delivery
+      summary: Create delivery
+      operationId: createDelivery
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderId:
+                  $ref: '#/components/schemas/id'
+                  example: 30112399
+                vendorId:
+                  $ref: '#/components/schemas/id'
+                  example: 158
+                customerId:
+                  $ref: '#/components/schemas/id'
+                  example: 3218
+                estimatedPickupTime:
+                  type: string
+                  format: date-time
+                  example: 2023-11-30T14:41:26.902Z
+              required:
+                - orderId
+                - vendorId
+                - customerId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+                example:
+                  deliveryId: 0978
+                  orderId: 30112399
+                  vendorId: 158
+                  courierId: 1816
+                  rating: 0
+                  vendorLocation:
+                    longitude: 52.02
+                    latitude: 4.37
+                  times:
+                    estimatedPickupTime: 2023-11-30T14:41:26.902Z
+                    estimatedDeliveryTime: 2023-11-30T15:01:57.902Z
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+  /delivery/{deliveryId}:
+    get:
+      tags:
+        - Delivery
+      summary: Get delivery
+      description: Get delivery by delivery id
+      operationId: getDeliveryById
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+        - name: deliveryId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 0978
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+                example:
+                  deliveryId: 0978
+                  orderId: 30112399
+                  vendorId: 158
+                  courierId: 1816
+                  rating: 0
+                  vendorLocation:
+                    longitude: 52.02
+                    latitude: 4.37
+                  times:
+                    estimatedPickupTime: 2023-11-30T14:41:26.902Z
+                    estimatedDeliveryTime: 2023-11-30T15:01:57.902Z
+                    actualPickupTime: 2023-11-30T14:44:00.902Z
+                    actualDeliveryTime: 2023-11-30T15:05:36.902Z
+                    delays:
+                      description: Heavy Traffic
+                      minutesLost: 4
+                      requiresCustomerService: false
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+    put:
+      tags:
+        - Delivery
+      summary: Update delivery
+      description: Update delivery. Used for rating and assigning courier
+      operationId: updateDelivery
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+        - name: deliveryId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 0978
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courierId:
+                  $ref: '#/components/schemas/id'
+                  example: 1816
+                rating:
+                  type: integer
+                  example: 8
+                deliveryTimes:
+                  $ref: '#/components/schemas/DeliveryTimes'
+                  example:
+                    estimatedPickupTime: 2023-11-30T14:41:26.902Z
+                    estimatedDeliveryTime: 2023-11-30T15:01:57.902Z
+                    actualPickupTime: 2023-11-30T14:44:00.902Z
+                    actualDeliveryTime: 2023-11-30T15:05:36.902Z
+                    delays:
+                      description: Heavy Traffic
+                      minutesLost: 4
+                      requiresCustomerService: false
+                status:
+                  type: string
+                  enum:
+                    - unpaid
+                    - pending
+                    - accepted
+                    - rejected
+                    - preparing
+                    - given-to-courier
+                    - in-delivery
+                    - delivered
+                  example: delivered
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+                example:
+                  deliveryId: 0978
+                  orderId: 30112399
+                  vendorId: 158
+                  courierId: 1816
+                  rating: 8
+                  vendorLocation:
+                    longitude: 52.02
+                    latitude: 4.37
+                  times:
+                    estimatedPickupTime: 2023-11-30T14:41:26.902Z
+                    estimatedDeliveryTime: 2023-11-30T15:01:57.902Z
+                    actualPickupTime: 2023-11-30T14:44:00.902Z
+                    actualDeliveryTime: 2023-11-30T15:05:36.902Z
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+  /delivery/unassigned:
+    get:
+      tags:
+        - Delivery
+        - Courier
+      summary: Gets all ids of deliveries without a courier
+      operationId: getUnassignedDeliveries
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/id'
+                  example: [0979,0980,0981]
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+  /isInRange:
+    get:
+      tags:
+        - Vendor
+      summary: Is customer in range from vendor
+      operationId: isCustomerInRangeFromVendor
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+        - name: vendorId
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 158
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                coordinates:
+                  $ref: '#/components/schemas/Location'
+                  example:
+                    longitude: 52.02
+                    latitude: 4.37
+                address:
+                  $ref: '#/components/schemas/Address'
+                  example:
+                    country: Netherlands
+                    city: Delft
+                    address: Mekelweg 5
+                    postalCode: 2628CD
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isInRange:
+                    type: boolean
+                    example: true
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+  /delivery-radiuses:
+    get:
+      tags:
+        - Vendor
+      summary: Get all delivery radiuses
+      operationId: getDeliveryRadiuses
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    vendorID:
+                      $ref: '#/components/schemas/id'
+                    radius:
+                      type: integer
+                  example:
+                    - vendorID: 158
+                      radius: 75
+                    - vendorID: 159
+                      radius: 45
+
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+  /vendor/{vendorId}/delivery-radius:
+    get:
+      tags:
+        - Vendor
+      summary: Get vendor delivery radius
+      operationId: getVendorDeliveryRadius
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+        - name: vendorId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 158
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  radius:
+                    type: integer
+                    example: 75
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+    put:
+      tags:
+        - Vendor
+      summary: Update vendor delivery radius
+      operationId: updateVendorDeliveryRadius
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+        - name: vendorId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 158
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                radius:
+                  type: integer
+                  example: 65
+              required:
+                - radius
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  radius:
+                    type: integer
+                    example: 65
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+  /vendor/{vendorId}/couriers:
+    get:
+      tags:
+        - Vendor
+        - Courier
+      summary: Get vendor specific couriers
+      operationId: getCouriersByVendor
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+        - name: vendorId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 158
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PrivateCourier'
+                  example:
+                    - courierId: 1816
+                      vendorId: 158
+                    - courierId: 1817
+                      vendorId: 159
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+  /private-courier/{courierId}:
+    get:
+      tags:
+        - Courier
+      summary: Get courier by id
+      operationId: getCourier
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+        - name: courierId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1816
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateCourier'
+                example:
+                  courierId: 1816
+                  vendorId: 158
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+    put:
+      tags:
+        - Courier
+      summary: Update courier
+      operationId: updateCourier
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1015
+        - name: courierId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 1816
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vendorId:
+                  $ref: '#/components/schemas/id'
+                  example: 158
+              required:
+                - vendorId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateCourier'
+                example:
+                  courierId: 1816
+                  vendorId: 158
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+  /default-radius:
+    get:
+      tags:
+        - Admin
+      summary: Get default radius that is currently set
+      operationId: getCurrentDefaultRadius
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 0001
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  radius:
+                    type: integer
+                    example: 50
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+    put:
+      tags:
+        - Admin
+      summary: Set default radius
+      operationId: setDefaultRadius
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 0001
+        - name: radius
+          in: query
+          required: true
+          schema:
+            type: object
+            properties:
+              radius:
+                type: integer
+                example: 55
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  radius:
+                    type: integer
+                    example: 55
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+  /analytics:
+    get:
+      tags:
+        - Admin
+      summary: Get analytics
+      operationId: getAnalytics
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+            example: 0001
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analytics'
+                example:
+                  avgDeliveryTime: 25
+                  driverEfficiency: 98.05
+                  completedDeliveries: 54
+                  issues: [late, late, food arrived cold]
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 400
+                  message: Bad Request
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 403
+                  message: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                example:
+                  code: 404
+                  message: Not Found
+
+components:
+  schemas:
+    id:
+      type: integer
+      format: int64
+    PrivateCourier:
+      type: object
+      properties:
+        courierId:
+          $ref: '#/components/schemas/id'
+        vendorId:
+          $ref: '#/components/schemas/id'
+          nullable: true
+    Delivery:
+      type: object
+      properties:
+        deliveryId:
+          $ref: '#/components/schemas/id'
+        orderId:
+          $ref: '#/components/schemas/id'
+        vendorId:
+          $ref: '#/components/schemas/id'
+        courierId:
+          $ref: '#/components/schemas/id'
+        rating:
+          type: integer
+        vendorLocation:
+          $ref: '#/components/schemas/Location'
+        times:
+          $ref: '#/components/schemas/DeliveryTimes'
+    Location:
+      type: object
+      properties:
+        latitude:
+          type: double
+        longitude:
+          type: double
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+    Analytics:
+      type: object
+      properties:
+        avgDeliveryTime:
+          type: integer
+        driverEfficiency:
+          type: number
+        completedDeliveries:
+          type: integer
+        issues:
+          type: array
+          items:
+            type: string
+    DeliveryTimes:
+      type: object
+      properties:
+        estimatedPickupTime:
+          type: string
+          format: date-time
+        estimatedDeliveryTime:
+          type: string
+          format: date-time
+        actualPickupTime:
+          type: string
+          format: date-time
+        actualDeliveryTime:
+          type: string
+          format: date-time
+        delays:
+          type: array
+          items:
+            $ref: '#/components/schemas/Delay'
+    Delay:
+      type: object
+      properties:
+        description:
+          type: string
+        minutesLost:
+          type: integer
+        requiresCustomerService:
+          type: boolean
+    Address:
+      type: object
+      properties:
+        country:
+          type: string
+        city:
+          type: string
+        address:
+          type: string
+        postalCode:
+          type: string
