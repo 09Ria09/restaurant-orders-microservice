@@ -200,7 +200,7 @@ public class VendorFacade implements VendorFacadeInterface {
             List<String> allergies = userMicroservice.getCustomerAllergies(userId);
 
             return dishes.stream()
-                .filter(dish -> dish.getAllergens() == null || !disjoint(dish.getAllergens(), allergies))
+                .filter(dish -> dish.getAllergens() == null || disjoint(dish.getAllergens(), allergies))
                 .collect(Collectors.toList());
 
         } catch (ApiException ignored) {
