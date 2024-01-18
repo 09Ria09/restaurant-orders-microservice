@@ -1,9 +1,12 @@
 package nl.tudelft.sem.orders.adapters.mocks;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import nl.tudelft.sem.delivery.ApiException;
 import nl.tudelft.sem.delivery.model.Delivery;
+import nl.tudelft.sem.delivery.model.DeliveryTimes;
 import nl.tudelft.sem.delivery.model.GetDeliveryRadiuses200ResponseInner;
 import nl.tudelft.sem.orders.ports.output.DeliveryMicroservice;
 
@@ -36,7 +39,18 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
 
     @Override
     public Delivery getDelivery(long userId, long orderId) {
-        return null;
+        Delivery delivery = new Delivery();
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        Date twelve = calendar.getTime();
+        DeliveryTimes twelveTime = new DeliveryTimes();
+        twelveTime.setActualPickupTime(twelve);
+
+        delivery.setDeliveryId(orderId);
+        delivery.setTimes(twelveTime);
+        return delivery;
     }
 
 }
