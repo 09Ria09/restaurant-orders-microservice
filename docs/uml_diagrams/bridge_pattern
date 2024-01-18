@@ -1,0 +1,15 @@
+@startuml
+
+class OrderController
+interface OrderFacadeInterface
+class OrderFacade
+interface OrderDatabase
+class OrderDatabaseAdapter
+
+OrderDatabase <|.. OrderDatabaseAdapter
+OrderFacadeInterface <|.. OrderFacade
+
+OrderController o-up- OrderFacadeInterface
+OrderFacade o-up- OrderDatabase
+
+@enduml

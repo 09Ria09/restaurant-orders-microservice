@@ -79,10 +79,6 @@ public class OrderFacade implements OrderFacadeInterface {
         if (!userMicroservice.isCustomer(customerId)) {
             throw new ForbiddenException();
         }
-        if (!locationService.isCloseBy(userMicroservice.getCustomerAddress(customerId),
-            userMicroservice.getVendorAddress(vendorId))) {
-            throw new MalformedException();
-        }
 
         Order order = new Order();
         order.setCustomerID(customerId);
