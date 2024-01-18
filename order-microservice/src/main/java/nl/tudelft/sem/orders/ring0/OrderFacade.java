@@ -161,7 +161,10 @@ public class OrderFacade implements OrderFacadeInterface {
             throw new NotFoundException();
         }
 
+        Order newOrder = new Order();
+
         // Check if all dishes still exist
+        ArrayList<OrderDishesInner> dishes = new ArrayList<>();
         for (OrderDishesInner orderDish : order.getDishes()) {
             Long dishID = orderDish.getDish().getDishID();
             Dish dish = dishDatabase.getById(dishID);
@@ -169,12 +172,15 @@ public class OrderFacade implements OrderFacadeInterface {
             if (dish == null || dish.getVendorID() != vendorID) {
                 throw new NotFoundException();
             }
+
+            OrderDishesInner newOrderDish = new OrderDishesInner(dish, orderDish.getAmount());
+            newOrderDish.setOrder(newOrder);
+            dishes.add(newOrderDish);
         }
 
-        Order newOrder = new Order();
         newOrder.setCustomerID(userID);
         newOrder.setVendorID(vendorID);
-        newOrder.setDishes(order.getDishes());
+        newOrder.setDishes(dishes);
         newOrder.setLocation(userAddress);
         newOrder.setStatus(Order.StatusEnum.UNPAID);
 
