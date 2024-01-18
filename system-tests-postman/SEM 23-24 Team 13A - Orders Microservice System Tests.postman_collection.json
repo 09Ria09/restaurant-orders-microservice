@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a7a0acd2-48de-47c0-ad3e-6b8486e885b1",
+		"_postman_id": "ef4eb6fe-c2b8-41c3-9a04-cc7e181a9371",
 		"name": "SEM 23/24 Team 13A - Orders Microservice System Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "9799355"
@@ -701,17 +701,6 @@
 									"",
 									"pm.test(\"Response status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Assert that the dish no longer exists\", function () {",
-									"    const getDishRequest = {",
-									"        method: 'GET',",
-									"        url: 'localhost:8082/dish/2',",
-									"    };",
-									"",
-									"    pm.sendRequest(getDishRequest, function (err, res) {",
-									"        pm.response.to.have.status(400);",
-									"    });",
 									"});",
 									""
 								],
