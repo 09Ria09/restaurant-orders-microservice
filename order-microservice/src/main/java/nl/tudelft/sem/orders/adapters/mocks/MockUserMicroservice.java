@@ -54,17 +54,17 @@ public class MockUserMicroservice implements UserMicroservice {
 
     @Override
     public boolean isCustomer(long userId) throws ApiException {
-        return true;
+        return userId == 1;
     }
 
     @Override
     public boolean isVendor(long userId) throws ApiException {
-        return true;
+        return userId == 2;
     }
 
     @Override
     public boolean isAdmin(long userId) throws ApiException {
-        return false;
+        return userId == 3;
     }
 
     @Override
