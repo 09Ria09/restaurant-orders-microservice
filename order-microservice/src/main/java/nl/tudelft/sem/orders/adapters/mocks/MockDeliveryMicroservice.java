@@ -39,8 +39,6 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
 
     @Override
     public Delivery getDelivery(long userId, long orderId) {
-        Delivery delivery = new Delivery();
-
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
         calendar.set(Calendar.HOUR_OF_DAY, 12);
@@ -48,6 +46,7 @@ public class MockDeliveryMicroservice implements DeliveryMicroservice {
         DeliveryTimes twelveTime = new DeliveryTimes();
         twelveTime.setActualPickupTime(twelve);
 
+        Delivery delivery = new Delivery();
         delivery.setDeliveryId(orderId);
         delivery.setTimes(twelveTime);
         return delivery;
