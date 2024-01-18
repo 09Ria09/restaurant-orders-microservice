@@ -51,8 +51,6 @@ public class OrderFacadeMockitoTest {
         userMicroservice = mock(UserMicroservice.class);
         locationService = mock(LocationService.class);
 
-
-        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(userMicroservice.isCustomer(anyLong())).thenReturn(true);
         orderModification = new OrderModification(orderDatabase, dishDatabase, userMicroservice);
 
@@ -95,19 +93,6 @@ public class OrderFacadeMockitoTest {
         assertEquals(location, result.getLocation());
         assertTrue(result.getDishes().isEmpty());
         verify(orderDatabase, times(1)).save(orderNoId);
-    }
-
-    @Test
-    void createOrderNotClose() {
-        final long customerId = 1L;
-        final long vendorId = 2L;
-
-        when(locationService.isCloseBy(any(), any())).thenReturn(false);
-
-        assertThrows(MalformedException.class,
-            () -> orderFacade.createOrder(customerId, vendorId));
-
-        verify(orderDatabase, times(0)).save(any());
     }
 
 
@@ -529,7 +514,6 @@ public class OrderFacadeMockitoTest {
         when(userMicroservice.isVendor(2L)).thenReturn(true);
         when(userMicroservice.getCustomerAddress(1L)).thenReturn(
             new Location().city("a"));
-        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(dish);
         when(orderDatabase.save(new Order().customerID(1L).vendorID(2L)
             .dishes(new ArrayList<>(List.of(dishInner)))
@@ -598,7 +582,6 @@ public class OrderFacadeMockitoTest {
 
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(2L)).thenReturn(true);
-        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(null);
 
         assertThrows(NotFoundException.class,
@@ -624,7 +607,6 @@ public class OrderFacadeMockitoTest {
 
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(2L)).thenReturn(true);
-        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(new Dish(1L,
             3L,
             "name",
