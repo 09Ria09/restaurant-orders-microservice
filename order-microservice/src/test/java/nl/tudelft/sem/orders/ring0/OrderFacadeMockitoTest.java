@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import nl.tudelft.sem.orders.domain.OrderDishesInnerRepository;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
@@ -43,6 +44,7 @@ public class OrderFacadeMockitoTest {
     private OrderFacade orderFacade;
     private LocationService locationService;
     private OrderModification orderModification;
+    private OrderDishesInnerRepository orderDishesInnerRepository;
 
     @BeforeEach
     void setUp() throws ApiException {
@@ -50,11 +52,12 @@ public class OrderFacadeMockitoTest {
         dishDatabase = mock(DishDatabase.class);
         userMicroservice = mock(UserMicroservice.class);
         locationService = mock(LocationService.class);
+        orderDishesInnerRepository = mock(OrderDishesInnerRepository.class);
 
 
         when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(userMicroservice.isCustomer(anyLong())).thenReturn(true);
-        orderModification = new OrderModification(orderDatabase, dishDatabase, userMicroservice);
+        orderModification = new OrderModification(orderDatabase, dishDatabase, userMicroservice, orderDishesInnerRepository);
 
         orderFacade = new OrderFacade(
             orderDatabase,
@@ -62,7 +65,8 @@ public class OrderFacadeMockitoTest {
             userMicroservice,
             locationService,
             mock(PaymentProcess.class),
-            orderModification
+            orderModification,
+            orderDishesInnerRepository
         );
     }
 
