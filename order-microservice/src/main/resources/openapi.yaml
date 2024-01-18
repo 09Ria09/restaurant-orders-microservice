@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: YumYumNow Order Microservice
   description: This is the microservice responsible for managing all the orders in YumYumNow system.
@@ -573,19 +573,10 @@ components:
           $ref: '#/components/schemas/IdType'
         dishes:
           type: array
-          x-field-extra-annotation: "@javax.persistence.ManyToMany(targetEntity=Dish.class, fetch=javax.persistence.FetchType.EAGER)"
+          x-field-extra-annotation: "@javax.persistence.OneToMany(cascade = javax.persistence.CascadeType.ALL, mappedBy = \"order\", orphanRemoval = true)\n  @com.fasterxml.jackson.annotation.JsonManagedReference"
           description: List of dishes in the order with their amounts (all from the same restaurant).
           items:
-            type: object
-            required:
-              - dish
-              - amount
-            properties:
-              dish:
-                $ref: '#/components/schemas/Dish'
-              amount:
-                type: integer
-                example: 2
+            $ref: '#/components/schemas/OrderDishesInner'
         price:
           type: number
           format: float
@@ -711,3 +702,24 @@ components:
                 $ref: '#/components/schemas/IdType'
               favoriteDishID:
                 $ref: '#/components/schemas/IdType'
+    OrderDishesInner:
+      type: object
+      x-class-extra-annotation: "@javax.persistence.Entity\n  @com.fasterxml.jackson.annotation.JsonIdentityInfo(generator = com.fasterxml.jackson.annotation.ObjectIdGenerators.PropertyGenerator.class, property = \"orderDishesID\")"
+      required:
+        - dish
+        - amount
+      properties:
+        orderDishesID:
+          type: integer
+          x-field-extra-annotation: "@javax.persistence.Id\n  @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)"
+          format: int64
+          example: 2115
+        order:
+          $ref: '#/components/schemas/Order'
+          x-field-extra-annotation: "@javax.persistence.ManyToOne\n  @javax.persistence.JoinColumn(name = \"orderid\")\n"
+        dish:
+          $ref: '#/components/schemas/Dish'
+          x-field-extra-annotation: "@javax.persistence.ManyToOne\n  @javax.persistence.JoinColumn(name = \"dishid\")\n"
+        amount:
+          type: integer
+          example: 2

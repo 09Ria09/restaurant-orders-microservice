@@ -8,7 +8,7 @@ buildscript {
 	}
 	dependencies {
 		classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.5.2'
-		classpath "org.openapitools:openapi-generator-gradle-plugin:7.0.1"
+		classpath "org.openapitools:openapi-generator-gradle-plugin:7.2.0"
 	}
 }
 
@@ -28,7 +28,7 @@ plugins {
 	// PITest
 	id 'info.solidsoft.pitest' version '1.5.2'
 
-	id 'org.openapi.generator' version '7.0.1'
+	id 'org.openapi.generator' version '7.2.0'
 }
 
 group = 'nl.tudelft.sem.orders'
