@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import nl.tudelft.sem.orders.domain.OrderDishesInnerRepository;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
@@ -43,6 +44,7 @@ public class OrderFacadeMockitoTest {
     private OrderFacade orderFacade;
     private LocationService locationService;
     private OrderModification orderModification;
+    private OrderDishesInnerRepository orderDishesInnerRepository;
 
     @BeforeEach
     void setUp() throws ApiException {
@@ -50,11 +52,15 @@ public class OrderFacadeMockitoTest {
         dishDatabase = mock(DishDatabase.class);
         userMicroservice = mock(UserMicroservice.class);
         locationService = mock(LocationService.class);
+        orderDishesInnerRepository = mock(OrderDishesInnerRepository.class);
 
-
-        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(userMicroservice.isCustomer(anyLong())).thenReturn(true);
-        orderModification = new OrderModification(orderDatabase, dishDatabase, userMicroservice);
+        orderModification = new OrderModification(
+            orderDatabase,
+            dishDatabase,
+            userMicroservice,
+            orderDishesInnerRepository
+        );
 
         orderFacade = new OrderFacade(
             orderDatabase,
@@ -62,7 +68,8 @@ public class OrderFacadeMockitoTest {
             userMicroservice,
             locationService,
             mock(PaymentProcess.class),
-            orderModification
+            orderModification,
+            orderDishesInnerRepository
         );
     }
 
@@ -95,19 +102,6 @@ public class OrderFacadeMockitoTest {
         assertEquals(location, result.getLocation());
         assertTrue(result.getDishes().isEmpty());
         verify(orderDatabase, times(1)).save(orderNoId);
-    }
-
-    @Test
-    void createOrderNotClose() {
-        final long customerId = 1L;
-        final long vendorId = 2L;
-
-        when(locationService.isCloseBy(any(), any())).thenReturn(false);
-
-        assertThrows(MalformedException.class,
-            () -> orderFacade.createOrder(customerId, vendorId));
-
-        verify(orderDatabase, times(0)).save(any());
     }
 
 
@@ -516,23 +510,24 @@ public class OrderFacadeMockitoTest {
             "description",
             new ArrayList<>(),
             1.0f);
-        OrderDishesInner dishInner = new OrderDishesInner(dish, 1);
         Order order = new Order(1L,
             1L,
             2L,
-            new ArrayList<>(List.of(dishInner)),
+            null,
             1f,
             null,
             Order.StatusEnum.ACCEPTED);
+        OrderDishesInner dishInner = new OrderDishesInner(dish, 1);
+        dishInner.setOrder(order);
+        order.setDishes(new ArrayList<>(List.of(dishInner)));
 
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(2L)).thenReturn(true);
         when(userMicroservice.getCustomerAddress(1L)).thenReturn(
             new Location().city("a"));
-        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(dish);
         when(orderDatabase.save(new Order().customerID(1L).vendorID(2L)
-            .dishes(new ArrayList<>(List.of(dishInner)))
+            .dishes(any())
             .location(new Location().city("a")).status(
                 Order.StatusEnum.UNPAID))).thenReturn(new Order(2L,
             1L,
@@ -598,7 +593,6 @@ public class OrderFacadeMockitoTest {
 
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(2L)).thenReturn(true);
-        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(null);
 
         assertThrows(NotFoundException.class,
@@ -624,7 +618,6 @@ public class OrderFacadeMockitoTest {
 
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(2L)).thenReturn(true);
-        when(locationService.isCloseBy(any(), any())).thenReturn(true);
         when(dishDatabase.getById(1L)).thenReturn(new Dish(1L,
             3L,
             "name",

@@ -10,10 +10,4 @@ public class MockLocationAdapter implements LocationService {
     public GeoLocation getGeoLocation(Location location) {
         return new GeoLocation(1, 2);
     }
-
-    @Override
-    public boolean isCloseBy(Location a, Location b) {
-        Random random = new Random();
-        return random.nextBoolean();
-    }
 }

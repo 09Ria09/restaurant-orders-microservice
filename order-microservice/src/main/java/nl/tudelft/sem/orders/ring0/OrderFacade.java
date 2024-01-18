@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import nl.tudelft.sem.orders.domain.OrderDishesInnerRepository;
 import nl.tudelft.sem.orders.model.Dish;
 import nl.tudelft.sem.orders.model.Location;
 import nl.tudelft.sem.orders.model.Order;
@@ -32,6 +33,7 @@ public class OrderFacade implements OrderFacadeInterface {
     private final transient LocationService locationService;
     private final transient PaymentProcess paymentProcess;
     private final transient OrderModification orderModification;
+    private final transient OrderDishesInnerRepository orderDishesInnerRepository;
 
     /**
      * Creates a new order facade.
@@ -47,7 +49,8 @@ public class OrderFacade implements OrderFacadeInterface {
                        UserMicroservice userMicroservice,
                        LocationService locationService,
                        PaymentProcess paymentProcess,
-                       OrderModification orderModification) {
+                       OrderModification orderModification,
+                       OrderDishesInnerRepository orderDishesInnerRepository) {
         //CHECKSTYLE:ON
         this.orderDatabase = orderDatabase;
         this.dishDatabase = dishDatabase;
@@ -55,6 +58,7 @@ public class OrderFacade implements OrderFacadeInterface {
         this.locationService = locationService;
         this.paymentProcess = paymentProcess;
         this.orderModification = orderModification;
+        this.orderDishesInnerRepository = orderDishesInnerRepository;
     }
 
     @Override
@@ -74,10 +78,6 @@ public class OrderFacade implements OrderFacadeInterface {
         throws ApiException, MalformedException, ForbiddenException {
         if (!userMicroservice.isCustomer(customerId)) {
             throw new ForbiddenException();
-        }
-        if (!locationService.isCloseBy(userMicroservice.getCustomerAddress(customerId),
-            userMicroservice.getVendorAddress(vendorId))) {
-            throw new MalformedException();
         }
 
         Order order = new Order();
@@ -161,7 +161,10 @@ public class OrderFacade implements OrderFacadeInterface {
             throw new NotFoundException();
         }
 
+        Order newOrder = new Order();
+
         // Check if all dishes still exist
+        ArrayList<OrderDishesInner> dishes = new ArrayList<>();
         for (OrderDishesInner orderDish : order.getDishes()) {
             Long dishID = orderDish.getDish().getDishID();
             Dish dish = dishDatabase.getById(dishID);
@@ -169,12 +172,15 @@ public class OrderFacade implements OrderFacadeInterface {
             if (dish == null || dish.getVendorID() != vendorID) {
                 throw new NotFoundException();
             }
+
+            OrderDishesInner newOrderDish = new OrderDishesInner(dish, orderDish.getAmount());
+            newOrderDish.setOrder(newOrder);
+            dishes.add(newOrderDish);
         }
 
-        Order newOrder = new Order();
         newOrder.setCustomerID(userID);
         newOrder.setVendorID(vendorID);
-        newOrder.setDishes(order.getDishes());
+        newOrder.setDishes(dishes);
         newOrder.setLocation(userAddress);
         newOrder.setStatus(Order.StatusEnum.UNPAID);
 
