@@ -112,7 +112,7 @@ class VendorLogicMockitoTest {
         List<Dish> result = vendorFacade.getDishesRemoveUserAllergies(vendorId, userId);
 
         assertEquals(2, result.size());
-        assertEquals(badDish, result.get(0));
+        assertEquals(goodDish, result.get(0));
         assertEquals(nullDish, result.get(1));
     }
 
