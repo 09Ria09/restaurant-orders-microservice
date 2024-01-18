@@ -155,6 +155,7 @@ tasks.register('ourGenerate', GenerateTask) {
 			interfaceOnly: 'true'
 	])
 	skipOperationExample.set(true)
+	skipValidateSpec.set(true)
 }
 
 tasks.register('userGenerate', GenerateTask) {
