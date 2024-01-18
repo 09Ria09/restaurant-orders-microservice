@@ -55,7 +55,12 @@ public class OrderFacadeMockitoTest {
         orderDishesInnerRepository = mock(OrderDishesInnerRepository.class);
 
         when(userMicroservice.isCustomer(anyLong())).thenReturn(true);
-        orderModification = new OrderModification(orderDatabase, dishDatabase, userMicroservice, orderDishesInnerRepository);
+        orderModification = new OrderModification(
+            orderDatabase,
+            dishDatabase,
+            userMicroservice,
+            orderDishesInnerRepository
+        );
 
         orderFacade = new OrderFacade(
             orderDatabase,
