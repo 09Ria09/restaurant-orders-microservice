@@ -510,14 +510,16 @@ public class OrderFacadeMockitoTest {
             "description",
             new ArrayList<>(),
             1.0f);
-        OrderDishesInner dishInner = new OrderDishesInner(dish, 1);
         Order order = new Order(1L,
             1L,
             2L,
-            new ArrayList<>(List.of(dishInner)),
+            null,
             1f,
             null,
             Order.StatusEnum.ACCEPTED);
+        OrderDishesInner dishInner = new OrderDishesInner(dish, 1);
+        dishInner.setOrder(order);
+        order.setDishes(new ArrayList<>(List.of(dishInner)));
 
         when(orderDatabase.getById(1L)).thenReturn(order);
         when(userMicroservice.isVendor(2L)).thenReturn(true);
@@ -525,7 +527,7 @@ public class OrderFacadeMockitoTest {
             new Location().city("a"));
         when(dishDatabase.getById(1L)).thenReturn(dish);
         when(orderDatabase.save(new Order().customerID(1L).vendorID(2L)
-            .dishes(new ArrayList<>(List.of(dishInner)))
+            .dishes(any())
             .location(new Location().city("a")).status(
                 Order.StatusEnum.UNPAID))).thenReturn(new Order(2L,
             1L,
