@@ -1,0 +1,981 @@
+{
+	"info": {
+		"_postman_id": "a7a0acd2-48de-47c0-ad3e-6b8486e885b1",
+		"name": "SEM 23/24 Team 13A - Orders Microservice System Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9799355"
+	},
+	"item": [
+		{
+			"name": "Customer placing orders",
+			"item": [
+				{
+					"name": "Search a list of vendors in a fixed radius around the customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required Content-Type header with value 'application/json'\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response body is an array with at least one element\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Verify the value of the first element in the array is valid\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    pm.expect(responseData[0]).to.equal(2);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userID",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"country\": \"NL\",\n    \"city\": \"Delft\",\n    \"address\": \"Kanalweg 1\",\n    \"postalCode\": \"1234AB\",\n    \"additionalRemarks\": \"The first business on Stolarska on the left side, going from the small market square.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8082/vendor/radius/?search=TestVendor",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"vendor",
+								"radius",
+								""
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "TestVendor"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add a dish to a vendor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+									"    ",
+									"    responseData.forEach(function(dish) {",
+									"        pm.expect(dish).to.include.all.keys('dishID', 'vendorID', 'name', 'description', 'ingredients', 'price', 'picture', 'allergens');",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Name is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"",
+									"  pm.expect(responseData).to.be.an('array');",
+									"  responseData.forEach(function(dish) {",
+									"    pm.expect(dish.name).to.be.a('string').and.to.equal('Salad')",
+									"  });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Ingredients is an array\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function(dish) {",
+									"        pm.expect(dish.ingredients).to.be.an('array');",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Price is a non-negative number\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    responseData.forEach(function(dish) {",
+									"        pm.expect(dish.price).to.be.a('number').and.to.equal(5);",
+									"    });",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"dishID\": 1,\n    \"vendorID\": 2,\n    \"name\": \"Salad\",\n    \"description\": \"Classic Cesar Salad\",\n    \"ingredients\": [\n        \"lettuce\",\n        \"cheese\"\n    ],\n    \"price\": 5,\n    \"picture\": \"string\",\n    \"allergens\": [\n        \"string\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8082/vendor/dish/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"vendor",
+								"dish",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "View a list of dishes from a vendor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Name is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function(dish) {",
+									"        pm.expect(dish.name).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Name should not be empty\");",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Price is a non-negative number\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('array');",
+									"  responseData.forEach(function(dish) {",
+									"    pm.expect(dish.price).to.be.a('number').and.to.be.at.least(0);",
+									"  });",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8082/vendor/dish/2/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"vendor",
+								"dish",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a new order for a vendor of choice",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.orderID).to.exist;",
+									"    pm.expect(responseData.customerID).to.exist;",
+									"    pm.expect(responseData.vendorID).to.exist;",
+									"    pm.expect(responseData.dishes).to.exist;",
+									"    pm.expect(responseData.price).to.exist;",
+									"    pm.expect(responseData.location).to.exist;",
+									"    pm.expect(responseData.status).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Location includes country, city, address, postalCode, and additionalRemarks\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.location).to.have.property('country');",
+									"    pm.expect(responseData.location).to.have.property('city');",
+									"    pm.expect(responseData.location).to.have.property('address');",
+									"    pm.expect(responseData.location).to.have.property('postalCode');",
+									"    pm.expect(responseData.location).to.have.property('additionalRemarks');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Dishes array is present and contains expected number of elements\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.dishes).to.exist.and.to.be.an('array');",
+									"    pm.expect(responseData.dishes).to.have.lengthOf(0);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Price should be a non-negative number\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.price).to.be.a('number');",
+									"    pm.expect(responseData.price).to.be.at.least(0, \"Price should be a non-negative number\");",
+									"});",
+									"",
+									"pm.test(\"customerID and vendorID should match\", function () {",
+									"     var responseData = pm.response.json();",
+									"     pm.expect(responseData.customerID).to.equal(1);",
+									"     pm.expect(responseData.vendorID).to.equal(2);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userID",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8082/order/?vendorID=2",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"order",
+								""
+							],
+							"query": [
+								{
+									"key": "vendorID",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add dishes to an order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required field - price\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.price).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Price is a non-negative number\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData.price).to.be.a('number');",
+									"  pm.expect(responseData.price).to.equal(10.0)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "userID",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"dishes\": [\n    {\n      \"id\": 1,\n      \"quantity\": 2\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8082/order/1/dishes/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"order",
+								"1",
+								"dishes",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pay for order and update its status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Order status have been changed to paid\", function () {",
+									"    const getOrderRequest = {",
+									"        method: 'GET',",
+									"        url: 'localhost:8082/orders/1/',",
+									"    };",
+									"",
+									"    pm.sendRequest(getOrderRequest, function (err, res) {",
+									"        pm.response.to.have.status(200);",
+									"        pm.response.to.have.jsonBody({ status: 'paid' });",
+									"    });",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userID",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"paymentConfirmation\": \"AAAZWUdyoNCMpam1v2C2nqja3lXLwV4\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8082/order/1/pay/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"order",
+								"1",
+								"pay",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reorder past order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.include.all.keys('orderID', 'customerID', 'vendorID', 'dishes', 'price', 'location', 'specialRequirements', 'status', 'rating', 'courierRating');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Location object is present and contains expected fields\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.location).to.exist;",
+									"  pm.expect(responseData.location).to.have.property('country');",
+									"  pm.expect(responseData.location).to.have.property('city');",
+									"  pm.expect(responseData.location).to.have.property('address');",
+									"  pm.expect(responseData.location).to.have.property('postalCode');",
+									"  pm.expect(responseData.location).to.have.property('additionalRemarks');",
+									"});",
+									"",
+									"",
+									"pm.test(\"IDs have been correctly set\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.orderID).to.equal(2);",
+									"    pm.expect(responseData.customerID).to.equal(1);",
+									"    pm.expect(responseData.vendorID).to.equal(2);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "userID",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8082/order/1/reorder/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"order",
+								"1",
+								"reorder",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Vendor managing offerings",
+			"item": [
+				{
+					"name": "Add a dish to vendor offerings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"  pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function(dish) {",
+									"        pm.expect(dish).to.include.all.keys('dishID', 'vendorID', 'name', 'description', 'ingredients', 'price', 'picture', 'allergens');",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Name is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function(dish) {",
+									"        pm.expect(dish.name).to.be.a('string').and.to.equal('Guacamole')",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Ingredients is an array and is not empty\", function () {",
+									"  const responseData = pm.response.json();",
+									"",
+									"  pm.expect(responseData).to.be.an('array');",
+									"  responseData.forEach(function(dish) {",
+									"    pm.expect(dish.ingredients).to.be.an('array').and.to.have.lengthOf.at.least(1, \"Ingredients should not be empty\");",
+									"  });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Price is a non-negative number\", function () {",
+									"  const responseData = pm.response.json();",
+									"",
+									"  responseData.forEach(function(dish) {",
+									"    pm.expect(dish.price).to.be.a('number');",
+									"    pm.expect(dish.price).to.be.equal(10);",
+									"  });",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"dishID\": 2,\n    \"vendorID\": 2,\n    \"name\": \"Guacamole\",\n    \"description\": \"Classic Guacamole Salad\",\n    \"ingredients\": [\n        \"lettuce\",\n        \"cheese\"\n    ],\n    \"price\": 10,\n    \"picture\": \"string\",\n    \"allergens\": [\n        \"string\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8082/vendor/dish/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"vendor",
+								"dish",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update a dish in vendor offerings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Dish has been updated\", function () {",
+									"    const getDishRequest = {",
+									"        method: 'GET',",
+									"        url: 'localhost:8082/dish/2/',",
+									"    };",
+									"",
+									"    pm.sendRequest(getDishRequest, function (err, res) {",
+									"        pm.response.to.have.status(200);",
+									"        pm.response.to.have.jsonBody({",
+									"            \"dishID\": 2,",
+									"            \"vendorID\": 2,",
+									"            \"name\": \"Nachos\",",
+									"            \"description\": \"Classic Nachos Salad\",",
+									"            \"ingredients\": [",
+									"                \"lettuce\",",
+									"                \"cheese\"",
+									"            ],",
+									"            \"price\": 15,",
+									"            \"picture\": \"string\",",
+									"            \"allergens\": [",
+									"                \"string\"",
+									"            ]",
+									"        });",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"dishID\": 2,\n    \"vendorID\": 2,\n    \"name\": \"Nachos\",\n    \"description\": \"Classic Nachos Salad\",\n    \"ingredients\": [\n        \"lettuce\",\n        \"cheese\"\n    ],\n    \"price\": 15,\n    \"picture\": \"string\",\n    \"allergens\": [\n        \"string\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8082/vendor/dish/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"vendor",
+								"dish",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove a dish from vendor offerings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Assert that the dish no longer exists\", function () {",
+									"    const getDishRequest = {",
+									"        method: 'GET',",
+									"        url: 'localhost:8082/dish/2',",
+									"    };",
+									"",
+									"    pm.sendRequest(getDishRequest, function (err, res) {",
+									"        pm.response.to.have.status(400);",
+									"    });",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "userID",
+								"value": "2",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8082/vendor/dish/2/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"vendor",
+								"dish",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get orders from a specified customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array of length 2\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an('array');",
+									"    pm.expect(pm.response.json()).to.have.length(2);",
+									"});",
+									"",
+									"pm.test(\"Each element in the array has orderID, customerID, vendorID and dishes\", function () {",
+									"    pm.response.json().forEach(function(order) {",
+									"        pm.expect(order).to.have.property('orderID');",
+									"        pm.expect(order).to.have.property('customerID');",
+									"        pm.expect(order).to.have.property('vendorID');",
+									"        pm.expect(order).to.have.property('dishes');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userID",
+								"value": "2",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8082/vendor/1/past/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"vendor",
+								"1",
+								"past",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get vendor analytics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Validate the orderVolume array\", function () {",
+									"    const responseData = pm.response.json()[0].orderVolume;",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function(item) {",
+									"        pm.expect(item).to.have.property('day').that.is.a('string');",
+									"        pm.expect(item).to.have.property('average').that.is.a('number');",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"PeakOrderingHours is an array with at least one element\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function(item) {",
+									"        pm.expect(item.peakOrderingHours).to.be.an('array').and.to.have.lengthOf.at.least(1);",
+									"    });",
+									"});",
+									"",
+									"pm.test(\"Average on Friday is equal to 2\", function () {",
+									"    var responseJSON = pm.response.json();",
+									"",
+									"    pm.expect(responseJSON).to.be.an('array');",
+									"",
+									"    responseJSON.forEach((item) => {",
+									"     if (item.orderVolume) {",
+									"        item.orderVolume.forEach((volume) => {",
+									"            if (volume.day === \"Friday\") {",
+									"             pm.expect(volume.average).to.equal(2);",
+									"            }",
+									"        });",
+									"     }",
+									"    });",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userID",
+								"value": "2",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8082/vendor/analytics/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"vendor",
+								"analytics",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin interactions",
+			"item": [
+				{
+					"name": "Get all orders in the system",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Order array is present and contains expected number of elements\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    pm.expect(responseData).to.have.length(2);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "userID",
+								"value": "3",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8082/order/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"order",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a customer's order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"  pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"  });",
+									"",
+									"pm.test(\"Response body is null\", function () {",
+									"    const responseData = xml2Json(pm.response.text());",
+									"    ",
+									"    pm.expect(responseData).to.be.null;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "userID",
+								"value": "3",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:8082/order/2/",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"order",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
