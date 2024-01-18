@@ -8,7 +8,7 @@ buildscript {
 	}
 	dependencies {
 		classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.5.2'
-		classpath "org.openapitools:openapi-generator-gradle-plugin:7.2.0"
+		classpath "org.openapitools:openapi-generator-gradle-plugin:7.0.1"
 	}
 }
 
@@ -28,7 +28,7 @@ plugins {
 	// PITest
 	id 'info.solidsoft.pitest' version '1.5.2'
 
-	id 'org.openapi.generator' version '7.2.0'
+	id 'org.openapi.generator' version '7.0.1'
 }
 
 group = 'nl.tudelft.sem.orders'
@@ -64,7 +64,6 @@ dependencies {
 	implementation 'jakarta.ws.rs:jakarta.ws.rs-api:3.1.0'
 	implementation 'io.gsonfire:gson-fire:1.9.0'
 	implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
-	implementation 'com.google.guava:guava:32.1.3-jre'
 
 
 	// Local test database (in-memory)
