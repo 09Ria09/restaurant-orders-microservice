@@ -1,9 +1,12 @@
 package nl.tudelft.sem.orders.ring0.methods;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import nl.tudelft.sem.orders.domain.OrderDishesInnerRepository;
 import nl.tudelft.sem.orders.model.Order;
 import nl.tudelft.sem.orders.model.OrderDishesInner;
 import nl.tudelft.sem.orders.model.OrderOrderIDDishesPutRequestDishesInner;
@@ -22,6 +25,7 @@ public class OrderModification {
     private final transient OrderDatabase orderDatabase;
     private final transient DishDatabase dishDatabase;
     private final transient UserMicroservice userMicroservice;
+    private final transient OrderDishesInnerRepository orderDishesInnerRepository;
 
     /**
      * Constructor for OrderModification Class.
@@ -32,10 +36,12 @@ public class OrderModification {
      */
     public OrderModification(OrderDatabase orderDatabase,
                              DishDatabase dishDatabase,
-                             UserMicroservice userMicroservice) {
+                             UserMicroservice userMicroservice,
+                             OrderDishesInnerRepository orderDishesInnerRepository) {
         this.orderDatabase = orderDatabase;
         this.dishDatabase = dishDatabase;
         this.userMicroservice = userMicroservice;
+        this.orderDishesInnerRepository = orderDishesInnerRepository;
     }
 
     /**
@@ -62,9 +68,13 @@ public class OrderModification {
 
         // Convert the list of IDs and amounts to a list of Dishes and amounts.
         try {
-            OrderDishesInner[] convertedDishes = dishes.stream()
-                    .map((dish) -> new OrderDishesInner(dishDatabase.getById(dish.getId()), dish.getQuantity()))
-                    .toArray(OrderDishesInner[]::new);
+            List<OrderDishesInner> convertedDishes = dishes.stream()
+                    .map((dish) -> {
+                        var inner = new OrderDishesInner(dishDatabase.getById(dish.getId()), dish.getQuantity());
+                        inner.setOrder(order);
+                        return inner;
+                    })
+                    .collect(Collectors.toList());
 
             // Check if the dishes belong to the vendor and calculate the total price.
             float totalPrice = 0;
@@ -78,7 +88,9 @@ public class OrderModification {
             }
 
             // Update the dishes.
-            order.setDishes(List.of(convertedDishes));
+            List<OrderDishesInner> orderDishesInners = order.getDishes();
+            orderDishesInners.clear();
+            orderDishesInners.addAll(convertedDishes);
             orderDatabase.save(order);
 
             // Return the price.
